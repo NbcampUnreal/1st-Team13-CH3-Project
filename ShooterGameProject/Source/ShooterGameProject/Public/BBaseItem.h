@@ -7,6 +7,7 @@
 #include "BItemInterface.h"  // 만들어둔 인터페이스 헤더 포함
 #include "BBaseItem.generated.h"
 
+class USphereComponent;
 UCLASS()
 class SHOOTERGAMEPROJECT_API ABBaseItem : public AActor, public IBItemInterface
 {
@@ -20,8 +21,22 @@ protected:
 	// 아이템 유형(타입)을 편집 가능하게 지정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	FName ItemType;
-
+	// 아이템 이름을 편집 가능하게 지정
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	FName ItemName;
+	// 아이템 이름을 편집 가능하게 지정
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	int32 ItemPrice;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Component")
+	USceneComponent* Scene;
+	// 충돌 컴포넌트 (플레이어 진입 범위 감지용)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Component")
+	USphereComponent* Collision;
+	// 아이템 시각 표현용 스태틱 메시
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Component")
+	UStaticMeshComponent* StaticMesh;
+	
 	virtual void BeginPlay() override;
 	// IItemInterface에서 요구하는 함수들을 반드시 구현
 	virtual void OnItemOverlap(
