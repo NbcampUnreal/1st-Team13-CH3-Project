@@ -10,12 +10,13 @@ class SHOOTERGAMEPROJECT_API ABGameMode : public AGameMode
 	GENERATED_BODY()
 public:
 	ABGameMode();
+	FTimerHandle LevelTimerHandle;
 	virtual void BeginPlay() override;
+
 	UFUNCTION(BlueprintCallable)
 	void StartLevel();
 	UFUNCTION(BlueprintCallable)
 	void StartGame();
-	FTimerHandle LevelTimerHandle;
 	UFUNCTION(BlueprintCallable)
 	void EnemyDefeated();
 	UFUNCTION(BlueprintCallable)
@@ -28,8 +29,6 @@ public:
 	void onDoorReached();
 	UFUNCTION(BlueprintCallable)
 	void NextLevel();
-	UFUNCTION(BlueprintCallable)
-	void EndGame(bool bIsVictory);
 	UFUNCTION(BlueprintCallable)
 	void EndGame();
 	UFUNCTION(BlueprintCallable)

@@ -1,13 +1,17 @@
 #include "BGameInstance.h"
-
+#include "BUIManager.h"
 
 UBGameInstance::UBGameInstance()
 {
-	//TotalScore = 0;
-	//HP = 0;
-	//µ· HP ÃÑ¾Ë ÀÎº¥ µîµî
+	UIManagerInstance = nullptr;
 }
 void UBGameInstance::Init()
 {
+	Super::Init();
+	UIManagerInstance = NewObject<UBUIManager>(this, UBUIManager::StaticClass());
+}
 
+UBUIManager* UBGameInstance::GetUIManagerInstance()
+{
+	return UIManagerInstance;
 }

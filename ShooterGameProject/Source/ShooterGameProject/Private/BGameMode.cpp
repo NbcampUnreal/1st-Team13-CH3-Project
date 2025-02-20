@@ -105,13 +105,6 @@ void ABGameMode::NextLevel() //다음 레벨로 이동
 	UGameplayStatics::OpenLevel(this, "NextLevelName"); //다음 레벨 이름 수정 必
 }
 
-void ABGameMode::EndGame(bool bIsVictory)
-{
-	if (bIsVictory)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Game Clear!")); //게임클리어? 수정必
-	}
-}
 void ABGameMode::EndGame()
 {
 	UE_LOG(LogTemp, Log, TEXT("Game Over! You Lose!")); // 게임오버

@@ -10,6 +10,7 @@ class SHOOTERGAMEPROJECT_API ABGameState : public AGameState
 	GENERATED_BODY()
 public:
 	ABGameState();
+	virtual void BeginPlay() override;
 
     UPROPERTY(VisibleAnyWhere, BlueprintReadOnly, Category = "GameState")
     int32 CurrentScore;
