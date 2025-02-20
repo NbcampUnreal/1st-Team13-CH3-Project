@@ -32,5 +32,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void EndGame();
 	UFUNCTION(BlueprintCallable)
-	void RestartGame();
+	void QuitGame();
+	virtual void RestartGame() override;
 };

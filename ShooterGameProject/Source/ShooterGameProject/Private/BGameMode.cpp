@@ -2,6 +2,7 @@
 #include "BGameState.h"
 #include "BPlayerController.h"
 #include "BCharacter.h"
+#include "BGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 
@@ -15,7 +16,17 @@ ABGameMode::ABGameMode()
 void ABGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-	StartLevel();
+
+	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
+	if (GameInstance && !GameInstance->HasTitleScreenBeenShown)
+	{
+		GameInstance->HasTitleScreenBeenShown = true;
+		GameInstance->GetUIManagerInstance()->EnterTitleScreen();
+	}
+	else
+	{
+		GameInstance->GetUIManagerInstance()->LevelStartTransition();
+	}
 }
 
 void ABGameMode::StartLevel()
@@ -95,7 +106,11 @@ void ABGameMode::onDoorReached() //문에 플레이어 도달 시 호출
 	ABGameState* BGameState = GetGameState<ABGameState>();
 	if (BGameState && BGameState->bIsDoorOpen)
 	{
-		UIManagerInstance->LevelEndTransition();
+		UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
+		if (GameInstance)
+		{
+			GameInstance->GetUIManagerInstance()->LevelEndTransition();
+		}
 	}
 }
 
@@ -107,11 +122,20 @@ void ABGameMode::NextLevel() //다음 레벨로 이동
 
 void ABGameMode::EndGame()
 {
-	UE_LOG(LogTemp, Log, TEXT("Game Over! You Lose!")); // 게임오버
-	RestartGame();
+	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
+	if (GameInstance)
+	{
+		GameInstance->GetUIManagerInstance()->EnterGameOverScreen();
+	}
 }
 
 void ABGameMode::RestartGame()
 {
 	UGameplayStatics::OpenLevel(this, "MainLevel"); // 메인레벨로 가서 메뉴띄우기
+}
+
+void ABGameMode::QuitGame()
+{
+	UWorld* World = GetWorld();
+	UKismetSystemLibrary::QuitGame(World, nullptr, EQuitPreference::Quit, false);
 }
