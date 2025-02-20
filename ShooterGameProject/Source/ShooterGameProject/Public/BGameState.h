@@ -9,4 +9,7 @@ class SHOOTERGAMEPROJECT_API ABGameState : public AGameState
 {
 	GENERATED_BODY()
 	
+
+protected:
+	virtual void BeginPlay() override;
 };
