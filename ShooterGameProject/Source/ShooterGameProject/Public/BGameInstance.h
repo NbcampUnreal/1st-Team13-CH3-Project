@@ -10,6 +10,7 @@ class SHOOTERGAMEPROJECT_API UBGameInstance : public UGameInstance
 	GENERATED_BODY()
 public:
 	UBGameInstance();
+	virtual void Init() override;
 /*
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameData")
 	int32 TotalScore;

@@ -3,6 +3,7 @@
 #include "BPlayerController.h"
 #include "BCharacter.h"
 #include "Kismet/GameplayStatics.h"
+#include "TimerManager.h"
 
 ABGameMode::ABGameMode()
 {
@@ -11,16 +12,40 @@ ABGameMode::ABGameMode()
 	GameStateClass = ABGameState::StaticClass();
 }
 
-void ABGameMode::StartGame() //게임시작하면서 state들 초기화
+void ABGameMode::BeginPlay()
 {
-    ABGameState* BGameState = GetGameState<ABGameState>();
-    if (BGameState)
-    {
-        //초기화 시킬 state들
+	Super::BeginPlay();
+	StartLevel();
+}
 
-    }
+void ABGameMode::StartLevel()
+{
+	ABGameState* BGameState = GetGameState<ABGameState>();
+	if (BGameState)
+	{
+		BGameState->SpawnedEnemies = 10; //스폰할 적 수
+		BGameState->KilledEnemies = 0;
+		BGameState->CollectedKeys = 0;
+		BGameState->bIsDoorOpen = false;
+		BGameState->TimeLimit = 10.0f; //제한시간
+	}
+	StartGame();
+}
 
-    UE_LOG(LogTemp, Log, TEXT("Level Started!"));
+void ABGameMode::StartGame()
+{
+	UE_LOG(LogTemp, Log, TEXT("Start! Eliminate all the enemies!"));
+	ABGameState* BGameState = GetGameState<ABGameState>();
+
+	GetWorldTimerManager().SetTimer
+	(
+		LevelTimerHandle,
+		this,
+		&ABGameMode::EndGame,
+		BGameState->TimeLimit,
+		false
+	);
+
 }
 
 void ABGameMode::EnemyDefeated() //적 처치 시 호출
@@ -53,11 +78,6 @@ void ABGameMode::CheckGameStatus() //게임 클리어 조건 체크
 		OpenDoor();
 		return;
 	}
-	if (BGameState->RemainingTime <= 0.0f) //시간 종료 시
-	{
-		EndGame(false);//게임 오버
-		return;
-	}
 	
 }
 
@@ -75,7 +95,7 @@ void ABGameMode::onDoorReached() //문에 플레이어 도달 시 호출
 	ABGameState* BGameState = GetGameState<ABGameState>();
 	if (BGameState && BGameState->bIsDoorOpen)
 	{
-		NextLevel();
+		UIManagerInstance->LevelEndTransition();
 	}
 }
 
@@ -91,14 +111,14 @@ void ABGameMode::EndGame(bool bIsVictory)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Game Clear!")); //게임클리어? 수정必
 	}
-	else
-	{
-		UE_LOG(LogTemp, Log, TEXT("Game Over! You Lose!")); // 게임오버
-		RestartGame();
-	}
+}
+void ABGameMode::EndGame()
+{
+	UE_LOG(LogTemp, Log, TEXT("Game Over! You Lose!")); // 게임오버
+	RestartGame();
 }
 
 void ABGameMode::RestartGame()
 {
-	UGameplayStatics::OpenLevel(this, "RestartMenu"); //restart메뉴==레벨 이동?
+	UGameplayStatics::OpenLevel(this, "MainLevel"); // 메인레벨로 가서 메뉴띄우기
 }

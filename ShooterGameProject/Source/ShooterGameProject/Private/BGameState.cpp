@@ -7,5 +7,5 @@ ABGameState::ABGameState()
 	SpawnedEnemies = 0;
 	CollectedKeys = 0;
 	bIsDoorOpen = false;
-	RemainingTime = 10.0f;
+	TimeLimit = 10.0f;
 }

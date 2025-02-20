@@ -21,7 +21,7 @@ public:
     int32 CollectedKeys; //문 여는 열쇠 개수
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game State")
     bool bIsDoorOpen; //문 상태 (true면 다음 스테이지 가능)
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game State")
-	float RemainingTime; //남은 시간
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Game State")
+	float TimeLimit; //제한시간
     
 };
