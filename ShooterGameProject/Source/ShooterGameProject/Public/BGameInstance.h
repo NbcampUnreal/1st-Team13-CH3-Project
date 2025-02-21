@@ -10,10 +10,6 @@ class SHOOTERGAMEPROJECT_API UBGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 public:
-	UBGameInstance();
-
-
-public:
 
 	UBGameInstance();
 	virtual void Init() override;
