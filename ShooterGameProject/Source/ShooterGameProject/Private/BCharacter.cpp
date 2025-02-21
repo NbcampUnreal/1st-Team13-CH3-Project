@@ -16,17 +16,17 @@ ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->TargetArmLength = 300.f;
-	SpringArm->bUsePawnControlRotation = true; // È¸Àü½Ã Ä«¸Þ¶óµµ ÀÌµ¿ÇÑ´Ù.
+	SpringArm->bUsePawnControlRotation = true; // È¸ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½Þ¶ï¿½ ï¿½Ìµï¿½ï¿½Ñ´ï¿½.
 	SpringArm->SetupAttachment(GetRootComponent());
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArm);
-	CameraComp->bUsePawnControlRotation = false; // Ä«¸Þ¶óµµ È¸ÀüÇÏ¸é Á¤½Å¾øÀ¸¹Ç·Î false
+	CameraComp->bUsePawnControlRotation = false; // Ä«ï¿½Þ¶ï¿½ È¸ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½Å¾ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ false
 
 	Collision = GetCapsuleComponent();
 	check(Collision);
 	Skeletal = GetMesh();
-	check(Skeletal);	
+	check(Skeletal);
 	MoveComp = CastChecked<UBMovementComponent>(GetCharacterMovement());
 	check(MoveComp);
 	MoveComp->GravityScale = 1.f;
@@ -97,7 +97,7 @@ void ABCharacter::StartSprint(const FInputActionValue& Value)
 {
 	if (Value.Get<bool>())
 	{
-		// PlayerState¸¦ °¡Á®¿Í¼­ Ã³¸®ÇÏµµ·Ï ÇÏÀÚ.
+		// PlayerStateï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ Ã³ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 		// TODO : GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 	}
 }
@@ -106,7 +106,7 @@ void ABCharacter::StopSprint(const FInputActionValue& Value)
 {
 	if (!Value.Get<bool>())
 	{
-		// PlayerState¸¦ °¡Á®¿Í¼­ Ã³¸®ÇÏµµ·Ï ÇÏÀÚ.
+		// PlayerStateï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ Ã³ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 		// TODO : GetCharacterMovement()->MaxWalkSpeed = NomalSpeed;
 	}
 }
