@@ -1,144 +1,189 @@
 #include "BCharacter.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
-ABCharacter::ABCharacter() :
-	MaxHealth(100),
-	CurrentHealth(100),
-	AttackDamage(0),
-	Level(1)
+#include "BPlayerController.h"
+#include "EnhancedInputComponent.h"
+#include "BMovementComponent.h"
+
+ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UBMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->TargetArmLength = 300.f;
+	SpringArm->bUsePawnControlRotation = true; // 회전시 카메라도 이동한다.
+	SpringArm->SetupAttachment(GetRootComponent());
 
-	CameraComponent->SetupAttachment(SpringArm);
+	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	CameraComp->SetupAttachment(SpringArm);
+	CameraComp->bUsePawnControlRotation = false; // 카메라도 회전하면 정신없으므로 false
 
 	Collision = GetCapsuleComponent();
 	check(Collision);
 	Skeletal = GetMesh();
-	check(Skeletal);
-	MoveCompoment = Cast<UCharacterMovementComponent>(GetMovementComponent());
-	check(MoveCompoment);
-	MoveCompoment->GravityScale = 1.f;
-	MoveCompoment->MaxAcceleration = 2400.0f;
-	MoveCompoment->BrakingFrictionFactor = 1.0f;
-	MoveCompoment->BrakingFriction = 6.0f;
-	MoveCompoment->GroundFriction = 8.0f;
-	MoveCompoment->BrakingDecelerationWalking = 1400.0f;
-	MoveCompoment->bUseControllerDesiredRotation = false;
-	MoveCompoment->bOrientRotationToMovement = false;
-	MoveCompoment->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
-	MoveCompoment->bAllowPhysicsRotationDuringAnimRootMotion = false;
-	MoveCompoment->GetNavAgentPropertiesRef().bCanCrouch = true;
-	MoveCompoment->bCanWalkOffLedgesWhenCrouching = true;
-	MoveCompoment->SetCrouchedHalfHeight(65.0f);
+	check(Skeletal);	
+	MoveComp = CastChecked<UBMovementComponent>(GetCharacterMovement());
+	check(MoveComp);
+	MoveComp->GravityScale = 1.f;
+	MoveComp->MaxAcceleration = 2400.0f;
+	MoveComp->BrakingFrictionFactor = 1.0f;
+	MoveComp->BrakingFriction = 6.0f;
+	MoveComp->GroundFriction = 8.0f;
+	MoveComp->BrakingDecelerationWalking = 1400.0f;
+	MoveComp->bUseControllerDesiredRotation = false;
+	MoveComp->bOrientRotationToMovement = false;
+	MoveComp->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
+	MoveComp->bAllowPhysicsRotationDuringAnimRootMotion = false;
+	MoveComp->GetNavAgentPropertiesRef().bCanCrouch = true;
+	MoveComp->bCanWalkOffLedgesWhenCrouching = true;
+	MoveComp->SetCrouchedHalfHeight(65.0f);
 }
 
-FSharedRepMovement::FSharedRepMovement()
+ABPlayerState* ABCharacter::GetBPlayerState() const
 {
+	return CastChecked<ABPlayerState>(GetPlayerState(), ECastCheckedType::NullAllowed);
 }
 
-bool FSharedRepMovement::FillForCharacter(ACharacter* Character)
+ABPlayerController* ABCharacter::GetBPlayerController() const
 {
-	return false;
+	return CastChecked<ABPlayerController>(Controller, ECastCheckedType::NullAllowed);
 }
 
-bool FSharedRepMovement::Equals(const FSharedRepMovement& Other, ACharacter* Character) const
+void ABCharacter::Move(const FInputActionValue& Value)
 {
-	return false;
+	if (!Controller) return;
+
+	FVector2D MoveInput = Value.Get<FVector2D>();
+
+	if (!FMath::IsNearlyZero(MoveInput.X))
+	{
+		AddMovementInput(GetActorForwardVector(), MoveInput.X);
+	}
+	if (!FMath::IsNearlyZero(MoveInput.Y))
+	{
+		AddMovementInput(GetActorRightVector(), MoveInput.Y);
+	}
 }
 
-bool FSharedRepMovement::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
+void ABCharacter::Look(const FInputActionValue& Value)
 {
-	return false;
+	const FVector2D LookInput = Value.Get<FVector2D>();
+	AddControllerYawInput(LookInput.X);
+	AddControllerPitchInput(LookInput.Y);
 }
 
-ABPlayerController* ABCharacter::GetLyraPlayerController() const
+void ABCharacter::StartJump(const FInputActionValue& Value)
 {
-	return nullptr;
+	if (Value.Get<bool>())
+	{
+		Jump();
+	}
 }
 
-ABPlayerState* ABCharacter::GetLyraPlayerState() const
+void ABCharacter::StopJump(const FInputActionValue& Value)
 {
-	return nullptr;
+	if (!Value.Get<bool>())
+	{
+		StopJumping();
+	}
+}
+
+void ABCharacter::StartSprint(const FInputActionValue& Value)
+{
+	if (Value.Get<bool>())
+	{
+		// PlayerState를 가져와서 처리하도록 하자.
+		// TODO : GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+	}
+}
+
+void ABCharacter::StopSprint(const FInputActionValue& Value)
+{
+	if (!Value.Get<bool>())
+	{
+		// PlayerState를 가져와서 처리하도록 하자.
+		// TODO : GetCharacterMovement()->MaxWalkSpeed = NomalSpeed;
+	}
+}
+
+void ABCharacter::Reload(const FInputActionValue& Value)
+{
+	if (Value.Get<bool>())
+	{
+		// TODO : Reload
+	}
 }
 
 void ABCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	for (uint32 i = 1; i <= 100; ++i)
+}
+void ABCharacter::Attack(const struct FInputActionValue& Value)
+{
+	if (Value.Get<bool>())
 	{
-		LevelTable.Add(i, (uint32)pow(((i + 2 - 1) * 50 / 49.f), 2.5f));
+		// TODO :: Fire
 	}
 }
-
 void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	// TODO Input System 넣기
-
-}
-
-float ABCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
-{
-	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-
-	AddCurrentHelth(-DamageAmount);
-
-	if (CurrentHealth <= 0)
+	UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+	if (EnhancedInput == nullptr)
 	{
-		OnDeath();
-	}
-
-	return ActualDamage;
-}
-
-void ABCharacter::OnDeath()
-{
-	Destroy();
-}
-
-void ABCharacter::AddCurrentHelth(int32 Helth)
-{
-	CurrentHealth = FMath::Clamp(Helth + CurrentHealth, 0, MaxHealth);
-}
-
-void ABCharacter::LevelUP()
-{
-	++Level;
-
-	if (LevelTable[Level] != 0)
-		MaxExperience = LevelTable[Level];
-
-	MaxHealth = Level * 20;
-	CurrentHealth = MaxHealth;
-}
-
-void ABCharacter::Attack(AActor* Actor)
-{
-	UGameplayStatics::ApplyDamage(Actor,
-		AttackDamage,
-		nullptr,
-		this,
-		UDamageType::StaticClass());
-}
-void ABCharacter::AddExp(int32 Exp)
-{
-	if (CurrentExperience + Exp < MaxExperience)
-	{
-		CurrentExperience += Exp;
 		return;
 	}
-	CurrentExperience += Exp;
-	while (CurrentExperience > MaxExperience)
+	ABPlayerController* PlayerController = Cast<ABPlayerController>(GetController());
+	if (PlayerController == nullptr)
 	{
-		CurrentExperience -= MaxExperience;
-		LevelUP();
+		return;
 	}
+
+	EnhancedInput->BindAction(
+		PlayerController->MoveAction,
+		ETriggerEvent::Triggered,
+		this,
+		&ABCharacter::Move);
+	EnhancedInput->BindAction(
+		PlayerController->SprintAction,
+		ETriggerEvent::Triggered,
+		this,
+		&ABCharacter::StartSprint);
+	EnhancedInput->BindAction(
+		PlayerController->SprintAction,
+		ETriggerEvent::Completed,
+		this,
+		&ABCharacter::StopSprint);
+
+	EnhancedInput->BindAction(
+		PlayerController->LookAction,
+		ETriggerEvent::Triggered,
+		this,
+		&ABCharacter::Look);
+
+	EnhancedInput->BindAction(
+		PlayerController->JumpAction,
+		ETriggerEvent::Triggered,
+		this,
+		&ABCharacter::StartJump);
+	EnhancedInput->BindAction(
+		PlayerController->JumpAction,
+		ETriggerEvent::Completed,
+		this,
+		&ABCharacter::StopJump);
+	EnhancedInput->BindAction(
+		PlayerController->AttackAction,
+		ETriggerEvent::Triggered,
+		this,
+		&ABCharacter::Attack);
+	EnhancedInput->BindAction(
+		PlayerController->ReloadAction,
+		ETriggerEvent::Triggered,
+		this,
+		&ABCharacter::Reload);
 }
