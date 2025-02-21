@@ -6,11 +6,13 @@
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 
+
 ABGameMode::ABGameMode()
 {
 	DefaultPawnClass = ABCharacter::StaticClass();
 	PlayerControllerClass = ABPlayerController::StaticClass();
 	GameStateClass = ABGameState::StaticClass();
+	PlayerStateClass = ABPlayerState::StaticClass();
 }
 
 void ABGameMode::BeginPlay()
