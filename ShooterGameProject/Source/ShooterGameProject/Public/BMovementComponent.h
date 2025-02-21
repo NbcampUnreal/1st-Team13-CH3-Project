@@ -6,12 +6,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "BMovementComponent.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class SHOOTERGAMEPROJECT_API UBMovementComponent : public UCharacterMovementComponent
 {
-	GENERATED_BODY()
-	
+	GENERATED_BODY()	
 };
