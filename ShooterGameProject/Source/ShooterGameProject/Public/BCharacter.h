@@ -33,6 +33,9 @@ protected:
 	void Look(const FInputActionValue& value);
 	UFUNCTION()
 	void Fire(const FInputActionValue& value);
+	void FireOnce();
+	void StopFire();
+	FTimerHandle FireTimerHandle;
 	// 입력 바인딩을 처리할 함수
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 public:

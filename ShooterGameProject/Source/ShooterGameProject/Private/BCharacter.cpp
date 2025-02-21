@@ -46,14 +46,6 @@ void ABCharacter::BeginPlay()
                 // 무기 장착 후 EquippedWeapons에 추가
                 EquipWeapon(NewWeapon);
                 UE_LOG(LogTemp, Log, TEXT("Weapon successfully attached to WeaponSocket!"));
-                // 총의 회전 설정
-                UStaticMeshComponent* WeaponStaticMesh = Cast<UStaticMeshComponent>(NewWeapon->GetRootComponent());
-                if (WeaponStaticMesh)
-                {
-                    FRotator NewRotation(0.0f, 90.0f, 90.0f); // 예: Y축으로 90도 회전
-                    WeaponStaticMesh->SetRelativeRotation(NewRotation);
-                }
-                
                 // 렌더링이 켜져 있는지 확인
                 NewWeapon->SetActorEnableCollision(true);
                 NewWeapon->SetActorHiddenInGame(false); // 총기 메시 보이게 하기
@@ -91,10 +83,17 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
                 // IA_Look 액션 마우스가 "움직일 때" Look() 호출
                 EnhancedInput->BindAction(
                     PlayerController->FireAction,
-                    ETriggerEvent::Started,
+                    ETriggerEvent::Triggered,
                     this,
                     &ABCharacter::Fire
                 );
+                EnhancedInput->BindAction(
+                    PlayerController->FireAction, 
+                    ETriggerEvent::Completed, 
+                    this, 
+                    &ABCharacter::StopFire
+                );
+
             }
         }
     }
@@ -111,13 +110,41 @@ void ABCharacter::Look(const FInputActionValue& value)
 void ABCharacter::Fire(const FInputActionValue& value)
 {
     ABBaseWeapon* CurrentWeapon = EquippedWeapons[(int32)ActiveWeaponSlot];
+    if (!CurrentWeapon) return;
+
+    if (CurrentWeapon->WeaponType == "Pistol")
+    {
+        // 권총: 한 번 클릭하면 한 발 발사
+        CurrentWeapon->Attack();
+    }
+    else if (CurrentWeapon->WeaponType == "Rifle")
+    {
+        UE_LOG(LogTemp, Log, TEXT("RifleFire"));
+
+        // 🔹 타이머가 이미 실행 중이면 다시 설정하지 않음
+        if (!GetWorld()->GetTimerManager().IsTimerActive(FireTimerHandle))
+        {
+            GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &ABCharacter::FireOnce, CurrentWeapon->FireRate, true);
+        }
+    }
+}
+
+
+void ABCharacter::FireOnce()
+{
+    ABBaseWeapon* CurrentWeapon = EquippedWeapons[(int32)ActiveWeaponSlot];
     if (CurrentWeapon)
     {
-        // 무기 사용 (예: 공격)
         CurrentWeapon->Attack();
     }
 }
 
+void ABCharacter::StopFire()
+{
+    UE_LOG(LogTemp, Log, TEXT("StopFire"));
+    // 발사 멈추기
+    GetWorld()->GetTimerManager().ClearTimer(FireTimerHandle);
+}
 // 무기 부착 함수
 void ABCharacter::EquipWeapon(ABBaseWeapon* NewWeapon)
 {
@@ -127,8 +154,20 @@ void ABCharacter::EquipWeapon(ABBaseWeapon* NewWeapon)
         USkeletalMeshComponent* CharacterMesh = GetMesh();
         if (CharacterMesh)
         {
+            // 🔹 무기 부착 (손 소켓에 장착)
             FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
-            NewWeapon->AttachToComponent(CharacterMesh, AttachRules, TEXT("WeaponSocket"));  // WeaponSocket에 부착
+            NewWeapon->AttachToComponent(GetMesh(), AttachRules, TEXT("WeaponSocket"));
+            UE_LOG(LogTemp, Log, TEXT("WeaponType : %s"),*NewWeapon->WeaponType);  // ✅ 정상 동작
+            if (NewWeapon->WeaponType == "Rifle") {
+                // 🔹 상대 회전을 조정하여 총구가 앞쪽을 향하도록 설정
+                FRotator AdjustedRotation(0.0f, -180.0f, 0.0f);  // Yaw 값(90도) 조정
+                NewWeapon->SetActorRelativeRotation(AdjustedRotation);
+            }
+            if (NewWeapon->WeaponType == "Pistol") {
+                // 🔹 상대 회전을 조정하여 총구가 앞쪽을 향하도록 설정
+                FRotator AdjustedRotation(0.0f, 90.0f, 90.0f); // 예: Y축으로 90도 회전
+                NewWeapon->SetActorRelativeRotation(AdjustedRotation);
+            }
             // 🔹 무기에 캐릭터 정보 설정
             NewWeapon->SetOwnerCharacter(this);
             // 2. 무기 장착 후, 현재 활성화된 무기 슬롯에 무기 추가

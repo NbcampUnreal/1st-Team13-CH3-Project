@@ -18,8 +18,8 @@ class SHOOTERGAMEPROJECT_API ABBaseWeapon : public ABBaseItem
 public:
 	ABBaseWeapon();
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-	FName WeaponType;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	FString WeaponType;
 
 
 	// 무기의 데미지 (자식 클래스에서 상속받아 값만 바꿔줄 예정)
@@ -29,7 +29,8 @@ public:
 	// 무기의 이름 (자식 클래스에서 상속받아 값만 바꿔줄 예정)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	FName WeaponName;
-
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	float FireRate;
 	UPROPERTY()
 	ABCharacter* Character;  // 무기를 장착한 캐릭터
 
@@ -46,5 +47,5 @@ public:
 	// 무기 소유 캐릭터
 	UPROPERTY()
 	ABCharacter* OwnerCharacter;
-
+	
 };

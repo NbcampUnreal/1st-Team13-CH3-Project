@@ -15,6 +15,8 @@ ABPistol::ABPistol()
     // 스태틱 메시 컴포넌트 초기화
     WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
     RootComponent = WeaponMesh;  // RootComponent로 설정
+    FRotator NewRotation(0.0f, 90.0f, 90.0f); // 예: Y축으로 90도 회전
+    WeaponMesh->SetRelativeRotation(NewRotation);
     // 기본 총구 위치를 설정 (이것은 예시이며, 적절한 값으로 설정할 필요 있음)
     GunMuzzle = CreateDefaultSubobject<USceneComponent>(TEXT("GunMuzzle"));
     GunMuzzle->SetupAttachment(RootComponent); // 총구 위치 설정 (각 총기마다 다를 수 있음)

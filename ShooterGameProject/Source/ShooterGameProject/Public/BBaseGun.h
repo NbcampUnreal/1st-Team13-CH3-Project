@@ -7,7 +7,7 @@
 class ABCharacter; // 캐릭터 클래스 전방 선언
 class USceneComponent;  // 총구 위치를 위한 씬 컴포넌트
 
-UCLASS(Blueprintable)
+UCLASS(BlueprintType, Blueprintable)
 class SHOOTERGAMEPROJECT_API ABBaseGun : public ABBaseWeapon
 {
     GENERATED_BODY()

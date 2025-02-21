@@ -20,10 +20,10 @@ protected:
 
     void DisablePhysicsSimulation() override;
     // 발사 시 사용할 이펙트 (총격 시 피격 이펙트)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gun")
     UParticleSystem* ImpactEffect;
     // 무기 메시 (스태틱 메시로 설정)
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gun", meta = (AllowPrivateAccess = "true"))
     UStaticMeshComponent* WeaponMesh;
     // 총구 위치 (총기마다 다를 수 있으므로 여기서 설정)
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gun")
@@ -33,16 +33,14 @@ protected:
     bool bDebugDraw = true;  // 기본값을 true로 설정하여 디버깅할 때 선이 그려지도록 할 수 있습니다.
 private:
    
-    // 피스톨 연사 속도
-    UPROPERTY(EditAnywhere, Category = "Weapon")
-    float FireRate;
+
 
     // 피스톨 기본 데미지
-    UPROPERTY(EditAnywhere, Category = "Weapon")
+    UPROPERTY(EditAnywhere, Category = "Gun")
     float Damage;
     
     float LastFireTime; // 🔹 마지막으로 발사한 시간 저장
     // 총 발사 소리
-    UPROPERTY(EditAnywhere, Category = "Weapon")
+    UPROPERTY(EditAnywhere, Category = "Gun")
     USoundBase* FireSound;
 };
