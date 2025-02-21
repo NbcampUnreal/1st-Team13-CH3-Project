@@ -1,0 +1,26 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "BEnemyBase.h"
+#include "BMageEnemy.generated.h"
+
+class USphereComponent;
+
+UCLASS()
+class SHOOTERGAMEPROJECT_API ABMageEnemy : public ABEnemyBase
+{
+	GENERATED_BODY()
+
+public:
+	ABMageEnemy();
+
+	USphereComponent* HealingCollision;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties|Mage")
+	float HealingRadius;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties|Mage")
+	float HealAmount;
+
+	float GetAttackRange() const override;
+	void UseSkill() override;
+};
