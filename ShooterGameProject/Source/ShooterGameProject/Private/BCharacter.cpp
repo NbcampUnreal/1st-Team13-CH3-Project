@@ -54,6 +54,16 @@ ABPlayerController* ABCharacter::GetBPlayerController() const
 	return CastChecked<ABPlayerController>(Controller, ECastCheckedType::NullAllowed);
 }
 
+FVector ABCharacter::GetCameraForwardVector() const
+{
+	if (CameraComp)
+	{
+		return CameraComp->GetForwardVector();
+	}
+
+	return GetActorForwardVector();  // 카메라가 없으면 기본 방향 반환
+}
+
 void ABCharacter::Move(const FInputActionValue& Value)
 {
 	if (!Controller) return;

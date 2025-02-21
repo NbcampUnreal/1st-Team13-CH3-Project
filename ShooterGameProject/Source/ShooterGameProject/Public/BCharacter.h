@@ -70,6 +70,8 @@ public:
 	class ABPlayerState* GetBPlayerState() const;
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	class ABPlayerController* GetBPlayerController() const;
+	/** 캐릭터의 카메라가 바라보는 방향을 가져오는 함수 */
+	FVector GetCameraForwardVector() const;
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UCameraComponent> CameraComp;
