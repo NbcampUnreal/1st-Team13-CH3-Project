@@ -1,11 +1,11 @@
 #include "BCharacter.h"
+#include "BPlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "BPlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "BMovementComponent.h"
 
@@ -13,7 +13,9 @@ ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UBMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = false;
-
+	ActiveWeaponSlot = EWeaponSlot::Primary;  // 기본적으로 주무기를 활성화
+	// 배열의 크기를 ActiveWeaponSlot에 맞게 확장
+	EquippedWeapons.SetNumZeroed(4);  // ActiveWeaponSlot에 맞게 배열 크기 설정
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->TargetArmLength = 300.f;
 	SpringArm->bUsePawnControlRotation = true; // ȸ���� ī�޶� �̵��Ѵ�.
@@ -42,6 +44,33 @@ ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 	MoveComp->GetNavAgentPropertiesRef().bCanCrouch = true;
 	MoveComp->bCanWalkOffLedgesWhenCrouching = true;
 	MoveComp->SetCrouchedHalfHeight(65.0f);
+
+	// WeaponClass가 유효한지 확인
+	if (WeaponClass)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Weapon successfully attached to WeaponSocket!"));
+		// 무기 스폰
+		ABBaseWeapon* NewWeapon = GetWorld()->SpawnActor<ABBaseWeapon>(WeaponClass);
+
+		if (NewWeapon)
+		{
+			// 캐릭터의 손 위치에 있는 소켓에 부착
+			USkeletalMeshComponent* CharacterMesh = GetMesh();
+			if (CharacterMesh)
+			{
+				FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
+				// 무기가 부착된 후 로그 추가
+				// 무기 장착 후 EquippedWeapons에 추가
+				EquipWeapon(NewWeapon);
+				UE_LOG(LogTemp, Log, TEXT("Weapon successfully attached to WeaponSocket!"));
+				// 렌더링이 켜져 있는지 확인
+				NewWeapon->SetActorEnableCollision(true);
+				NewWeapon->SetActorHiddenInGame(false); // 총기 메시 보이게 하기
+			}
+
+			UE_LOG(LogTemp, Log, TEXT("무기 장착 완료!"));
+		}
+	}
 }
 
 ABPlayerState* ABCharacter::GetBPlayerState() const
@@ -132,12 +161,106 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 void ABCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	// WeaponClass가 유효한지 확인
+	if (WeaponClass)
+	{
+		// 무기 스폰
+		ABBaseWeapon* NewWeapon = GetWorld()->SpawnActor<ABBaseWeapon>(WeaponClass);
+
+		if (NewWeapon)
+		{
+			// 캐릭터의 손 위치에 있는 소켓에 부착
+			USkeletalMeshComponent* CharacterMesh = GetMesh();
+			if (CharacterMesh)
+			{
+				FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
+				// 무기가 부착된 후 로그 추가
+				// 무기 장착 후 EquippedWeapons에 추가
+				EquipWeapon(NewWeapon);
+				UE_LOG(LogTemp, Log, TEXT("Weapon successfully attached to WeaponSocket!"));
+				// 렌더링이 켜져 있는지 확인
+				NewWeapon->SetActorEnableCollision(true);
+				NewWeapon->SetActorHiddenInGame(false); // 총기 메시 보이게 하기
+			}
+
+			UE_LOG(LogTemp, Log, TEXT("무기 장착 완료!"));
+		}
+	}
 }
 void ABCharacter::Attack(const struct FInputActionValue& Value)
 {
-	if (Value.Get<bool>())
+	ABBaseWeapon* CurrentWeapon = EquippedWeapons[(int32)ActiveWeaponSlot];
+	if (!CurrentWeapon) return;
+
+	if (CurrentWeapon->WeaponType == "Pistol")
 	{
-		// TODO :: Fire
+		// 권총: 한 번 클릭하면 한 발 발사
+		CurrentWeapon->Attack();
+	}
+	else if (CurrentWeapon->WeaponType == "Rifle")
+	{
+		UE_LOG(LogTemp, Log, TEXT("RifleFire"));
+
+		// 🔹 타이머가 이미 실행 중이면 다시 설정하지 않음
+		if (!GetWorld()->GetTimerManager().IsTimerActive(FireTimerHandle))
+		{
+			GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &ABCharacter::FireOnce, CurrentWeapon->FireRate, true);
+		}
+	}
+}
+void ABCharacter::FireOnce()
+{
+	ABBaseWeapon* CurrentWeapon = EquippedWeapons[(int32)ActiveWeaponSlot];
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->Attack();
+	}
+}
+
+void ABCharacter::StopFire()
+{
+	UE_LOG(LogTemp, Log, TEXT("StopFire"));
+	// 발사 멈추기
+	GetWorld()->GetTimerManager().ClearTimer(FireTimerHandle);
+}
+// 무기 부착 함수
+void ABCharacter::EquipWeapon(ABBaseWeapon* NewWeapon)
+{
+	if (NewWeapon)
+	{
+		// 1. 캐릭터의 손 위치에 있는 소켓에 무기 부착
+		USkeletalMeshComponent* CharacterMesh = GetMesh();
+		if (CharacterMesh)
+		{
+			// 🔹 무기 부착 (손 소켓에 장착)
+			FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
+			NewWeapon->AttachToComponent(GetMesh(), AttachRules, TEXT("WeaponSocket"));
+			UE_LOG(LogTemp, Log, TEXT("WeaponType : %s"), *NewWeapon->WeaponType);  // ✅ 정상 동작
+			if (NewWeapon->WeaponType == "Rifle") {
+				// 🔹 상대 회전을 조정하여 총구가 앞쪽을 향하도록 설정
+				FRotator AdjustedRotation(0.0f, -180.0f, 0.0f);  // Yaw 값(90도) 조정
+				NewWeapon->SetActorRelativeRotation(AdjustedRotation);
+			}
+			if (NewWeapon->WeaponType == "Pistol") {
+				// 🔹 상대 회전을 조정하여 총구가 앞쪽을 향하도록 설정
+				FRotator AdjustedRotation(0.0f, 90.0f, 90.0f); // 예: Y축으로 90도 회전
+				NewWeapon->SetActorRelativeRotation(AdjustedRotation);
+			}
+			// 🔹 무기에 캐릭터 정보 설정
+			NewWeapon->SetOwnerCharacter(this);
+			// 2. 무기 장착 후, 현재 활성화된 무기 슬롯에 무기 추가
+			EquippedWeapons[(int32)EWeaponSlot::Primary] = NewWeapon;  // EWeaponSlot을 int32로 캐스팅하여 사용
+
+			// 3. 무기 활성화 및 기타 설정 (옵션)
+			NewWeapon->SetActorEnableCollision(true);  // 충돌 활성화
+			NewWeapon->SetActorHiddenInGame(false);    // 게임에서 보이게 설정
+
+			UE_LOG(LogTemp, Log, TEXT("Weapon successfully equipped and attached to WeaponSocket!"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to equip weapon. NewWeapon is null."));
 	}
 }
 void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -186,11 +309,19 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		ETriggerEvent::Completed,
 		this,
 		&ABCharacter::StopJump);
+	// IA_Look 액션 마우스가 "움직일 때" Look() 호출
 	EnhancedInput->BindAction(
 		PlayerController->AttackAction,
 		ETriggerEvent::Triggered,
 		this,
-		&ABCharacter::Attack);
+		&ABCharacter::Attack
+	);
+	EnhancedInput->BindAction(
+		PlayerController->AttackAction,
+		ETriggerEvent::Completed,
+		this,
+		&ABCharacter::StopFire
+	);
 	EnhancedInput->BindAction(
 		PlayerController->ReloadAction,
 		ETriggerEvent::Triggered,
