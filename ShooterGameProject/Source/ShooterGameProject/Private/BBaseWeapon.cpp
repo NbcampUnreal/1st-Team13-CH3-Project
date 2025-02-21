@@ -8,6 +8,7 @@ ABBaseWeapon::ABBaseWeapon()
 	ItemType = "Weapon";
     WeaponType = "Melee";
     WeaponDamage = 5;
+
 }
 
 void ABBaseWeapon::ActivateItem(AActor* Activator)
@@ -22,17 +23,21 @@ void ABBaseWeapon::ActivateItem(AActor* Activator)
         DestroyItem();
     }
 }
-
-void ABBaseWeapon::EquipWeapon(AActor* Character)
+void ABBaseWeapon::SetOwnerCharacter(ABCharacter* NewOwner)
 {
-    if (!Character)
+    if (NewOwner)
     {
-        return;
+        OwnerCharacter = NewOwner;
+        SetOwner(NewOwner);  // Unreal 기본 Owner 설정 (필요 시)
     }
+}
 
-    // 캐릭터가 무기를 장착할 수 있는지 확인
-    ABCharacter* PlayerCharacter = Cast<ABCharacter>(Character);
-    if (PlayerCharacter)
+void ABBaseWeapon::EquipWeapon(AActor* NewOwner)
+{
+    if (!NewOwner) return;
+
+    Character = Cast<ABCharacter>(NewOwner);
+    if (Character)
     {
         // 일단 캐릭터에 Weapon 슬롯이 추가되면 추가하면 됨. 캐릭터 개발 담당자에게 이런방식으로 진행된다는걸 알려주기 위해 예시로 추가해놓음
         //// 기존 장착된 무기가 있다면 해제 (드롭, 삭제, 인벤토리로 이동 등)
@@ -57,4 +62,9 @@ void ABBaseWeapon::EquipWeapon(AActor* Character)
 void ABBaseWeapon::Attack()
 {
     // 해당 클래스를 상속받은 자식 클래스들 에서 만들 예정
+    UE_LOG(LogTemp, Log, TEXT("무기 공격 완료!"));
+}
+void ABBaseWeapon::DisablePhysicsSimulation()
+{
+    // 자식 클래스에서 오버라이드해서 물리 시뮬레이션 끄기
 }

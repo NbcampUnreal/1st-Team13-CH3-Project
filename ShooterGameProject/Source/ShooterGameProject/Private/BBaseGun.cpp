@@ -1,48 +1,40 @@
 #include "BBaseGun.h"
-#include "BCharacter.h" // 캐릭터 헤더 포함
+#include "BCharacter.h"  // 캐릭터 헤더 포함
+#include "Kismet/GameplayStatics.h"
 
+// 생성자 정의
 ABBaseGun::ABBaseGun()
 {
+    // 탄약 기본값 설정
     AmmoCount = 30;
-    MaxAmmo = 30;
+    MaxAmmo = 30; // 기본 최대 탄약 설정 (필요 시 블루프린트에서 수정 가능)
 }
 
-void ABBaseGun::Reload(ABCharacter* Character)
+void ABBaseGun::Reload(AActor* PlayerCharacter)
 {
-    if (!Character)
+    ABCharacter* BCharacter = Cast<ABCharacter>(PlayerCharacter);
+    if (!BCharacter)
     {
-        UE_LOG(LogTemp, Warning, TEXT("캐릭터가 없음!"));
+        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("리로드 실패: 올바른 캐릭터가 아님!"));
         return;
     }
-    // 인벤토리 기능이 있을 시 사용하기 위한 리로드 코드
-    //// 캐릭터 인벤토리에서 탄약 개수 확인
-    //int32 InventoryAmmo = Character->GetAmmoCount();
 
-    //if (InventoryAmmo > 0)
-    //{
-    //    int32 NeededAmmo = MaxAmmo - AmmoCount; // 필요한 탄약 개수
-    //    int32 AmmoToReload = FMath::Min(NeededAmmo, InventoryAmmo); // 인벤토리에서 충전할 수 있는 만큼 충전
-
-    //    AmmoCount += AmmoToReload;
-    //    Character->UseAmmo(AmmoToReload); // 인벤토리에서 탄약 감소
-
-    //    UE_LOG(LogTemp, Log, TEXT("재장전 완료! 탄약: %d/%d"), AmmoCount, MaxAmmo);
-    //}
-    //else
-    //{
-    //    UE_LOG(LogTemp, Warning, TEXT("탄약 부족! 인벤토리에 총알이 없습니다."));
-    //}
+    // 인벤토리에서 탄약 확인 (추후 구현)
+    int32 AmmoNeeded = MaxAmmo - AmmoCount;
+    if (AmmoNeeded > 0)
+    {
+        AmmoCount = MaxAmmo; // 임시로 탄약을 채우는 방식 (추후 인벤토리에서 가져오도록 수정)
+        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("재장전 완료!"));
+    }
+    else
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("이미 탄창이 가득 참"));
+    }
 }
 
 void ABBaseGun::Attack()
 {
-    if (AmmoCount > 0)
-    {
-        UE_LOG(LogTemp, Log, TEXT("총 발사! 남은 탄약: %d"), AmmoCount);
-        AmmoCount--;
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("탄약 부족! 재장전 필요"));
-    }
+    UE_LOG(LogTemp, Log, TEXT("총 발사 완료!"));
+    // 탄약 감소
+    AmmoCount--;
 }
