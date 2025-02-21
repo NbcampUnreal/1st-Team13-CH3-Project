@@ -2,20 +2,28 @@
 
 #include "CoreMinimal.h"
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include "Gameframework/Character.h"
 =======
 #include "Gameframework/character.h"
 >>>>>>> 9c09620f6cf655473203ff14d7a7d9ac254ea373
+=======
+#include "Gameframework/Character.h"
+>>>>>>> 8476610a1d5c4c009b6f73fccf41c631e037f256
 #include "BPlayerController.h"
 #include "BPlayerState.h"
 #include "BCharacter.generated.h"
 
 USTRUCT()
 <<<<<<< HEAD
+<<<<<<< HEAD
 struct FReplicatedAcceleration
 =======
 struct FLyraReplicatedAcceleration
 >>>>>>> 9c09620f6cf655473203ff14d7a7d9ac254ea373
+=======
+struct FReplicatedAcceleration
+>>>>>>> 8476610a1d5c4c009b6f73fccf41c631e037f256
 {
 	GENERATED_BODY()
 
@@ -30,6 +38,9 @@ struct FLyraReplicatedAcceleration
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8476610a1d5c4c009b6f73fccf41c631e037f256
 //USTRUCT()
 //struct FSharedRepMovement
 //{
@@ -57,6 +68,7 @@ struct FLyraReplicatedAcceleration
 //	UPROPERTY(Transient)
 //	bool bIsCrouched = false;
 //};
+<<<<<<< HEAD
 
 //template<>
 //struct TStructOpsTypeTraits<FSharedRepMovement> : public TStructOpsTypeTraitsBase2<FSharedRepMovement>
@@ -76,29 +88,19 @@ USTRUCT()
 struct FSharedRepMovement
 {
 	GENERATED_BODY()
+=======
+>>>>>>> 8476610a1d5c4c009b6f73fccf41c631e037f256
 
-	FSharedRepMovement();
+//template<>
+//struct TStructOpsTypeTraits<FSharedRepMovement> : public TStructOpsTypeTraitsBase2<FSharedRepMovement>
+//{
+//	enum
+//	{
+//		WithNetSerializer = true,
+//		WithNetSharedSerialization = true,
+//	};
+//};
 
-	bool FillForCharacter(ACharacter* Character);
-	bool Equals(const FSharedRepMovement& Other, ACharacter* Character) const;
-
-	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
-
-	UPROPERTY(Transient)
-	FRepMovement RepMovement;
-
-	UPROPERTY(Transient)
-	float RepTimeStamp = 0.0f;
-
-	UPROPERTY(Transient)
-	uint8 RepMovementMode = 0;
-
-	UPROPERTY(Transient)
-	bool bProxyIsJumpForceApplied = false;
-
-	UPROPERTY(Transient)
-	bool bIsCrouched = false;
-};
 UCLASS()
 class ABCharacter : 
 >>>>>>> 9c09620f6cf655473203ff14d7a7d9ac254ea373
@@ -106,6 +108,7 @@ class ABCharacter :
 {
 	GENERATED_BODY()
 public:
+<<<<<<< HEAD
 <<<<<<< HEAD
 	ABCharacter(const FObjectInitializer& ObjectInitializer);
 	UFUNCTION(BlueprintCallable, Category = "Character")
@@ -117,19 +120,29 @@ protected:
 	TObjectPtr<class UCameraComponent> CameraComp;
 =======
 	ABCharacter();
+=======
+	ABCharacter(const FObjectInitializer& ObjectInitializer);
+>>>>>>> 8476610a1d5c4c009b6f73fccf41c631e037f256
 	UFUNCTION(BlueprintCallable, Category = "Character")
-	ABPlayerController* GetLyraPlayerController() const;
+	class ABPlayerState* GetBPlayerState() const;
 	UFUNCTION(BlueprintCallable, Category = "Character")
-	ABPlayerState* GetLyraPlayerState() const;
+	class ABPlayerController* GetBPlayerController() const;
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+<<<<<<< HEAD
 	TObjectPtr<class UCameraComponent> CameraComponent;
 >>>>>>> 9c09620f6cf655473203ff14d7a7d9ac254ea373
+=======
+	TObjectPtr<class UCameraComponent> CameraComp;
+>>>>>>> 8476610a1d5c4c009b6f73fccf41c631e037f256
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class USpringArmComponent> SpringArm;
 	TObjectPtr<class UCapsuleComponent> Collision;
 	TObjectPtr<class USkeletalMeshComponent> Skeletal;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8476610a1d5c4c009b6f73fccf41c631e037f256
 	TObjectPtr<class UBMovementComponent> MoveComp;
 protected:
 	//UFUNCTION(NetMulticast, unreliable)
@@ -150,6 +163,7 @@ protected:
 	void Attack(const struct FInputActionValue& Value);
 	UFUNCTION()
 	void Reload(const struct FInputActionValue& Value);
+<<<<<<< HEAD
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -158,27 +172,20 @@ private:
 	FReplicatedAcceleration ReplicatedAcceleration;
 =======
 	TObjectPtr<UCharacterMovementComponent> MoveCompoment;
+=======
+>>>>>>> 8476610a1d5c4c009b6f73fccf41c631e037f256
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
-protected:
-	int32 MaxHealth;
-	int32 CurrentHealth;
-	int32 AttackDamage;
-	int32 Level;
-	int32 MaxExperience;
-	int32 CurrentExperience;
-public:
-	void OnDeath();
-	void AddCurrentHelth(int32 Helth);
-	void AddExp(int32 Exp);
-	void Attack(AActor* Actor);
-	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 private:
+<<<<<<< HEAD
 	void LevelUP();
 	//	케릭터 레벨업을 위한 
 	//	Instance에 있는게 좋은거 같다.
 	TMap<int32, int32> LevelTable;
 >>>>>>> 9c09620f6cf655473203ff14d7a7d9ac254ea373
+=======
+	UPROPERTY()
+	FReplicatedAcceleration ReplicatedAcceleration;
+>>>>>>> 8476610a1d5c4c009b6f73fccf41c631e037f256
 };
