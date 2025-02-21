@@ -7,10 +7,10 @@
 UCLASS()
 class SHOOTERGAMEPROJECT_API ABGameState : public AGameState
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 public:
-	ABGameState();
-	virtual void BeginPlay() override;
+    ABGameState();
+    virtual void BeginPlay() override;
 
     UPROPERTY(VisibleAnyWhere, BlueprintReadOnly, Category = "GameState")
     int32 CurrentScore;
@@ -19,10 +19,10 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game State")
     int32 SpawnedEnemies;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game State")
-    int32 CollectedKeys; //¹® ¿©´Â ¿­¼è °³¼ö
+    int32 CollectedKeys; //ë¬¸ ì—¬ëŠ” ì—´ì‡  ê°œìˆ˜
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game State")
-    bool bIsDoorOpen; //¹® »óÅÂ (true¸é ´ÙÀ½ ½ºÅ×ÀÌÁö °¡´É)
+    bool bIsDoorOpen; //ë¬¸ ìƒíƒœ (trueë©´ ë‹¤ìŒ ìŠ¤í…Œì´ì§€ ê°€ëŠ¥)
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Game State")
-	float TimeLimit; //Á¦ÇÑ½Ã°£
-    
+    float TimeLimit; //ì œí•œì‹œê°„
+
 };

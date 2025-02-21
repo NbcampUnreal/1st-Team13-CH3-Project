@@ -26,6 +26,7 @@ void ABGameMode::BeginPlay()
 	else
 	{
 		GameInstance->GetUIManagerInstance()->LevelStartTransition();
+		StartLevel();
 	}
 }
 
@@ -34,12 +35,13 @@ void ABGameMode::StartLevel()
 	ABGameState* BGameState = GetGameState<ABGameState>();
 	if (BGameState)
 	{
-		BGameState->SpawnedEnemies = 10; //½ºÆùÇÒ Àû ¼ö
+		BGameState->SpawnedEnemies = 10; //ìŠ¤í°í•  ì  ìˆ˜
 		BGameState->KilledEnemies = 0;
 		BGameState->CollectedKeys = 0;
 		BGameState->bIsDoorOpen = false;
-		BGameState->TimeLimit = 10.0f; //Á¦ÇÑ½Ã°£
+		BGameState->TimeLimit = 10.0f; //ì œí•œì‹œê°„
 	}
+
 	StartGame();
 }
 
@@ -57,9 +59,16 @@ void ABGameMode::StartGame()
 		false
 	);
 
+	if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
+	{
+		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
+		{
+			UIManager->DisplayHUD();
+		}
+	}
 }
 
-void ABGameMode::EnemyDefeated() //Àû Ã³Ä¡ ½Ã È£Ãâ
+void ABGameMode::EnemyDefeated() //ì  ì²˜ì¹˜ ì‹œ í˜¸ì¶œ
 {
 	ABGameState* BGameState = GetGameState<ABGameState>();
 	if (BGameState)
@@ -69,7 +78,7 @@ void ABGameMode::EnemyDefeated() //Àû Ã³Ä¡ ½Ã È£Ãâ
 	CheckGameStatus();
 }
 
-void ABGameMode::ItemCollected() //Å¬¸®¾î Á¶°Ç ¾ÆÀÌÅÛ È¹µæ ½Ã È£Ãâ
+void ABGameMode::ItemCollected() //í´ë¦¬ì–´ ì¡°ê±´ ì•„ì´í…œ íšë“ ì‹œ í˜¸ì¶œ
 {
 	ABGameState* BGameState = GetGameState<ABGameState>();
 	if (BGameState)
@@ -79,17 +88,17 @@ void ABGameMode::ItemCollected() //Å¬¸®¾î Á¶°Ç ¾ÆÀÌÅÛ È¹µæ ½Ã È£Ãâ
 	CheckGameStatus();
 }
 
-void ABGameMode::CheckGameStatus() //°ÔÀÓ Å¬¸®¾î Á¶°Ç Ã¼Å©
+void ABGameMode::CheckGameStatus() //ê²Œì„ í´ë¦¬ì–´ ì¡°ê±´ ì²´í¬
 {
 	ABGameState* BGameState = GetGameState<ABGameState>();
 	if (!BGameState) return;
-	
-	if (BGameState->CollectedKeys >= 3 || BGameState->SpawnedEnemies <= BGameState->KilledEnemies) //Å° 3°³ ÀÌ»ó È¹µæ or ½ºÆùµÈ Àû ÀüºÎ Ã³Ä¡ ½Ã
+
+	if (BGameState->CollectedKeys >= 3 || BGameState->SpawnedEnemies <= BGameState->KilledEnemies) //í‚¤ 3ê°œ ì´ìƒ íšë“ or ìŠ¤í°ëœ ì  ì „ë¶€ ì²˜ì¹˜ ì‹œ
 	{
 		OpenDoor();
 		return;
 	}
-	
+
 }
 
 void ABGameMode::OpenDoor()
@@ -101,7 +110,7 @@ void ABGameMode::OpenDoor()
 	}
 }
 
-void ABGameMode::onDoorReached() //¹®¿¡ ÇÃ·¹ÀÌ¾î µµ´Ş ½Ã È£Ãâ
+void ABGameMode::onDoorReached() //ë¬¸ì— í”Œë ˆì´ì–´ ë„ë‹¬ ì‹œ í˜¸ì¶œ
 {
 	ABGameState* BGameState = GetGameState<ABGameState>();
 	if (BGameState && BGameState->bIsDoorOpen)
@@ -114,10 +123,10 @@ void ABGameMode::onDoorReached() //¹®¿¡ ÇÃ·¹ÀÌ¾î µµ´Ş ½Ã È£Ãâ
 	}
 }
 
-void ABGameMode::NextLevel() //´ÙÀ½ ·¹º§·Î ÀÌµ¿
+void ABGameMode::NextLevel() //ë‹¤ìŒ ë ˆë²¨ë¡œ ì´ë™
 {
 	UE_LOG(LogTemp, Log, TEXT("Loading next level"));
-	UGameplayStatics::OpenLevel(this, "NextLevelName"); //´ÙÀ½ ·¹º§ ÀÌ¸§ ¼öÁ¤ ù±
+	UGameplayStatics::OpenLevel(this, "StartLevel"); //ë‹¤ìŒ ë ˆë²¨ ì´ë¦„ ìˆ˜ì • å¿…
 }
 
 void ABGameMode::EndGame()
@@ -131,7 +140,16 @@ void ABGameMode::EndGame()
 
 void ABGameMode::RestartGame()
 {
-	UGameplayStatics::OpenLevel(this, "MainLevel"); // ¸ŞÀÎ·¹º§·Î °¡¼­ ¸Ş´º¶ç¿ì±â
+	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
+	if (GameInstance)
+	{
+		GameInstance->HasTitleScreenBeenShown = false;
+		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
+		{
+			UIManager->RemoveHUD();
+		}
+	}
+	UGameplayStatics::OpenLevel(this, "StartLevel"); // ë©”ì¸ë ˆë²¨ë¡œ ê°€ì„œ ë©”ë‰´ë„ìš°ê¸°
 }
 
 void ABGameMode::QuitGame()

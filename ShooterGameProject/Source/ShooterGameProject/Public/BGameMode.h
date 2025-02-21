@@ -8,6 +8,7 @@ UCLASS()
 class SHOOTERGAMEPROJECT_API ABGameMode : public AGameMode
 {
 	GENERATED_BODY()
+
 public:
 	ABGameMode();
 	FTimerHandle LevelTimerHandle;
@@ -33,5 +34,7 @@ public:
 	void EndGame();
 	UFUNCTION(BlueprintCallable)
 	void QuitGame();
+	//UFUNCTION(BlueprintCallable)
+	//void BRestartGame();
 	virtual void RestartGame() override;
 };

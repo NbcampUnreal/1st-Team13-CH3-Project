@@ -13,11 +13,11 @@ ABGameState::ABGameState()
 }
 void ABGameState::BeginPlay()
 {
-	if (UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance()))
-	{
-		if (UBUIManager* UIManager = Cast<UBUIManager>(GameInstance->GetUIManagerInstance()))
-		{
-			UIManager->EnterGameOverScreen();
-		}
-	}
+	//if (UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance()))
+	//{
+	//	if (UBUIManager* UIManager = Cast<UBUIManager>(GameInstance->GetUIManagerInstance()))
+	//	{
+	//		UIManager->EnterGameOverScreen();
+	//	}
+	//}
 }
