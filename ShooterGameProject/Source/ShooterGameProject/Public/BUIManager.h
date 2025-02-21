@@ -48,8 +48,23 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ExitGameOverScreen();
 
+	
+	void OnFire();
 	UFUNCTION(BlueprintCallable)
-	void UpdateHUD();
+	void DisplayHUD();
+	UFUNCTION(BlueprintCallable)
+	void CollapseHUD();
+	void RemoveHUD();
+	void UpdateHUDTimed();
+	void UpdateHUDHealth(float CurrentHP, float MaxHP);
+	//void UpdateHUDStatus();
+	//void UpdateHUDLevelTimer();
+	//void UpdateHUDMission(const FString& Title, const FString& Content, int32 CurrentCount, int32 MaxCount);
+	//void UpdateHUDMap();
+	void UpdateHUDQuickSlot(FName ItemType, int32 Count);
+	void UpdateHUDAmmo(int32 LoadedCount, int32 InventoryCount);
+	void UpdateHUDEquippedWeapon(FName WeaponType);
+	//void UpdateHUDStance();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UUserWidget> TitleWidgetClass;
@@ -76,9 +91,16 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	UUserWidget* HUDWidgetInstance;
 
+	FTimerHandle UpdateHUDTimerHandle;
+
 protected:
 	class UBGameInstance* GameInstance;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Textures")
+	UTexture2D* PistolTexture;
+
 	void SetInputUIOnly();
 	void SetInputGameOnly();
+
+	
 };
