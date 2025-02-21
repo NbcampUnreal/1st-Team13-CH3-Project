@@ -34,8 +34,9 @@ void ABPlayerController::BeginPlay()
 		{
 			if (InputMappingContext)
 			{
-				Subsystem->AddMappingContext(InputMappingContext, 0); // ¿ì¼±¼øÀ§ 0
+				Subsystem->AddMappingContext(InputMappingContext, 0); // ï¿½ì¼±ï¿½ï¿½ï¿½ï¿½ 0
 			}
 		}
 	}
 }
+

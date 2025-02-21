@@ -4,7 +4,8 @@
 #include "GameFramework/PlayerController.h"
 #include "BPlayerController.generated.h"
 
-
+class UInputMappingContext; // IMC 관련 전방 선언
+class UInputAction; // IA 관련 전방 선언
 UCLASS()
 class SHOOTERGAMEPROJECT_API ABPlayerController : public APlayerController
 {
@@ -32,4 +33,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<UUserWidget> WidgetHUDClass;
 	class UUserWidget* WidgetHUDInstance;
+
+	virtual void BeginPlay() override;
 };
