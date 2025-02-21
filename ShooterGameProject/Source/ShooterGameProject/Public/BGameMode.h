@@ -9,5 +9,6 @@ UCLASS()
 class SHOOTERGAMEPROJECT_API ABGameMode : public AGameMode
 {
 	GENERATED_BODY()
-	
+public:
+	ABGameMode();
 };

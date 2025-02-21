@@ -8,5 +8,6 @@ UCLASS()
 class SHOOTERGAMEPROJECT_API UBGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
-	
+public:
+	UBGameInstance();
 };

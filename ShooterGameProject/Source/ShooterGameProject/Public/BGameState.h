@@ -8,5 +8,6 @@ UCLASS()
 class SHOOTERGAMEPROJECT_API ABGameState : public AGameState
 {
 	GENERATED_BODY()
-	
+public:
+	ABGameState();
 };
