@@ -5,4 +5,9 @@
 *.jpeg  filter=lfs diff=lfs merge=lfs -text
 *.tga   filter=lfs diff=lfs merge=lfs -text
 *.exr   filter=lfs diff=lfs merge=lfs -text
+<<<<<<< HEAD:ShooterGameProject/Content/.gitattributes
 Content/PJH/** filter=lfs diff=lfs merge=lfs -text
+=======
+*.wav filter=lfs diff=lfs merge=lfs -text
+*.bk2 filter=lfs diff=lfs merge=lfs -text
+>>>>>>> bb457bc9fb00ae2ca001c3ec49197ed98f63f2ea:.gitattributes
