@@ -34,5 +34,4 @@ protected:
 	TSubclassOf<UUserWidget> WidgetHUDClass;
 	class UUserWidget* WidgetHUDInstance;
 
-	virtual void BeginPlay() override;
 };
