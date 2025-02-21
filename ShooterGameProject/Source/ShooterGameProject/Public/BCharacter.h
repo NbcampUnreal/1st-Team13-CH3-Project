@@ -1,27 +1,106 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "Gameframework/Character.h"
+#include "BPlayerController.h"
+#include "BPlayerState.h"
 #include "BCharacter.generated.h"
 
-UCLASS()
-class SHOOTERGAMEPROJECT_API ABCharacter : public ACharacter
+USTRUCT()
+struct FReplicatedAcceleration
 {
 	GENERATED_BODY()
 
+	UPROPERTY()
+	uint8 AccelXYRadians = 0;	// Direction of XY accel component, quantized to represent [0, 2*pi]
+
+	UPROPERTY()
+	uint8 AccelXYMagnitude = 0;	//Accel rate of XY component, quantized to represent [0, MaxAcceleration]
+
+	UPROPERTY()
+	int8 AccelZ = 0;	// Raw Z accel rate component, quantized to represent [-MaxAcceleration, MaxAcceleration]
+};
+
+//USTRUCT()
+//struct FSharedRepMovement
+//{
+//	GENERATED_BODY()
+//
+//	FSharedRepMovement();
+//
+//	bool FillForCharacter(ACharacter* Character);
+//	bool Equals(const FSharedRepMovement& Other, ACharacter* Character) const;
+//
+//	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
+//
+//	UPROPERTY(Transient)
+//	FRepMovement RepMovement;
+//
+//	UPROPERTY(Transient)
+//	float RepTimeStamp = 0.0f;
+//
+//	UPROPERTY(Transient)
+//	uint8 RepMovementMode = 0;
+//
+//	UPROPERTY(Transient)
+//	bool bProxyIsJumpForceApplied = false;
+//
+//	UPROPERTY(Transient)
+//	bool bIsCrouched = false;
+//};
+
+//template<>
+//struct TStructOpsTypeTraits<FSharedRepMovement> : public TStructOpsTypeTraitsBase2<FSharedRepMovement>
+//{
+//	enum
+//	{
+//		WithNetSerializer = true,
+//		WithNetSharedSerialization = true,
+//	};
+//};
+
+UCLASS()
+class SHOOTERGAMEPROJECT_API ABCharacter :
+	public ACharacter
+{
+	GENERATED_BODY()
 public:
-	// Sets default values for this character's properties
-	ABCharacter();
-
+	ABCharacter(const FObjectInitializer& ObjectInitializer);
+	UFUNCTION(BlueprintCallable, Category = "Character")
+	class ABPlayerState* GetBPlayerState() const;
+	UFUNCTION(BlueprintCallable, Category = "Character")
+	class ABPlayerController* GetBPlayerController() const;
 protected:
-	// Called when the game starts or when spawned
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<class UCameraComponent> CameraComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<class USpringArmComponent> SpringArm;
+	TObjectPtr<class UCapsuleComponent> Collision;
+	TObjectPtr<class USkeletalMeshComponent> Skeletal;
+	TObjectPtr<class UBMovementComponent> MoveComp;
+protected:
+	//UFUNCTION(NetMulticast, unreliable)
+	//void FastSharedReplication(const FSharedRepMovement& SharedRepMovement);
+	UFUNCTION()
+	void Move(const struct FInputActionValue& Value);
+	UFUNCTION()
+	void Look(const struct FInputActionValue& Value);
+	UFUNCTION()
+	void StartJump(const struct FInputActionValue& Value);
+	UFUNCTION()
+	void StopJump(const struct FInputActionValue& Value);
+	UFUNCTION()
+	void StartSprint(const struct FInputActionValue& Value);
+	UFUNCTION()
+	void StopSprint(const struct FInputActionValue& Value);
+	UFUNCTION()
+	void Attack(const struct FInputActionValue& Value);
+	UFUNCTION()
+	void Reload(const struct FInputActionValue& Value);
+protected:
 	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+private:
+	UPROPERTY()
+	FReplicatedAcceleration ReplicatedAcceleration;
 };
