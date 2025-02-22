@@ -1,210 +1,330 @@
 #include "BCharacter.h"
 #include "BPlayerController.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Camera/CameraComponent.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "EnhancedInputComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "EnhancedInputComponent.h"
+#include "BMovementComponent.h"
 
-
-ABCharacter::ABCharacter()
+ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UBMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
-    PrimaryActorTick.bCanEverTick = true;
-    ActiveWeaponSlot = EWeaponSlot::Primary;  // 기본적으로 주무기를 활성화
-    // 배열의 크기를 ActiveWeaponSlot에 맞게 확장
-    EquippedWeapons.SetNumZeroed(4);  // ActiveWeaponSlot에 맞게 배열 크기 설정
-    // 📌 스프링 암 추가 (카메라가 캐릭터를 따라가도록 설정)
-    USpringArmComponent* SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-    SpringArm->SetupAttachment(RootComponent);
-    SpringArm->TargetArmLength = 300.0f; // 카메라와 캐릭터 사이 거리 설정
-    SpringArm->bUsePawnControlRotation = true; // 카메라가 마우스를 따라 회전하도록 설정
+	PrimaryActorTick.bCanEverTick = false;
+	ActiveWeaponSlot = EWeaponSlot::Primary;  // 기본적으로 주무기를 활성화
+	// 배열의 크기를 ActiveWeaponSlot에 맞게 확장
+	EquippedWeapons.SetNumZeroed(4);  // ActiveWeaponSlot에 맞게 배열 크기 설정
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->TargetArmLength = 300.f;
+	SpringArm->bUsePawnControlRotation = true; // ȸ���� ī�޶� �̵��Ѵ�.
+	SpringArm->SetupAttachment(GetRootComponent());
 
-    // 📌 카메라 추가
-    CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
-    CameraComponent->SetupAttachment(SpringArm);
-    CameraComponent->bUsePawnControlRotation = false; // 카메라는 스프링 암을 따라가도록 설정
+	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	CameraComp->SetupAttachment(SpringArm);
+	CameraComp->bUsePawnControlRotation = false; // ī�޶� ȸ���ϸ� ���ž����Ƿ� false
+
+	Collision = GetCapsuleComponent();
+	check(Collision);
+	Skeletal = GetMesh();
+	check(Skeletal);
+	MoveComp = CastChecked<UBMovementComponent>(GetCharacterMovement());
+	check(MoveComp);
+	MoveComp->GravityScale = 1.f;
+	MoveComp->MaxAcceleration = 2400.0f;
+	MoveComp->BrakingFrictionFactor = 1.0f;
+	MoveComp->BrakingFriction = 6.0f;
+	MoveComp->GroundFriction = 8.0f;
+	MoveComp->BrakingDecelerationWalking = 1400.0f;
+	MoveComp->bUseControllerDesiredRotation = false;
+	MoveComp->bOrientRotationToMovement = false;
+	MoveComp->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
+	MoveComp->bAllowPhysicsRotationDuringAnimRootMotion = false;
+	MoveComp->GetNavAgentPropertiesRef().bCanCrouch = true;
+	MoveComp->bCanWalkOffLedgesWhenCrouching = true;
+	MoveComp->SetCrouchedHalfHeight(65.0f);
+
+	// WeaponClass가 유효한지 확인
+	if (WeaponClass)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Weapon successfully attached to WeaponSocket!"));
+		// 무기 스폰
+		ABBaseWeapon* NewWeapon = GetWorld()->SpawnActor<ABBaseWeapon>(WeaponClass);
+
+		if (NewWeapon)
+		{
+			// 캐릭터의 손 위치에 있는 소켓에 부착
+			USkeletalMeshComponent* CharacterMesh = GetMesh();
+			if (CharacterMesh)
+			{
+				FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
+				// 무기가 부착된 후 로그 추가
+				// 무기 장착 후 EquippedWeapons에 추가
+				EquipWeapon(NewWeapon);
+				UE_LOG(LogTemp, Log, TEXT("Weapon successfully attached to WeaponSocket!"));
+				// 렌더링이 켜져 있는지 확인
+				NewWeapon->SetActorEnableCollision(true);
+				NewWeapon->SetActorHiddenInGame(false); // 총기 메시 보이게 하기
+			}
+
+			UE_LOG(LogTemp, Log, TEXT("무기 장착 완료!"));
+		}
+	}
+}
+
+ABPlayerState* ABCharacter::GetBPlayerState() const
+{
+	return CastChecked<ABPlayerState>(GetPlayerState(), ECastCheckedType::NullAllowed);
+}
+
+ABPlayerController* ABCharacter::GetBPlayerController() const
+{
+	return CastChecked<ABPlayerController>(Controller, ECastCheckedType::NullAllowed);
+}
+
+FVector ABCharacter::GetCameraForwardVector() const
+{
+	if (CameraComp)
+	{
+		return CameraComp->GetForwardVector();
+	}
+
+	return GetActorForwardVector();  // 카메라가 없으면 기본 방향 반환
+}
+
+void ABCharacter::Move(const FInputActionValue& Value)
+{
+	if (!Controller) return;
+
+	FVector2D MoveInput = Value.Get<FVector2D>();
+
+	if (!FMath::IsNearlyZero(MoveInput.X))
+	{
+		AddMovementInput(GetActorForwardVector(), MoveInput.X);
+	}
+	if (!FMath::IsNearlyZero(MoveInput.Y))
+	{
+		AddMovementInput(GetActorRightVector(), MoveInput.Y);
+	}
+}
+
+void ABCharacter::Look(const FInputActionValue& Value)
+{
+	const FVector2D LookInput = Value.Get<FVector2D>();
+	AddControllerYawInput(LookInput.X);
+	AddControllerPitchInput(LookInput.Y);
+}
+
+void ABCharacter::StartJump(const FInputActionValue& Value)
+{
+	if (Value.Get<bool>())
+	{
+		Jump();
+	}
+}
+
+void ABCharacter::StopJump(const FInputActionValue& Value)
+{
+	if (!Value.Get<bool>())
+	{
+		StopJumping();
+	}
+}
+
+void ABCharacter::StartSprint(const FInputActionValue& Value)
+{
+	if (Value.Get<bool>())
+	{
+		// PlayerState�� �����ͼ� ó���ϵ��� ����.
+		// TODO : GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+	}
+}
+
+void ABCharacter::StopSprint(const FInputActionValue& Value)
+{
+	if (!Value.Get<bool>())
+	{
+		// PlayerState�� �����ͼ� ó���ϵ��� ����.
+		// TODO : GetCharacterMovement()->MaxWalkSpeed = NomalSpeed;
+	}
+}
+
+void ABCharacter::Reload(const FInputActionValue& Value)
+{
+	if (Value.Get<bool>())
+	{
+		// TODO : Reload
+	}
 }
 
 void ABCharacter::BeginPlay()
 {
-    Super::BeginPlay();
+	Super::BeginPlay();
+	// WeaponClass가 유효한지 확인
+	if (WeaponClass)
+	{
+		// 무기 스폰
+		ABBaseWeapon* NewWeapon = GetWorld()->SpawnActor<ABBaseWeapon>(WeaponClass);
 
-    // WeaponClass가 유효한지 확인
-    if (WeaponClass)
-    {
-        // 무기 스폰
-        ABBaseWeapon* NewWeapon = GetWorld()->SpawnActor<ABBaseWeapon>(WeaponClass);
+		if (NewWeapon)
+		{
+			// 캐릭터의 손 위치에 있는 소켓에 부착
+			USkeletalMeshComponent* CharacterMesh = GetMesh();
+			if (CharacterMesh)
+			{
+				FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
+				// 무기가 부착된 후 로그 추가
+				// 무기 장착 후 EquippedWeapons에 추가
+				EquipWeapon(NewWeapon);
+				UE_LOG(LogTemp, Log, TEXT("Weapon successfully attached to WeaponSocket!"));
+				// 렌더링이 켜져 있는지 확인
+				NewWeapon->SetActorEnableCollision(true);
+				NewWeapon->SetActorHiddenInGame(false); // 총기 메시 보이게 하기
+			}
 
-        if (NewWeapon)
-        {
-            // 캐릭터의 손 위치에 있는 소켓에 부착
-            USkeletalMeshComponent* CharacterMesh = GetMesh();
-            if (CharacterMesh)
-            {
-                FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
-                // 무기가 부착된 후 로그 추가
-                // 무기 장착 후 EquippedWeapons에 추가
-                EquipWeapon(NewWeapon);
-                UE_LOG(LogTemp, Log, TEXT("Weapon successfully attached to WeaponSocket!"));
-                // 렌더링이 켜져 있는지 확인
-                NewWeapon->SetActorEnableCollision(true);
-                NewWeapon->SetActorHiddenInGame(false); // 총기 메시 보이게 하기
-            }
-
-            UE_LOG(LogTemp, Log, TEXT("무기 장착 완료!"));
-        }
-    }
+			UE_LOG(LogTemp, Log, TEXT("무기 장착 완료!"));
+		}
+	}
 }
-
-
-
-void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void ABCharacter::Attack(const struct FInputActionValue& Value)
 {
-    Super::SetupPlayerInputComponent(PlayerInputComponent);
+	ABBaseWeapon* CurrentWeapon = EquippedWeapons[(int32)ActiveWeaponSlot];
+	if (!CurrentWeapon) return;
 
-    // Enhanced InputComponent로 캐스팅
-    if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
-    {
-        // IA를 가져오기 위해 현재 소유 중인 Controller를 ASpartaPlayerController로 캐스팅
-        if (ABPlayerController* PlayerController = Cast<ABPlayerController>(GetController()))
-        {
-            if (PlayerController->LookAction)
-            {
-                // IA_Look 액션 마우스가 "움직일 때" Look() 호출
-                EnhancedInput->BindAction(
-                    PlayerController->LookAction,
-                    ETriggerEvent::Triggered,
-                    this,
-                    &ABCharacter::Look
-                );
-            }
-            if (PlayerController->FireAction)
-            {
-                // IA_Look 액션 마우스가 "움직일 때" Look() 호출
-                EnhancedInput->BindAction(
-                    PlayerController->FireAction,
-                    ETriggerEvent::Triggered,
-                    this,
-                    &ABCharacter::Fire
-                );
-                EnhancedInput->BindAction(
-                    PlayerController->FireAction, 
-                    ETriggerEvent::Completed, 
-                    this, 
-                    &ABCharacter::StopFire
-                );
+	if (CurrentWeapon->WeaponType == "Pistol")
+	{
+		// 권총: 한 번 클릭하면 한 발 발사
+		CurrentWeapon->Attack();
+	}
+	else if (CurrentWeapon->WeaponType == "Rifle")
+	{
+		UE_LOG(LogTemp, Log, TEXT("RifleFire"));
 
-            }
-        }
-    }
+		// 🔹 타이머가 이미 실행 중이면 다시 설정하지 않음
+		if (!GetWorld()->GetTimerManager().IsTimerActive(FireTimerHandle))
+		{
+			GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &ABCharacter::FireOnce, CurrentWeapon->FireRate, true);
+		}
+	}
 }
-void ABCharacter::Look(const FInputActionValue& value)
-{
-    FVector2D LookInput = value.Get<FVector2D>();
-
-    // X는 좌우 회전 (Yaw), Y는 상하 회전 (Pitch)
-    AddControllerYawInput(LookInput.X);  // 좌우 회전
-    AddControllerPitchInput(LookInput.Y);  // 상하 회전
-}
-
-void ABCharacter::Fire(const FInputActionValue& value)
-{
-    ABBaseWeapon* CurrentWeapon = EquippedWeapons[(int32)ActiveWeaponSlot];
-    if (!CurrentWeapon) return;
-
-    if (CurrentWeapon->WeaponType == "Pistol")
-    {
-        // 권총: 한 번 클릭하면 한 발 발사
-        CurrentWeapon->Attack();
-    }
-    else if (CurrentWeapon->WeaponType == "Rifle")
-    {
-        UE_LOG(LogTemp, Log, TEXT("RifleFire"));
-
-        // 🔹 타이머가 이미 실행 중이면 다시 설정하지 않음
-        if (!GetWorld()->GetTimerManager().IsTimerActive(FireTimerHandle))
-        {
-            GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &ABCharacter::FireOnce, CurrentWeapon->FireRate, true);
-        }
-    }
-}
-
-
 void ABCharacter::FireOnce()
 {
-    ABBaseWeapon* CurrentWeapon = EquippedWeapons[(int32)ActiveWeaponSlot];
-    if (CurrentWeapon)
-    {
-        CurrentWeapon->Attack();
-    }
+	ABBaseWeapon* CurrentWeapon = EquippedWeapons[(int32)ActiveWeaponSlot];
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->Attack();
+	}
 }
 
 void ABCharacter::StopFire()
 {
-    UE_LOG(LogTemp, Log, TEXT("StopFire"));
-    // 발사 멈추기
-    GetWorld()->GetTimerManager().ClearTimer(FireTimerHandle);
+	UE_LOG(LogTemp, Log, TEXT("StopFire"));
+	// 발사 멈추기
+	GetWorld()->GetTimerManager().ClearTimer(FireTimerHandle);
 }
 // 무기 부착 함수
 void ABCharacter::EquipWeapon(ABBaseWeapon* NewWeapon)
 {
-    if (NewWeapon)
-    {
-        // 1. 캐릭터의 손 위치에 있는 소켓에 무기 부착
-        USkeletalMeshComponent* CharacterMesh = GetMesh();
-        if (CharacterMesh)
-        {
-            // 🔹 무기 부착 (손 소켓에 장착)
-            FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
-            NewWeapon->AttachToComponent(GetMesh(), AttachRules, TEXT("WeaponSocket"));
-            UE_LOG(LogTemp, Log, TEXT("WeaponType : %s"),*NewWeapon->WeaponType);  // ✅ 정상 동작
-            if (NewWeapon->WeaponType == "Rifle") {
-                // 🔹 상대 회전을 조정하여 총구가 앞쪽을 향하도록 설정
-                FRotator AdjustedRotation(0.0f, -180.0f, 0.0f);  // Yaw 값(90도) 조정
-                NewWeapon->SetActorRelativeRotation(AdjustedRotation);
-            }
-            if (NewWeapon->WeaponType == "Pistol") {
-                // 🔹 상대 회전을 조정하여 총구가 앞쪽을 향하도록 설정
-                FRotator AdjustedRotation(0.0f, 90.0f, 90.0f); // 예: Y축으로 90도 회전
-                NewWeapon->SetActorRelativeRotation(AdjustedRotation);
-            }
-            // 🔹 무기에 캐릭터 정보 설정
-            NewWeapon->SetOwnerCharacter(this);
-            // 2. 무기 장착 후, 현재 활성화된 무기 슬롯에 무기 추가
-            EquippedWeapons[(int32)EWeaponSlot::Primary] = NewWeapon;  // EWeaponSlot을 int32로 캐스팅하여 사용
+	if (NewWeapon)
+	{
+		// 1. 캐릭터의 손 위치에 있는 소켓에 무기 부착
+		USkeletalMeshComponent* CharacterMesh = GetMesh();
+		if (CharacterMesh)
+		{
+			// 🔹 무기 부착 (손 소켓에 장착)
+			FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
+			NewWeapon->AttachToComponent(GetMesh(), AttachRules, TEXT("WeaponSocket"));
+			UE_LOG(LogTemp, Log, TEXT("WeaponType : %s"), *NewWeapon->WeaponType);  // ✅ 정상 동작
+			if (NewWeapon->WeaponType == "Rifle") {
+				// 🔹 상대 회전을 조정하여 총구가 앞쪽을 향하도록 설정
+				FRotator AdjustedRotation(0.0f, -180.0f, 0.0f);  // Yaw 값(90도) 조정
+				NewWeapon->SetActorRelativeRotation(AdjustedRotation);
+			}
+			if (NewWeapon->WeaponType == "Pistol") {
+				// 🔹 상대 회전을 조정하여 총구가 앞쪽을 향하도록 설정
+				FRotator AdjustedRotation(0.0f, 90.0f, 90.0f); // 예: Y축으로 90도 회전
+				NewWeapon->SetActorRelativeRotation(AdjustedRotation);
+			}
+			// 🔹 무기에 캐릭터 정보 설정
+			NewWeapon->SetOwnerCharacter(this);
+			// 2. 무기 장착 후, 현재 활성화된 무기 슬롯에 무기 추가
+			EquippedWeapons[(int32)EWeaponSlot::Primary] = NewWeapon;  // EWeaponSlot을 int32로 캐스팅하여 사용
 
-            // 3. 무기 활성화 및 기타 설정 (옵션)
-            NewWeapon->SetActorEnableCollision(true);  // 충돌 활성화
-            NewWeapon->SetActorHiddenInGame(false);    // 게임에서 보이게 설정
+			// 3. 무기 활성화 및 기타 설정 (옵션)
+			NewWeapon->SetActorEnableCollision(true);  // 충돌 활성화
+			NewWeapon->SetActorHiddenInGame(false);    // 게임에서 보이게 설정
 
-            UE_LOG(LogTemp, Log, TEXT("Weapon successfully equipped and attached to WeaponSocket!"));
-        }
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Failed to equip weapon. NewWeapon is null."));
-    }
+			UE_LOG(LogTemp, Log, TEXT("Weapon successfully equipped and attached to WeaponSocket!"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to equip weapon. NewWeapon is null."));
+	}
 }
-FVector ABCharacter::GetCameraForwardVector() const
+void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-    if (CameraComponent)
-    {
-        return CameraComponent->GetForwardVector();
-    }
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+	if (EnhancedInput == nullptr)
+	{
+		return;
+	}
+	ABPlayerController* PlayerController = Cast<ABPlayerController>(GetController());
+	if (PlayerController == nullptr)
+	{
+		return;
+	}
 
-    return GetActorForwardVector();  // 카메라가 없으면 기본 방향 반환
-}
-void ABCharacter::SwitchWeapon(EWeaponSlot NewSlot)
-{
-    int32 SlotIndex = (int32)NewSlot;
+	EnhancedInput->BindAction(
+		PlayerController->MoveAction,
+		ETriggerEvent::Triggered,
+		this,
+		&ABCharacter::Move);
+	EnhancedInput->BindAction(
+		PlayerController->SprintAction,
+		ETriggerEvent::Triggered,
+		this,
+		&ABCharacter::StartSprint);
+	EnhancedInput->BindAction(
+		PlayerController->SprintAction,
+		ETriggerEvent::Completed,
+		this,
+		&ABCharacter::StopSprint);
 
-    if (EquippedWeapons.IsValidIndex(SlotIndex) && EquippedWeapons[SlotIndex] != nullptr)
-    {
-        ActiveWeaponSlot = NewSlot;
-        UE_LOG(LogTemp, Log, TEXT("무기 변경: %d"), SlotIndex);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("해당 슬롯에 무기가 없습니다!"));
-    }
+	EnhancedInput->BindAction(
+		PlayerController->LookAction,
+		ETriggerEvent::Triggered,
+		this,
+		&ABCharacter::Look);
+
+	EnhancedInput->BindAction(
+		PlayerController->JumpAction,
+		ETriggerEvent::Triggered,
+		this,
+		&ABCharacter::StartJump);
+	EnhancedInput->BindAction(
+		PlayerController->JumpAction,
+		ETriggerEvent::Completed,
+		this,
+		&ABCharacter::StopJump);
+	// IA_Look 액션 마우스가 "움직일 때" Look() 호출
+	EnhancedInput->BindAction(
+		PlayerController->AttackAction,
+		ETriggerEvent::Triggered,
+		this,
+		&ABCharacter::Attack
+	);
+	EnhancedInput->BindAction(
+		PlayerController->AttackAction,
+		ETriggerEvent::Completed,
+		this,
+		&ABCharacter::StopFire
+	);
+	EnhancedInput->BindAction(
+		PlayerController->ReloadAction,
+		ETriggerEvent::Triggered,
+		this,
+		&ABCharacter::Reload);
 }
