@@ -45,19 +45,14 @@ void ABBaseItem::OnItemOverlap(UPrimitiveComponent* OverlappedComp, AActor* Othe
         GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Overlap!!!"));
         ActivateItem(OtherActor);
 
+        // 플레이어 캐릭터 확인 후 아이템을 드래그 가능하도록 설정
         ABCharacter* OverlappingCharacter = Cast<ABCharacter>(OtherActor);
         if (OverlappingCharacter)
         {
             OverlappingCharacter->SetDraggingItem(this);
-            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("DraggingItem Set in ABCharacter!"));
-        }
-        else
-        {
-            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("OverlappingCharacter is NULL!"));
         }
     }
 }
-
 
 
 void ABBaseItem::OnItemEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)

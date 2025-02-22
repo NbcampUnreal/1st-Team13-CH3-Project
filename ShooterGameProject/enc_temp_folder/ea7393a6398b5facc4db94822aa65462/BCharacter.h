@@ -134,7 +134,7 @@ private:
 
 	FTimerHandle DragUpdateTimer; // 드래그 타이머
 	bool bIsDragging = false;
-	ABBaseItem* DraggingItem = nullptr;
+	AActor* DraggingItem = nullptr;
 
 	void UpdateDragging(); // 드래그 위치 업데이트
 };
