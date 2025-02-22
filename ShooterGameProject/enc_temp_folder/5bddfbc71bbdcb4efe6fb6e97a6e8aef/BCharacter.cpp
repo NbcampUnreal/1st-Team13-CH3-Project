@@ -93,6 +93,11 @@ FVector ABCharacter::GetCameraForwardVector() const
 	return GetActorForwardVector();  // 카메라가 없으면 기본 방향 반환
 }
 
+void ABCharacter::SetDraggingItem(AActor* NewItem)
+{
+	DraggingItem = NewItem;
+}
+
 void ABCharacter::Move(const FInputActionValue& Value)
 {
 	if (!Controller) return;
@@ -157,21 +162,6 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 		// TODO : Reload
 	}
 }
-
-void ABCharacter::SetDraggingItem(AActor* NewItem)
-{
-	ABBaseItem* Item = Cast<ABBaseItem>(NewItem);
-	if (Item)
-	{
-		DraggingItem = Item;
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("DraggingItem successfully set!"));
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("SetDraggingItem received NULL!"));
-	}
-}
-
 void ABCharacter::StartDragging()
 {
 	if (DraggingItem)
@@ -179,83 +169,37 @@ void ABCharacter::StartDragging()
 		bIsDragging = true;
 		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Blue, TEXT("Drag Start"));
 
-		bool bIsValid = GetWorldTimerManager().TimerExists(DragUpdateTimer);
-		if (bIsValid)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("Timer Already Exists!"));
-		}
-		else
-		{
-			GetWorldTimerManager().SetTimer(DragUpdateTimer, this, &ABCharacter::UpdateDragging, 0.01f, true);
-			GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green, TEXT("Timer Set Successfully!"));
-		}
+		// 일정 간격으로 드래그 업데이트 실행 (Tick 없이)
+		GetWorldTimerManager().SetTimer(DragUpdateTimer, this, &ABCharacter::UpdateDragging, 0.01f, true);
 	}
 }
-
 
 void ABCharacter::StopDragging()
 {
-	if (bIsDragging)
-	{
-		bIsDragging = false;
-		GetWorldTimerManager().ClearTimer(DragUpdateTimer);
-		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Blue, TEXT("Drag End"));
-	}
-}
+	bIsDragging = false;
+	DraggingItem = nullptr;
 
+	// 타이머 정지 (더 이상 드래그 업데이트 필요 없음)
+	GetWorldTimerManager().ClearTimer(DragUpdateTimer);
+
+	GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("Drag End"));
+}
 
 void ABCharacter::UpdateDragging()
 {
-	if (DraggingItem)
+	if (bIsDragging && DraggingItem)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Yellow, TEXT("UpdateDragging is Running!"));
-
-		if (!DraggingItem)
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		if (PC)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("DraggingItem is NULL in UpdateDragging!"));
-			return;
-		}
-
-		ABPlayerController* PlayerController = Cast<ABPlayerController>(GetController());
-		if (PlayerController)
-		{
-
 			FVector WorldLocation, WorldDirection;
-			if (PlayerController->DeprojectMousePositionToWorld(WorldLocation, WorldDirection))
-			{
-				FVector TargetLocation = WorldLocation + WorldDirection * 200.0f;
+			PC->DeprojectMousePositionToWorld(WorldLocation, WorldDirection);
 
-				// 디버그 메시지로 위치 확인
-				GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Yellow,
-					FString::Printf(TEXT("Target Location: X=%.2f, Y=%.2f, Z=%.2f"),
-						TargetLocation.X, TargetLocation.Y, TargetLocation.Z));
-
-				// 아이템 위치 업데이트
-				DraggingItem->SetActorEnableCollision(false);  // 충돌 비활성화
-				DraggingItem->SetActorLocation(TargetLocation);
-				DraggingItem->SetActorEnableCollision(true);   // 이동 후 충돌 다시 활성화
-				bool bMoved = DraggingItem->SetActorLocation(TargetLocation);
-				if (bMoved)
-				{
-					GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green, TEXT("Dragging Item Moved!"));
-				}
-				else
-				{
-					GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("SetActorLocation Failed!"));
-				}
-			}
-			else
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("DeprojectMousePositionToWorld Failed!"));
-			}
+			FVector NewLocation = WorldLocation + (WorldDirection * 200.0f); // 거리 조정
+			DraggingItem->SetActorLocation(NewLocation);
 		}
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("UpdateDragging Failed: DraggingItem is NULL!"));
 	}
 }
-
 
 void ABCharacter::BeginPlay()
 {
