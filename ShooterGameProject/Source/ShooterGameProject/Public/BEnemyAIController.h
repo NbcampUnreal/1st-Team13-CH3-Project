@@ -15,8 +15,8 @@ public:
 	virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
 
 protected:
-	int32 CurrentPatrolIndex = 0;
+	//int32 CurrentPatrolIndex = 0;
 
-	void MoveToCurrentPatrolPoint();
+	//void MoveToCurrentPatrolPoint();
 	void AttackPlayer();
 };
