@@ -28,7 +28,7 @@ void ABGameMode::BeginPlay()
 	else
 	{
 		GameInstance->GetUIManagerInstance()->LevelStartTransition();
-		StartLevel();
+		//StartLevel();
 	}
 }
 
@@ -89,7 +89,7 @@ void ABGameMode::NextLevel() //다음 레벨로 이동
 		FName NextLevelName = "StartLevel";
 		if (BGameState->CurrentStage == 3)
 		{
-			if (FMath::RandRange(0, 100) < 90) // 3번째 스테이지는 90% 확률로 보너스 레벨맵
+			if (FMath::RandRange(0, 100) < 90) // 3번째 스테이지는 90% 확률로 보너스 레벨 맵
 			{
 				NextLevelName = "BonusLevel";
 			}
