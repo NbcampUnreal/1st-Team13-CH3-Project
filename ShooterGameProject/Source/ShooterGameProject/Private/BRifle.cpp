@@ -11,6 +11,7 @@ ABRifle::ABRifle()
     // 소총 기본 설정
     FireRate = 0.1f; // 예: 초당 10발
     AmmoCount = 30;  // 탄창 30발
+    ItemPrice = 200; // 가격 200
     WeaponType = "Rifle";
     Damage = 25.0f;  // 소총 기본 데미지
     // 🔹 본체 (Root Component로 설정)

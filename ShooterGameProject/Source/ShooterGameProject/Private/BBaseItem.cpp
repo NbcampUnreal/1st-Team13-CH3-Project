@@ -2,6 +2,7 @@
 
 
 #include "BBaseItem.h"
+#include "BCharacter.h"
 #include "Components/SphereComponent.h"
 // Sets default values
 ABBaseItem::ABBaseItem()
@@ -39,14 +40,25 @@ void ABBaseItem::BeginPlay()
 
 void ABBaseItem::OnItemOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    // OtherActor가 플레이어인지 확인 ("Player" 태그 활용)
     if (OtherActor && OtherActor->ActorHasTag("Player"))
     {
-        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("Overlap!!!")));
-        // 아이템 사용 (획득) 로직 호출
+        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Overlap!!!"));
         ActivateItem(OtherActor);
+
+        ABCharacter* OverlappingCharacter = Cast<ABCharacter>(OtherActor);
+        if (OverlappingCharacter)
+        {
+            OverlappingCharacter->SetDraggingItem(this);
+            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("DraggingItem Set in ABCharacter!"));
+        }
+        else
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("OverlappingCharacter is NULL!"));
+        }
     }
 }
+
+
 
 void ABBaseItem::OnItemEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
@@ -66,6 +78,11 @@ FName ABBaseItem::GetItemType() const
 FName ABBaseItem::GetItemName() const
 {
 	return ItemName;
+}
+
+void ABBaseItem::UseItem(AActor* Activator)
+{
+    // 공통 함수로 사용하기 위해 제작 추후에 상속 받는 대상안에서 추가 구현
 }
 
 void ABBaseItem::DestroyItem()

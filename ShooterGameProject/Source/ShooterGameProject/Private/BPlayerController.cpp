@@ -11,7 +11,10 @@ ABPlayerController::ABPlayerController() :
 	AttackAction(nullptr),
 	ReloadAction(nullptr)
 {
-
+	// 마우스 입력 활성화
+	bShowMouseCursor = true;
+	bEnableClickEvents = true;
+	bEnableMouseOverEvents = true;
 }
 
 void ABPlayerController::BeginPlay()

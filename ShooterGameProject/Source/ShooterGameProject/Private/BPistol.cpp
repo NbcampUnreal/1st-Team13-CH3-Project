@@ -51,7 +51,7 @@ void ABPistol::Attack()
         return;
     }
 
-    AmmoCount--;
+    
 
     FVector MuzzleLocation = GunMuzzle ? GunMuzzle->GetComponentLocation() : GetActorLocation();
     FVector ShootDirection = OwnerCharacter->GetCameraForwardVector();

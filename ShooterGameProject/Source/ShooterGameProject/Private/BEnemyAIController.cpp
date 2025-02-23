@@ -13,36 +13,36 @@ void ABEnemyAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	MoveToCurrentPatrolPoint();
+	//MoveToCurrentPatrolPoint();
 }
 
-void ABEnemyAIController::MoveToCurrentPatrolPoint()
-{
-	ABEnemyBase* Enemy0 = Cast<ABEnemyBase>(GetPawn());
-	if (!Enemy0)
-	{
-		return;
-	}
-
-	if (Enemy0->PatrolPoints.Num() == 0)
-	{
-		return;
-	}
-
-	float ArriveRange = Enemy0->GetAttackRange();
-
-	MoveToActor(
-		Enemy0->PatrolPoints[CurrentPatrolIndex],
-		ArriveRange,//도착 판단 기준 거리(적 사거리로 설정하면 좋을듯)
-		true,//도착하면 멈출 것인가?
-		true,//장애물을 피해갈 것인가?
-		true,//좌우이동 없이 갈 것인가?
-		nullptr,//이동 경로에 필터를 지정
-		true//전체 경로를 찾지 못했을 때 부분 경로라도 찾아갈 것인가?
-	);
-
-	CurrentPatrolIndex = (CurrentPatrolIndex + 1) % Enemy0->PatrolPoints.Num();
-}
+//void ABEnemyAIController::MoveToCurrentPatrolPoint()
+//{
+//	ABEnemyBase* Enemy0 = Cast<ABEnemyBase>(GetPawn());
+//	if (!Enemy0)
+//	{
+//		return;
+//	}
+//
+//	if (Enemy0->PatrolPoints.Num() == 0)
+//	{
+//		return;
+//	}
+//
+//	float ArriveRange = Enemy0->GetAttackRange();
+//
+//	MoveToActor(
+//		Enemy0->PatrolPoints[CurrentPatrolIndex],
+//		ArriveRange,//도착 판단 기준 거리(적 사거리로 설정하면 좋을듯)
+//		true,//도착하면 멈출 것인가?
+//		true,//장애물을 피해갈 것인가?
+//		true,//좌우이동 없이 갈 것인가?
+//		nullptr,//이동 경로에 필터를 지정
+//		true//전체 경로를 찾지 못했을 때 부분 경로라도 찾아갈 것인가?
+//	);
+//
+//	CurrentPatrolIndex = (CurrentPatrolIndex + 1) % Enemy0->PatrolPoints.Num();
+//}
 
 void ABEnemyAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
@@ -50,7 +50,7 @@ void ABEnemyAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFol
 
 	if (Result.Code == EPathFollowingResult::Success)
 	{
-		MoveToCurrentPatrolPoint();
+		//MoveToCurrentPatrolPoint();
 	}
 }
 
