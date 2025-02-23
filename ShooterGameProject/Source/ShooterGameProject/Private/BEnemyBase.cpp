@@ -23,15 +23,15 @@ ABEnemyBase::ABEnemyBase()
 	bIsInBattle = false;
 
 
-	Scene = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
-	SetRootComponent(Scene);
+	//Scene = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
+	//SetRootComponent(Scene);
 
-	Collision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Collision"));
-	Collision->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	Collision->SetupAttachment(Scene);
+	//Collision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Collision"));
+	//Collision->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+	//Collision->SetupAttachment(Scene);
 
-	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
-	StaticMesh->SetupAttachment(Collision);
+	//StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
+	//StaticMesh->SetupAttachment(Collision);
 
 	AIControllerClass = ABEnemyAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
