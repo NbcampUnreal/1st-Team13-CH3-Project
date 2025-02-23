@@ -20,14 +20,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void StartGame();
 	UFUNCTION(BlueprintCallable)
-	void EnemyDefeated();
-	UFUNCTION(BlueprintCallable)
-	void ItemCollected();
-	UFUNCTION(BlueprintCallable)
-	void CheckGameStatus();
-	UFUNCTION(BlueprintCallable)
-	void OpenDoor();
-	UFUNCTION(BlueprintCallable)
 	void onDoorReached();
 	UFUNCTION(BlueprintCallable)
 	void NextLevel();
@@ -35,7 +27,5 @@ public:
 	void EndGame();
 	UFUNCTION(BlueprintCallable)
 	void QuitGame();
-	//UFUNCTION(BlueprintCallable)
-	//void BRestartGame();
 	virtual void RestartGame() override;
 };

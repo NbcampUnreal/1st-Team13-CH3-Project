@@ -20,7 +20,7 @@ void ABGameMode::BeginPlay()
 	Super::BeginPlay();
 
 	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
-	if (GameInstance && !GameInstance->HasTitleScreenBeenShown)
+	if (!GameInstance->HasTitleScreenBeenShown)
 	{
 		GameInstance->HasTitleScreenBeenShown = true;
 		GameInstance->GetUIManagerInstance()->EnterTitleScreen();
@@ -37,11 +37,7 @@ void ABGameMode::StartLevel()
 	ABGameState* BGameState = GetGameState<ABGameState>();
 	if (BGameState)
 	{
-		BGameState->SpawnedEnemies = 10; //스폰할 적 수
-		BGameState->KilledEnemies = 0;
-		BGameState->CollectedKeys = 0;
-		BGameState->bIsDoorOpen = false;
-		BGameState->TimeLimit = 10.0f; //제한시간
+		BGameState->InitializeGameState();
 	}
 
 	StartGame();
@@ -70,73 +66,45 @@ void ABGameMode::StartGame()
 	}
 }
 
-void ABGameMode::EnemyDefeated() //적 처치 시 호출
-{
-	ABGameState* BGameState = GetGameState<ABGameState>();
-	if (BGameState)
-	{
-		BGameState->KilledEnemies++;
-	}
-	CheckGameStatus();
-}
-
-void ABGameMode::ItemCollected() //클리어 조건 아이템 획득 시 호출
-{
-	ABGameState* BGameState = GetGameState<ABGameState>();
-	if (BGameState)
-	{
-		BGameState->CollectedKeys++;
-	}
-	CheckGameStatus();
-}
-
-void ABGameMode::CheckGameStatus() //게임 클리어 조건 체크
-{
-	ABGameState* BGameState = GetGameState<ABGameState>();
-	if (!BGameState) return;
-
-	if (BGameState->CollectedKeys >= 3 || BGameState->SpawnedEnemies <= BGameState->KilledEnemies) //키 3개 이상 획득 or 스폰된 적 전부 처치 시
-	{
-		OpenDoor();
-		return;
-	}
-
-}
-
-void ABGameMode::OpenDoor()
-{
-	ABGameState* BGameState = GetGameState<ABGameState>();
-	if (BGameState)
-	{
-		BGameState->bIsDoorOpen = true;
-	}
-}
-
 void ABGameMode::onDoorReached() //문에 플레이어 도달 시 호출
 {
 	ABGameState* BGameState = GetGameState<ABGameState>();
-	if (BGameState && BGameState->bIsDoorOpen)
+	if (BGameState->bIsDoorOpen)
 	{
 		UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
 		if (GameInstance)
 		{
 			GameInstance->GetUIManagerInstance()->LevelEndTransition();
 		}
+		NextLevel();
 	}
 }
 
 void ABGameMode::NextLevel() //다음 레벨로 이동
 {
-	UE_LOG(LogTemp, Log, TEXT("Loading next level"));
-	UGameplayStatics::OpenLevel(this, "StartLevel"); //다음 레벨 이름 수정 必
+	if (ABGameState* BGameState = GetGameState<ABGameState>())
+	{
+		BGameState->CurrentStage++;
+
+		FName NextLevelName = "StartLevel";
+		if (BGameState->CurrentStage == 3)
+		{
+			if (FMath::RandRange(0, 100) < 90) // 3번째 스테이지는 90% 확률로 보너스 레벨맵
+			{
+				NextLevelName = "BonusLevel";
+			}
+		}
+
+		UE_LOG(LogTemp, Log, TEXT("Loading next level: %s"), *NextLevelName.ToString());
+		UGameplayStatics::OpenLevel(this, NextLevelName);
+	}
 }
 
 void ABGameMode::EndGame()
 {
-	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
-	if (GameInstance)
+	if (ABGameState* BGameState = GetGameState<ABGameState>())
 	{
-		GameInstance->GetUIManagerInstance()->EnterGameOverScreen();
+		BGameState->TriggerGameOver();
 	}
 }
 
