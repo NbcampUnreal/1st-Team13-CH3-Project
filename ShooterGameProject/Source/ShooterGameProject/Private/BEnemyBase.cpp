@@ -21,6 +21,7 @@ ABEnemyBase::ABEnemyBase()
 	CoolTime = 10.f;// 낮을수록 빠름
 	SkillDuration = 0.f;
 	AttackRange = 0.f;
+	Accuracy = 0.7f;
 	bIsRanged = false;//false = 근거리
 	bIsInBattle = false;
 	bIsMeleeAttacking = false;
@@ -109,6 +110,8 @@ void ABEnemyBase::OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors)
 			if (AICont)
 			{
 				AICont->ClearFocus(EAIFocusPriority::Gameplay);
+				AICont->StopMovement();
+
 			}
 		}
 
@@ -117,7 +120,7 @@ void ABEnemyBase::OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors)
 			UBlackboardComponent* BlackboardComp = EnemyAIController->GetBlackboardComponent();
 			if (BlackboardComp)
 			{
-				//BlackboardComp->SetValueAsObject("TargetActor", DetectedPlayer);
+				BlackboardComp->SetValueAsObject("TargetActor", DetectedPlayer);
 			}
 		}
 
