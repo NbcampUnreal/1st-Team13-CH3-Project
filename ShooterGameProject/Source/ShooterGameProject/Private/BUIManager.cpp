@@ -74,6 +74,7 @@ UBUIManager::UBUIManager()
 	GameOverWidgetInstance = nullptr;
 	HUDWidgetInstance = nullptr;
 	NotificationWidget = nullptr;
+
 }
 
 // Create HUD widget when properties are initialized
@@ -366,16 +367,6 @@ void UBUIManager::UpdateHUDHealth(float CurrentHP, float MaxHP)
 	}
 }
 
-//void UBUIManager::UpdateHUDStatus()
-//{
-	// TODO: check character status & remaining time
-//}
-
-//void UBUIManager::UpdateHUDLevelTimer()
-//{
-	// TODO: check level timer remaining time
-//}
-
 void UBUIManager::UpdateHUDQuickSlot(FName ItemName, int32 Count)
 {
 	// TODO: Based on ItemType, change the count of that item in quick slot
@@ -412,7 +403,6 @@ void UBUIManager::UpdateHUDAmmo(int32 LoadedCount, int32 InventoryCount)
 
 void UBUIManager::UpdateHUDEquippedWeapon(FName WeaponType)
 {
-	// TODO: Based on the equipped weapon, change the icon / thumbnail
 	UTexture2D* WeaponTexture = nullptr;
 	if (WeaponType == "Pistol" && IsValid(PistolIconTexture))
 	{
@@ -456,20 +446,9 @@ void UBUIManager::DisplayNotification(FString Title, FString Message)
 		//		}
 		//	}
 		//}
-
 		if (NotificationWidget)
 		{
 			NotificationWidget->DisplayNotification(Title, Message);
-			//if (GetWorld() && !GetWorld()->bIsTearingDown)
-			//{
-			//	GetWorld()->GetTimerManager().SetTimer(
-			//		NotificationTimerHandle,
-			//		this,
-			//		&UBUIManager::RemoveNotification,
-			//		NotificationDuration,
-			//		false
-			//	);
-			//}
 		}
 	}
 }
@@ -485,7 +464,17 @@ void UBUIManager::RemoveNotification()
 	}
 }
 
-
-
-
+TTuple<FVector, FVector> UBUIManager::GetCrosshairLocationAndDirection()
+{
+	FVector CrosshairLocation = FVector::ZeroVector;
+	FVector CrosshairDirection = FVector::ZeroVector;
+	if (APlayerController* PlayerController = GameInstance->GetFirstLocalPlayerController())
+	{
+		FVector2D ViewportSize;
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+		PlayerController->DeprojectScreenPositionToWorld(
+			0.5f * ViewportSize.X, 0.5f * ViewportSize.Y, CrosshairLocation, CrosshairDirection);
+	}
+	return TTuple<FVector, FVector>(CrosshairLocation, CrosshairDirection);
+}
 
