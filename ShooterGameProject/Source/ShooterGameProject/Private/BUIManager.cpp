@@ -6,6 +6,7 @@
 #include "BGameInstance.h"
 #include "BPlayerController.h"
 #include "BCharacter.h"
+#include "NotificationWidget.h"
 
 UBUIManager::UBUIManager()
 {
@@ -46,6 +47,13 @@ UBUIManager::UBUIManager()
 	{
 		HUDWidgetClass = HUDWidgetClassFinder.Class;
 	}
+
+	// Notification
+	//ConstructorHelpers::FClassFinder<UUserWidget> NotificationWidgetClassFinder(TEXT("/Game/UI/WBP_NotificationWidget"));
+	//if (NotificationWidgetClassFinder.Succeeded())
+	//{
+	//	NotificationWidgetClass = NotificationWidgetClassFinder.Class;
+	//}
 	
 	/**** Get and assign textures ****/
 	ConstructorHelpers::FObjectFinder<UTexture2D> PistolIconFinder(TEXT("/Game/UI/Textures/T_Pistol_Icon.T_Pistol_Icon"));
@@ -65,6 +73,7 @@ UBUIManager::UBUIManager()
 	InGameMenuWidgetInstance = nullptr;
 	GameOverWidgetInstance = nullptr;
 	HUDWidgetInstance = nullptr;
+	NotificationWidget = nullptr;
 }
 
 // Create HUD widget when properties are initialized
@@ -425,6 +434,58 @@ void UBUIManager::UpdateHUDEquippedWeapon(FName WeaponType)
 		}
 	}
 }
+
+void UBUIManager::DisplayNotification(FString Title, FString Message)
+{
+	if (HUDWidgetInstance)
+	{
+		NotificationWidget = Cast<UNotificationWidget>(HUDWidgetInstance->GetWidgetFromName(TEXT("NotificationWidget")));
+		//if (NotificationWidgetClass && NotificationWidget == nullptr)
+		//{
+		//	if (UWidget* HUDPanel = HUDWidgetInstance->GetWidgetFromName(TEXT("HUDPanel")))
+		//	{
+		//		NotificationWidget = CreateWidget<UNotificationWidget>(HUDPanel, NotificationWidgetClass, "NotificationWidget");
+		//		if (NotificationWidget)
+		//		{
+		//			NotificationWidget->SetAnchorsInViewport(FAnchors(0.5f, 0.f));
+		//			NotificationWidget->SetPositionInViewport(FVector2D(0.f, 50.f));
+		//			NotificationWidget->SetDesiredSizeInViewport(FVector2D(500.f, 150.f));
+		//			NotificationWidget->SetAlignmentInViewport(FVector2D(0.5f, 0.f));
+		//			NotificationWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+		//			UE_LOG(LogTemp, Warning, TEXT("NotificationWidget Created"))
+		//		}
+		//	}
+		//}
+
+		if (NotificationWidget)
+		{
+			NotificationWidget->DisplayNotification(Title, Message);
+			//if (GetWorld() && !GetWorld()->bIsTearingDown)
+			//{
+			//	GetWorld()->GetTimerManager().SetTimer(
+			//		NotificationTimerHandle,
+			//		this,
+			//		&UBUIManager::RemoveNotification,
+			//		NotificationDuration,
+			//		false
+			//	);
+			//}
+		}
+	}
+}
+
+void UBUIManager::RemoveNotification()
+{
+	if (NotificationWidget)
+	{
+		NotificationWidget->RemoveNotification();
+		//NotificationWidget->RemoveFromParent();
+		//NotificationWidget = nullptr;
+		UE_LOG(LogTemp, Warning, TEXT("Things inside NotificationWidget Removed"))
+	}
+}
+
+
 
 
 
