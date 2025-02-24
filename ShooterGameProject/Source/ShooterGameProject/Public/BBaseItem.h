@@ -16,7 +16,8 @@ class SHOOTERGAMEPROJECT_API ABBaseItem : public AActor, public IBItemInterface
 public:	
 	// Sets default values for this actor's properties
 	ABBaseItem();
-
+	// 아이템을 제거하는 공통 함수 (추가 이펙트나 로직을 넣을 수 있음)
+	virtual void DestroyItem();
 protected:
 	// 아이템 유형(타입)을 편집 가능하게 지정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
@@ -56,7 +57,6 @@ protected:
 	virtual FName GetItemType() const override;
 	virtual FName GetItemName() const override;
 	virtual void UseItem(AActor* Activator) override;
-	// 아이템을 제거하는 공통 함수 (추가 이펙트나 로직을 넣을 수 있음)
-	virtual void DestroyItem();
+
 
 };

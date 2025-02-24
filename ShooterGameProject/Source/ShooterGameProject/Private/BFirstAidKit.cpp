@@ -32,6 +32,6 @@ void ABFirstAidKit::UseItem(AActor* Activator)
 	{
 		ABCharacter* OverlappingCharacter = Cast<ABCharacter>(Activator);
 		//체력회복하는 로직 추가예정
-		//OverlappingCharacter->Health
+		//OverlappingCharacter->Health등으로 하면 될 듯.
 	}
 }

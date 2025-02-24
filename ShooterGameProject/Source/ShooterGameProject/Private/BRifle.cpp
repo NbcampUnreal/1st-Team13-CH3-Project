@@ -5,7 +5,7 @@
 #include "BCharacter.h"       // BCharacter 포함
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
-
+#include "Components/SphereComponent.h"
 ABRifle::ABRifle()
 {
     // 소총 기본 설정
@@ -19,6 +19,9 @@ ABRifle::ABRifle()
     SetRootComponent(RifleBody);
     FRotator NewRotation(0.0f, 0.0f, -180.0f); // 예: Y축으로 90도 회전
     RifleBody->SetRelativeRotation(NewRotation);
+
+    // 루트 컴포넌트로 설정
+    Collision->SetupAttachment(RifleBody);
     // 🔹 탄창
     Magazine = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Magazine"));
     Magazine->SetupAttachment(RifleBody);
