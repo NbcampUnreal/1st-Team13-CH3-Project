@@ -28,6 +28,5 @@ public:
 	void SetCurrentStage(int32 Stage) { CurrentStage = Stage; }
 
 private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Game State")
 	int32 CurrentStage = 1;
 };
