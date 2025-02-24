@@ -8,5 +8,6 @@ UCLASS()
 class SHOOTERGAMEPROJECT_API UAnimNotify_ApplyDamage : public UAnimNotify
 {
 	GENERATED_BODY()
-	
+public:
+	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
 };

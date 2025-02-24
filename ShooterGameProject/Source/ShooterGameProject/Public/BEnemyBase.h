@@ -22,7 +22,8 @@ protected:
 	void OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
 	UFUNCTION()
 	void OnMeleeAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
-
+private:
+	FTimerHandle AttackTimerHandle;
 public:	
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
@@ -34,6 +35,7 @@ public:
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "AI|Components")
 	TArray<AActor*> PatrolPoints;
 
+	//기본스탯
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	float MaxHP;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
@@ -57,6 +59,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Battle")
 	bool bIsMeleeAttacking;
 
+	//projectile
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	TSubclassOf<class ABProjectileBase> ProjectileClass;
+
+	// Accuracy: 1.0이면 완벽, 0.0이면 가장 부정확
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	float Accuracy;
+
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void SpawnProjectile();
 
 	FTimerHandle SkillTimerHandle;
 
