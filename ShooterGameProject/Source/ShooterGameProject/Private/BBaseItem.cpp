@@ -42,7 +42,6 @@ void ABBaseItem::OnItemOverlap(UPrimitiveComponent* OverlappedComp, AActor* Othe
 {
     if (OtherActor && OtherActor->ActorHasTag("Player"))
     {
-        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Overlap!!!"));
         ActivateItem(OtherActor);
 
         ABCharacter* OverlappingCharacter = Cast<ABCharacter>(OtherActor);
@@ -67,7 +66,6 @@ void ABBaseItem::OnItemEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* O
 
 void ABBaseItem::ActivateItem(AActor* Activator)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("Overlap!!")));
 }
 
 FName ABBaseItem::GetItemType() const
