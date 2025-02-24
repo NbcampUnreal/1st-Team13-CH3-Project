@@ -28,7 +28,7 @@ void ABGameMode::BeginPlay()
 	else
 	{
 		GameInstance->GetUIManagerInstance()->LevelStartTransition();
-		//StartLevel();
+		StartLevel();
 	}
 }
 
@@ -52,7 +52,8 @@ void ABGameMode::StartGame()
 	(
 		LevelTimerHandle,
 		this,
-		&ABGameMode::EndGame,
+		//&ABGameMode::EndGame,
+		&ABGameMode::NextLevel,
 		BGameState->TimeLimit,
 		false
 	);
@@ -82,12 +83,14 @@ void ABGameMode::onDoorReached() //문에 플레이어 도달 시 호출
 
 void ABGameMode::NextLevel() //다음 레벨로 이동
 {
-	if (ABGameState* BGameState = GetGameState<ABGameState>())
+	if (UBGameInstance* BGameInstance = GetGameInstance<UBGameInstance>())
 	{
-		BGameState->CurrentStage++;
+		int32 CurrentStage = BGameInstance->GetCurrentStage() + 1;
+		BGameInstance->SetCurrentStage(CurrentStage);
+		UE_LOG(LogTemp, Log, TEXT("Loading next level: %d"), CurrentStage);
 
 		FName NextLevelName = "StartLevel";
-		if (BGameState->CurrentStage == 3)
+		if (CurrentStage == 3)
 		{
 			if (FMath::RandRange(0, 100) < 90) // 3번째 스테이지는 90% 확률로 보너스 레벨 맵
 			{

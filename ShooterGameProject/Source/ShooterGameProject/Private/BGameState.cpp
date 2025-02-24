@@ -10,7 +10,6 @@ ABGameState::ABGameState()
 	CollectedKeys = 0;
 	bIsDoorOpen = false;
 	TimeLimit = 10.0f;
-	CurrentStage = 1;
 }
 void ABGameState::BeginPlay()
 {
@@ -40,7 +39,8 @@ void ABGameState::ItemCollected()
 
 void ABGameState::CheckGameStatus()
 {
-	if (CurrentStage == 3)
+	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
+	if (GameInstance->GetCurrentStage() == 3)
 	{
 		if (SpawnedEnemies <= KilledEnemies)
 		{

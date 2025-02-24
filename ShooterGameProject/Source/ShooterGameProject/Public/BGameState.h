@@ -24,8 +24,6 @@ public:
     bool bIsDoorOpen; //문 상태 (true면 다음 스테이지 가능)
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Game State")
     float TimeLimit; //제한시간
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Game State")
-    int32 CurrentStage;
 
     UFUNCTION(BlueprintCallable)
     void InitializeGameState();

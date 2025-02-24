@@ -24,5 +24,10 @@ public:
 	UFUNCTION(BlueprintPure)
 	UBUIManager* GetUIManagerInstance();
 
+	int32 GetCurrentStage() const { return CurrentStage; }
+	void SetCurrentStage(int32 Stage) { CurrentStage = Stage; }
 
+private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Game State")
+	int32 CurrentStage = 1;
 };
