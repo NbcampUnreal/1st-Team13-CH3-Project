@@ -163,12 +163,13 @@ void ABCharacter::SetDraggingItem(AActor* NewItem)
 	ABBaseItem* Item = Cast<ABBaseItem>(NewItem);
 	if (Item)
 	{
+		// 아이템이 특정 소켓에 장착되어 있다면 드래그 불가
+		if (Item->GetAttachParentSocketName() == "WeaponSocket")
+		{
+			return;
+		}
+
 		DraggingItem = Item;
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("DraggingItem successfully set!"));
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("SetDraggingItem received NULL!"));
 	}
 }
 
