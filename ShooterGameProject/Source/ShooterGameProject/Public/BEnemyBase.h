@@ -24,6 +24,7 @@ protected:
 	void OnMeleeAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 private:
 	FTimerHandle AttackTimerHandle;
+	FTimerHandle SkillTimerHandle;
 public:	
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
@@ -70,7 +71,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void SpawnProjectile();
 
-	FTimerHandle SkillTimerHandle;
+	
 
 	virtual float GetAttackRange() const;
 	virtual float GetHP() const;
