@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BBaseGun.h"
+#include "BProjectileBase.h"
 #include "BRifle.generated.h"
 
 /**
@@ -47,7 +48,8 @@ public:
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gun")
     USceneComponent* GunMuzzle;
-
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
+    TSubclassOf<ABProjectileBase> ProjectileClass;  // 🔹 총알 클래스 추가
 
     // 피스톨 기본 데미지
     UPROPERTY(EditAnywhere, Category = "Gun")
