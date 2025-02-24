@@ -85,15 +85,14 @@ public:
 	// 🔹 현재 사용 중인 무기
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	EWeaponSlot ActiveWeaponSlot;
-	// 캐릭터 클래스에 있는 변수 (예제)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-	TSubclassOf<ABBaseWeapon> WeaponClass;
+
 	// 🔹 현재 장착된 무기 (각 슬롯에 해당하는 무기 저장)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	// 배열 초기화 예시
 	TArray<ABBaseWeapon*> EquippedWeapons;  // 슬롯에 대응하는 무기 배열
 
 	void SetDraggingItem(AActor* NewItem);
+	void EquipWeapon(ABBaseWeapon* NewWeapon);
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UCameraComponent> CameraComp;
@@ -123,7 +122,7 @@ protected:
 	void StartDragging();
 	void StopDragging();
 	virtual void BeginPlay() override;
-	void EquipWeapon(ABBaseWeapon* NewWeapon);
+
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void FireOnce();
 	void StopFire();
