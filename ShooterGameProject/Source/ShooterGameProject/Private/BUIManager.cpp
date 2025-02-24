@@ -48,10 +48,16 @@ UBUIManager::UBUIManager()
 	}
 	
 	/**** Get and assign textures ****/
-	ConstructorHelpers::FObjectFinder<UTexture2D> PistolTextureFinder(TEXT("/Game/UI/Textures/T_Pistol.T_Pistol"));
-	if (PistolTextureFinder.Succeeded())
+	ConstructorHelpers::FObjectFinder<UTexture2D> PistolIconFinder(TEXT("/Game/UI/Textures/T_Pistol_Icon.T_Pistol_Icon"));
+	if (PistolIconFinder.Succeeded())
 	{
-		PistolTexture = PistolTextureFinder.Object;
+		PistolIconTexture = PistolIconFinder.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<UTexture2D> RifleIconFinder(TEXT("/Game/UI/Textures/T_Rifle_Icon.T_Rifle_Icon"));
+	if (RifleIconFinder.Succeeded())
+	{
+		RifleIconTexture  = RifleIconFinder.Object;
 	}
 
 	TitleWidgetInstance = nullptr;
@@ -361,11 +367,11 @@ void UBUIManager::UpdateHUDHealth(float CurrentHP, float MaxHP)
 	// TODO: check level timer remaining time
 //}
 
-void UBUIManager::UpdateHUDQuickSlot(FName ItemType, int32 Count)
+void UBUIManager::UpdateHUDQuickSlot(FName ItemName, int32 Count)
 {
 	// TODO: Based on ItemType, change the count of that item in quick slot
 	FName WidgetName = "";
-	if (ItemType == "FirstAidKit")
+	if (ItemName == "FirstAidKit")
 	{
 		WidgetName = "QuickSlotCountText_0";
 	}
@@ -399,9 +405,13 @@ void UBUIManager::UpdateHUDEquippedWeapon(FName WeaponType)
 {
 	// TODO: Based on the equipped weapon, change the icon / thumbnail
 	UTexture2D* WeaponTexture = nullptr;
-	if (WeaponType == "Pistol" && PistolTexture != nullptr)
+	if (WeaponType == "Pistol" && IsValid(PistolIconTexture))
 	{
-		WeaponTexture = PistolTexture;
+		WeaponTexture = PistolIconTexture;
+	}
+	else if (WeaponType == "Rifle" && IsValid(RifleIconTexture))
+	{
+		WeaponTexture = RifleIconTexture;
 	}
 
 	if (HUDWidgetInstance)

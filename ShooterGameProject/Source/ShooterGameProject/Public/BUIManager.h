@@ -96,8 +96,10 @@ public:
 protected:
 	class UBGameInstance* GameInstance;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Textures")
-	UTexture2D* PistolTexture;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Icons")
+	UTexture2D* PistolIconTexture;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Icons")
+	UTexture2D* RifleIconTexture;
 
 	void SetInputUIOnly();
 	void SetInputGameOnly();
