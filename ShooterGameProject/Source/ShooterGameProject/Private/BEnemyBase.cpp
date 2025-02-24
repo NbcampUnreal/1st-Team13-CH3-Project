@@ -6,6 +6,7 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Kismet/GameplayStatics.h"
 #include "BCharacter.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 class ABCharacter;
 
@@ -15,23 +16,14 @@ ABEnemyBase::ABEnemyBase()
 	CurrentHP = MaxHP;
 	Power = 0.f;
 	Speed = 0.f;
-	AttackSpeed = 10.f;	// 낮을수록 빠름
-	CoolTime = 10.f;	// 낮을수록 빠름
+	AttackSpeed = 10.f;// 낮을수록 빠름
+	CoolTime = 10.f;// 낮을수록 빠름
 	SkillDuration = 0.f;
 	AttackRange = 0.f;
-	bIsRanged = false;	//false = 근거리
+	bIsRanged = false;//false = 근거리
 	bIsInBattle = false;
-
-
-	//Scene = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
-	//SetRootComponent(Scene);
-
-	//Collision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Collision"));
-	//Collision->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	//Collision->SetupAttachment(Scene);
-
-	//StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
-	//StaticMesh->SetupAttachment(Collision);
+	bIsMeleeAttacking = false;
+	MeleeAttackMontage = nullptr;
 
 	AIControllerClass = ABEnemyAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -63,7 +55,10 @@ void ABEnemyBase::BeginPlay()
 	{
 		GetWorld()->GetTimerManager().SetTimer(SkillTimerHandle, this, &ABEnemyBase::UseSkill, CoolTime + SkillDuration, true);
 	}
-	
+	if (AIPerceptionComponent)
+	{
+		AIPerceptionComponent->OnPerceptionUpdated.AddDynamic(this, &ABEnemyBase::OnPerceptionUpdated);
+	}
 }
 
 float ABEnemyBase::GetAttackRange() const
@@ -97,18 +92,34 @@ void ABEnemyBase::OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors)
 		//생성자에서(혹은 블루프린트에서) 설정한 최대 시야
 		UAISenseConfig_Sight* SightConfig = AIPerceptionComponent->GetSenseConfig<UAISenseConfig_Sight>();
 		float LoseSightRadius = SightConfig->LoseSightRadius;
+		AAIController* AICont = Cast<AAIController>(GetController());
 
 		if (Distance <= LoseSightRadius)
 		{
-			// 플레이어가 가까이 있으면 전투 상태로 전환하고 시야를 180도로 확장
+			// 플레이어가 가까이 있으면 전투 상태로 전환하고 시야 고정
 			bIsInBattle = true;
-			SetPeripheralVisionAngle(180.f);
+			if (AICont)
+			{
+				AICont->SetFocus(DetectedPlayer);
+			}
 		}
 		else
 		{
-			// 플레이어가 멀어지면 전투 상태 해제 및 시야를 45도로 복원
+			// 플레이어가 멀어지면 전투 상태 해제 및 시야 고정 해제
 			bIsInBattle = false;
-			SetPeripheralVisionAngle(45.f);
+			if (AICont)
+			{
+				AICont->ClearFocus(EAIFocusPriority::Gameplay);
+			}
+		}
+
+		if (ABEnemyAIController* EnemyAIController = Cast<ABEnemyAIController>(GetController()))
+		{
+			UBlackboardComponent* BlackboardComp = EnemyAIController->GetBlackboardComponent();
+			if (BlackboardComp)
+			{
+				//BlackboardComp->SetValueAsObject("TargetActor", DetectedPlayer);
+			}
 		}
 
 		// 주변 1500 내의 다른 AI들에게도 전투 상태를 부여하고 소집 명령(Rally)을 내림
@@ -128,22 +139,13 @@ void ABEnemyBase::OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors)
 	}
 	else
 	{
-		// 플레이어가 감지되지 않으면 전투 상태 해제 및 시야를 45도로 복원
+		// 플레이어가 감지되지 않으면 전투 상태 해제 및 시야 고정 해제
 		bIsInBattle = false;
-		SetPeripheralVisionAngle(45.f);
-	}
-}
 
-void ABEnemyBase::SetPeripheralVisionAngle(float NewAngle)
-{
-	if (!AIPerceptionComponent)
-		return;
-
-	UAISenseConfig_Sight* SightConfig = AIPerceptionComponent->GetSenseConfig<UAISenseConfig_Sight>();
-	if (SightConfig)
-	{
-		SightConfig->PeripheralVisionAngleDegrees = NewAngle;
-		AIPerceptionComponent->ConfigureSense(*SightConfig);
+		if (AAIController* AICont = Cast<AAIController>(GetController()))
+		{
+			AICont->StopMovement();
+		}
 	}
 }
 
@@ -176,24 +178,6 @@ void ABEnemyBase::Rally()
 }
 
 void ABEnemyBase::Attack()
-{
-	PlayAttackAnim();
-	DealDamageToPlayer();
-}
-
-void ABEnemyBase::PlayAttackAnim()
-{
-	if (AttackMontage)
-	{
-		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-		if (AnimInstance)
-		{
-			AnimInstance->Montage_Play(AttackMontage);
-		}
-	}
-}
-
-void ABEnemyBase::DealDamageToPlayer()
 {
 	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
 	if (PlayerPawn)
@@ -242,4 +226,35 @@ void ABEnemyBase::DropItem()
 void ABEnemyBase::GainHP(float HP)
 {
 	CurrentHP = FMath::Clamp(CurrentHP + HP, 0.f, MaxHP);
+}
+
+void ABEnemyBase::PlayMeleeAttackMontage()
+{
+	if (!MeleeAttackMontage) return;
+
+	// 스켈레탈 메시에 연결된 AnimInstance를 가져옴
+	UAnimInstance* AnimInstance = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
+	if (AnimInstance)
+	{
+		// 몽타주 재생
+		AnimInstance->Montage_Play(MeleeAttackMontage);
+
+		// 몽타주가 끝났을 때(블렌드아웃 포함) 실행될 델리게이트 등록
+		FOnMontageEnded EndDelegate;
+		EndDelegate.BindUObject(this, &ABEnemyBase::OnMeleeAttackMontageEnded);
+		AnimInstance->Montage_SetEndDelegate(EndDelegate, MeleeAttackMontage);
+
+		// 공격 중 상태로 변경
+		bIsMeleeAttacking = true;
+	}
+}
+
+void ABEnemyBase::OnMeleeAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	// 현재 실행 중이던 MeleeAttackMontage가 끝난 것인지 확인
+	if (Montage == MeleeAttackMontage)
+	{
+		// 공격 종료 상태로 변경
+		bIsMeleeAttacking = false;
+	}
 }
