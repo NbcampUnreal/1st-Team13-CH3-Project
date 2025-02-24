@@ -55,53 +55,36 @@ void ABPistol::Attack()
         return;
     }
 
-    
-
     FVector MuzzleLocation = GunMuzzle ? GunMuzzle->GetComponentLocation() : GetActorLocation();
-    FVector ShootDirection = OwnerCharacter->GetCameraForwardVector();
-    FVector EndTrace = MuzzleLocation + (ShootDirection * 10000.0f);
+    FRotator MuzzleRotation = OwnerCharacter->GetControlRotation();
+    FVector ShootDirection = MuzzleRotation.Vector();  // 🔹 발사 방향 설정
 
-    UE_LOG(LogTemp, Log, TEXT("총구 위치: %s, 발사 방향: %s"), *MuzzleLocation.ToString(), *ShootDirection.ToString());
-
-    FHitResult HitResult;
-    FCollisionQueryParams Params;
-    Params.AddIgnoredActor(this);
-    Params.AddIgnoredActor(OwnerCharacter);
-
-    if (bDebugDraw)
+    // 🔹 총알 스폰
+    if (ProjectileClass)
     {
-        DrawDebugLine(GetWorld(), MuzzleLocation, EndTrace, FColor::Green, false, 2.0f, 0, 1.0f);
-    }
-
-    bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, MuzzleLocation, EndTrace, ECC_Visibility, Params);
-
-    if (bHit)
-    {
-        AActor* HitActor = HitResult.GetActor();
-        if (HitActor)
+        FActorSpawnParameters SpawnParams;
+        SpawnParams.Owner = this;
+        SpawnParams.Instigator = OwnerCharacter;
+        UE_LOG(LogTemp, Log, TEXT("총알 스폰 시도: %s"), *ProjectileClass->GetName());
+        // 총알 생성
+        ABProjectileBase* Projectile = GetWorld()->SpawnActor<ABProjectileBase>(ProjectileClass, MuzzleLocation, MuzzleRotation, SpawnParams);
+        if (Projectile)
         {
-            UGameplayStatics::ApplyDamage(HitActor, Damage, OwnerCharacter->GetController(), this, UDamageType::StaticClass());
-
-            if (ImpactEffect)
-            {
-                UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactEffect, HitResult.ImpactPoint);
-            }
-
-            UE_LOG(LogTemp, Log, TEXT("적을 맞췄습니다: %s"), *HitActor->GetName());
+            UE_LOG(LogTemp, Log, TEXT("총알 스폰 성공: %s"), *Projectile->GetName());
+            Projectile->FireInDirection(ShootDirection);  // 🔹 총알 발사
         }
     }
     else
     {
-        UE_LOG(LogTemp, Log, TEXT("발사한 총알이 아무 것도 맞추지 못했습니다."));
+        UE_LOG(LogTemp, Warning, TEXT("ProjectileClass가 설정되지 않았습니다!"));
     }
 
+    // 🔹 사운드 재생
     if (FireSound)
     {
         UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
     }
 }
-
-
 
 void ABPistol::DisablePhysicsSimulation()
 {
