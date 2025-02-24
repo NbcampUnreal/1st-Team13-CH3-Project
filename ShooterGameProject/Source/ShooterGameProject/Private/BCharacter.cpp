@@ -242,6 +242,11 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 			GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &ABCharacter::FireOnce, CurrentWeapon->FireRate, true);
 		}
 	}
+	else 
+	{
+		// 투척무기: 투척
+			CurrentWeapon->Attack();
+	}
 }
 void ABCharacter::FireOnce()
 {

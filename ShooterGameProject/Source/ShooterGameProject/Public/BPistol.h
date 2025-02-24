@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "BBaseGun.h"
+#include "BProjectileBase.h"
 #include "BPistol.generated.h"
 
 class ABCharacter;  // ABCharacter 전방 선언
@@ -31,6 +32,9 @@ protected:
     // 디버그 선 그리기 여부를 결정하는 변수
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
     bool bDebugDraw = true;  // 기본값을 true로 설정하여 디버깅할 때 선이 그려지도록 할 수 있습니다.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "Projectile")
+    TSubclassOf<ABProjectileBase> ProjectileClass;  // 🔹 총알 클래스 추가
+
 private:
    
 
