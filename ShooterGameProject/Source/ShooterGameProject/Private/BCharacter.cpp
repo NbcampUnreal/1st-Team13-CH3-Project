@@ -148,7 +148,31 @@ void ABCharacter::SetDraggingItem(AActor* NewItem)
 	}
 }
 
+<<<<<<< Updated upstream
 void ABCharacter::StartDragging()
+=======
+void ABCharacter::StartDragging(const FInputActionValue& Value)
+{
+	bool Drag = Value.Get<bool>();
+	
+	if (Drag == true)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("DragStart"));
+	}
+}
+
+void ABCharacter::StopDragging(const FInputActionValue& Value)
+{
+	bool Drag = Value.Get<bool>();
+
+	if (Drag == false)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("DragStop"));
+	}
+}
+
+void ABCharacter::AimStop(const FInputActionValue& Value)
+>>>>>>> Stashed changes
 {
 	if (DraggingItem)
 	{
@@ -225,6 +249,7 @@ void ABCharacter::BeginPlay()
 }
 void ABCharacter::Attack(const struct FInputActionValue& Value)
 {
+<<<<<<< Updated upstream
 	ABBaseWeapon* CurrentWeapon = EquippedWeapons[(int32)ActiveWeaponSlot];
 	if (!CurrentWeapon) return;
 
@@ -246,6 +271,12 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 	{
 		// 투척무기: 투척
 			CurrentWeapon->Attack();
+=======
+	bool Trigger = Value.Get<bool>();
+	if (Trigger == true)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("Attack"));
+>>>>>>> Stashed changes
 	}
 }
 void ABCharacter::FireOnce()

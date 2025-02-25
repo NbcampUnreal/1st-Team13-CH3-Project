@@ -31,43 +31,6 @@ enum class EWeaponSlot : uint8
 	Throwable,   // 투척무기 (예: 수류탄)
 	Max
 };
-//USTRUCT()
-//struct FSharedRepMovement
-//{
-//	GENERATED_BODY()
-//
-//	FSharedRepMovement();
-//
-//	bool FillForCharacter(ACharacter* Character);
-//	bool Equals(const FSharedRepMovement& Other, ACharacter* Character) const;
-//
-//	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
-//
-//	UPROPERTY(Transient)
-//	FRepMovement RepMovement;
-//
-//	UPROPERTY(Transient)
-//	float RepTimeStamp = 0.0f;
-//
-//	UPROPERTY(Transient)
-//	uint8 RepMovementMode = 0;
-//
-//	UPROPERTY(Transient)
-//	bool bProxyIsJumpForceApplied = false;
-//
-//	UPROPERTY(Transient)
-//	bool bIsCrouched = false;
-//};
-
-//template<>
-//struct TStructOpsTypeTraits<FSharedRepMovement> : public TStructOpsTypeTraitsBase2<FSharedRepMovement>
-//{
-//	enum
-//	{
-//		WithNetSerializer = true,
-//		WithNetSharedSerialization = true,
-//	};
-//};
 
 UCLASS()
 class ABCharacter :
@@ -119,8 +82,14 @@ protected:
 	void Attack(const struct FInputActionValue& Value);
 	UFUNCTION()
 	void Reload(const struct FInputActionValue& Value);
-	void StartDragging();
-	void StopDragging();
+	UFUNCTION()
+	void AimStart(const FInputActionValue& Value);
+	UFUNCTION()
+	void StartDragging(const FInputActionValue& Value);
+	UFUNCTION()
+	void StopDragging(const FInputActionValue& Value);
+	UFUNCTION()
+	void AimStop(const FInputActionValue& Value);
 	virtual void BeginPlay() override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
