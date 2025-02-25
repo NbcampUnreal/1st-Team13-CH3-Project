@@ -38,6 +38,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|Notification")
 	class UNotificationWidget* NotificationWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|Notification")
+	class UItemNotificationWidget* ItemNotificationWidget;
+
 
 	FTimerHandle UpdateHUDTimerHandle;
 
@@ -87,7 +90,7 @@ public:
 	void UpdateHUDHealth(float CurrentHP, float MaxHP);
 	//void UpdateHUDMission(const FString& Title, const FString& Content, int32 CurrentCount, int32 MaxCount);
 	//void UpdateHUDMap();
-	void UpdateHUDQuickSlot(FName ItemType, int32 Count);
+	void UpdateHUDQuickSlot(FName ItemName, int32 Count);
 	void UpdateHUDAmmo(int32 LoadedCount, int32 InventoryCount);
 	void UpdateHUDEquippedWeapon(FName WeaponType);
 	//void UpdateHUDStance();
@@ -95,11 +98,12 @@ public:
 	void DisplayNotification(FString Title, FString Message);
 	void RemoveNotification();
 
+	void DisplayItemNotification(FName ItemName);
+	void RemoveItemNotification();
+
 	TTuple<FVector, FVector> GetCrosshairLocationAndDirection();
 
 protected:
-	
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Icons")
 	UTexture2D* PistolIconTexture;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Icons")

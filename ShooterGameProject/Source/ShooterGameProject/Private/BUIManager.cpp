@@ -7,6 +7,7 @@
 #include "BPlayerController.h"
 #include "BCharacter.h"
 #include "NotificationWidget.h"
+#include "ItemNotificationWidget.h"
 
 UBUIManager::UBUIManager()
 {
@@ -47,13 +48,6 @@ UBUIManager::UBUIManager()
 	{
 		HUDWidgetClass = HUDWidgetClassFinder.Class;
 	}
-
-	// Notification
-	//ConstructorHelpers::FClassFinder<UUserWidget> NotificationWidgetClassFinder(TEXT("/Game/UI/WBP_NotificationWidget"));
-	//if (NotificationWidgetClassFinder.Succeeded())
-	//{
-	//	NotificationWidgetClass = NotificationWidgetClassFinder.Class;
-	//}
 	
 	/**** Get and assign textures ****/
 	ConstructorHelpers::FObjectFinder<UTexture2D> PistolIconFinder(TEXT("/Game/UI/Textures/T_Pistol_Icon.T_Pistol_Icon"));
@@ -333,8 +327,6 @@ void UBUIManager::RemoveHUD()
 // Update timed elements in HUD (repeated by UpdateHUDTimerHandle)
 void UBUIManager::UpdateHUDTimed()
 {
-	// UpdateHUDStatus();
-	// UpdateHUDLevelTimer();
 	// UpdateHUDMap(); 호출??
 }
 
@@ -461,6 +453,26 @@ void UBUIManager::RemoveNotification()
 		//NotificationWidget->RemoveFromParent();
 		//NotificationWidget = nullptr;
 		UE_LOG(LogTemp, Warning, TEXT("Things inside NotificationWidget Removed"))
+	}
+}
+
+void UBUIManager::DisplayItemNotification(FName ItemName)
+{
+	if (HUDWidgetInstance)
+	{
+		ItemNotificationWidget = Cast<UItemNotificationWidget>(
+			HUDWidgetInstance->GetWidgetFromName("ItemNotificationWidget"));
+		{
+			ItemNotificationWidget->DisplayNotification(ItemName);
+		}
+	}
+}
+
+void UBUIManager::RemoveItemNotification()
+{
+	if (ItemNotificationWidget)
+	{
+		ItemNotificationWidget->RemoveNotification();
 	}
 }
 
