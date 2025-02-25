@@ -28,5 +28,5 @@ public:
 	void SetCurrentStage(int32 Stage) { CurrentStage = Stage; }
 
 private:
-	int32 CurrentStage = 1;
+	int32 CurrentStage = 0;
 };
