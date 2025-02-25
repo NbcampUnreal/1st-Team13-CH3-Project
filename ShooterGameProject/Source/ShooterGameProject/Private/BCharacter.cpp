@@ -16,12 +16,12 @@ ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->TargetArmLength = 300.f;
-	SpringArm->bUsePawnControlRotation = true; // »∏¿¸Ω√ ƒ´∏ﬁ∂Ûµµ ¿Ãµø«—¥Ÿ.
+	SpringArm->bUsePawnControlRotation = true; // ?åÏ†Ñ??Ïπ¥Î©î?ºÎèÑ ?¥Îèô?úÎã§.
 	SpringArm->SetupAttachment(GetRootComponent());
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArm);
-	CameraComp->bUsePawnControlRotation = false; // ƒ´∏ﬁ∂Ûµµ »∏¿¸«œ∏È ¡§Ω≈æ¯¿∏π«∑Œ false
+	CameraComp->bUsePawnControlRotation = false; // Ïπ¥Î©î?ºÎèÑ ?åÏ†Ñ?òÎ©¥ ?ïÏã†?ÜÏúºÎØÄÎ°?false
 
 	Collision = GetCapsuleComponent();
 	check(Collision);
@@ -97,7 +97,7 @@ void ABCharacter::StartSprint(const FInputActionValue& Value)
 {
 	if (Value.Get<bool>())
 	{
-		// PlayerState∏¶ ∞°¡ÆøÕº≠ √≥∏Æ«œµµ∑œ «œ¿⁄.
+		// PlayerStateÎ•?Í∞Ä?∏Ï???Ï≤òÎ¶¨?òÎèÑÎ°??òÏûê.
 		// TODO : GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 	}
 }
@@ -106,7 +106,7 @@ void ABCharacter::StopSprint(const FInputActionValue& Value)
 {
 	if (!Value.Get<bool>())
 	{
-		// PlayerState∏¶ ∞°¡ÆøÕº≠ √≥∏Æ«œµµ∑œ «œ¿⁄.
+		// PlayerStateÎ•?Í∞Ä?∏Ï???Ï≤òÎ¶¨?òÎèÑÎ°??òÏûê.
 		// TODO : GetCharacterMovement()->MaxWalkSpeed = NomalSpeed;
 	}
 }
@@ -115,7 +115,23 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 {
 	if (Value.Get<bool>())
 	{
-		// TODO : Reload
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("Reload"));
+	}
+}
+
+void ABCharacter::AimStart(const FInputActionValue& Value)
+{
+	if (Value.Get<bool>())
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("AimStart"));
+	}
+}
+
+void ABCharacter::AimStop(const FInputActionValue& Value)
+{
+	if (!Value.Get<bool>())
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f,FColor::Blue, *FString("AimStop"));
 	}
 }
 
@@ -186,4 +202,24 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		ETriggerEvent::Triggered,
 		this,
 		&ABCharacter::Reload);
+	EnhancedInput->BindAction(
+		PlayerController->DragAction,  
+		ETriggerEvent::Triggered, 
+		this, 
+		&ABCharacter::StartDragging);
+	EnhancedInput->BindAction(
+		PlayerController->DragAction, 
+		ETriggerEvent::Completed, 
+		this, 
+		&ABCharacter::StopDragging);
+	EnhancedInput->BindAction(
+		PlayerController->AimAction,
+		ETriggerEvent::Triggered,
+		this,
+		&ABCharacter::AimStart);
+	EnhancedInput->BindAction(
+		PlayerController->AimAction,
+		ETriggerEvent::Completed,
+		this,
+		&ABCharacter::AimStop);
 }

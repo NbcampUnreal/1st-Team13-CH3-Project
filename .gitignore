@@ -23,3 +23,5 @@ Saved/
 # Visual Studio cache
 .vs/
 *.ipch
+/ShooterGameProject/Content/Maps
+/ShooterGameProject/Content/WYJ

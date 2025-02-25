@@ -3,13 +3,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h"
 
-ABPlayerController::ABPlayerController() :
-	InputMappingContext(nullptr),
-	MoveAction(nullptr),
-	LookAction(nullptr),
-	SprintAction(nullptr), 
-	AttackAction(nullptr),
-	ReloadAction(nullptr)
+ABPlayerController::ABPlayerController()
 {
 
 }

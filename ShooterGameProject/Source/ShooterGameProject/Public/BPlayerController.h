@@ -30,6 +30,10 @@ protected:
 	class UInputAction* AttackAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	class UInputAction* ReloadAction;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+	class UInputAction* DragAction;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+	class UInputAction* AimAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<UUserWidget> WidgetHUDClass;
 	class UUserWidget* WidgetHUDInstance;

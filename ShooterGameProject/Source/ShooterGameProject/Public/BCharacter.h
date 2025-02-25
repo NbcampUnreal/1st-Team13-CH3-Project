@@ -20,7 +20,15 @@ struct FReplicatedAcceleration
 	UPROPERTY()
 	int8 AccelZ = 0;	// Raw Z accel rate component, quantized to represent [-MaxAcceleration, MaxAcceleration]
 };
-
+UENUM(BlueprintType)
+enum class EWeaponSlot : uint8
+{
+	Primary,    // 주무�?(?? ?�총)
+	Secondary,  // 보조무기 (?? 권총)
+	Melee,      // 근접무기 (?? �? ?�끼)
+	Throwable,   // ?�척무기 (?? ?�류??
+	Max
+};
 //USTRUCT()
 //struct FSharedRepMovement
 //{
@@ -97,7 +105,8 @@ protected:
 	void Attack(const struct FInputActionValue& Value);
 	UFUNCTION()
 	void Reload(const struct FInputActionValue& Value);
-protected:
+	void StartDragging();
+	void StopDragging();
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 private:
