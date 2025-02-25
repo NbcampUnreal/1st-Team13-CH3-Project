@@ -4,15 +4,47 @@
 #include "UObject/NoExportTypes.h"
 #include "BUIManager.generated.h"
 
-
 UCLASS()
 class SHOOTERGAMEPROJECT_API UBUIManager : public UObject
 {
 	GENERATED_BODY()
 	
 public:	
-	UBUIManager();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|TitleScreen")
+	TSubclassOf<UUserWidget> TitleWidgetClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|TitleScreen")
+	UUserWidget* TitleWidgetInstance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|LevelTransition")
+	TSubclassOf<UUserWidget> LevelTransitionWidgetClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|LevelTransition")
+	UUserWidget* LevelTransitionWidgetInstance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|InGameMenu")
+	TSubclassOf<UUserWidget> InGameMenuWidgetClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|InGameMenu")
+	UUserWidget* InGameMenuWidgetInstance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|GameOver")
+	TSubclassOf<UUserWidget> GameOverWidgetClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|GameOver")
+	UUserWidget* GameOverWidgetInstance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|HUD")
+	TSubclassOf<UUserWidget> HUDWidgetClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUD")
+	UUserWidget* HUDWidgetInstance;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|Notification")
+	class UNotificationWidget* NotificationWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|Notification")
+	class UItemNotificationWidget* ItemNotificationWidget;
+
+
+	FTimerHandle UpdateHUDTimerHandle;
+
+	UBUIManager();
 	virtual void PostInitProperties() override;
 
 	UFUNCTION(BlueprintPure)
@@ -48,7 +80,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ExitGameOverScreen();
 
-	
 	void OnFire();
 	UFUNCTION(BlueprintCallable)
 	void DisplayHUD();
@@ -57,50 +88,29 @@ public:
 	void RemoveHUD();
 	void UpdateHUDTimed();
 	void UpdateHUDHealth(float CurrentHP, float MaxHP);
-	//void UpdateHUDStatus();
-	//void UpdateHUDLevelTimer();
 	//void UpdateHUDMission(const FString& Title, const FString& Content, int32 CurrentCount, int32 MaxCount);
 	//void UpdateHUDMap();
-	void UpdateHUDQuickSlot(FName ItemType, int32 Count);
+	void UpdateHUDQuickSlot(FName ItemName, int32 Count);
 	void UpdateHUDAmmo(int32 LoadedCount, int32 InventoryCount);
 	void UpdateHUDEquippedWeapon(FName WeaponType);
 	//void UpdateHUDStance();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	TSubclassOf<UUserWidget> TitleWidgetClass;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
-	UUserWidget* TitleWidgetInstance;
+	void DisplayNotification(FString Title, FString Message);
+	void RemoveNotification();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	TSubclassOf<UUserWidget> LevelTransitionWidgetClass;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
-	UUserWidget* LevelTransitionWidgetInstance;
+	void DisplayItemNotification(FName ItemName);
+	void RemoveItemNotification();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	TSubclassOf<UUserWidget> InGameMenuWidgetClass;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
-	UUserWidget* InGameMenuWidgetInstance;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	TSubclassOf<UUserWidget> GameOverWidgetClass;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
-	UUserWidget* GameOverWidgetInstance;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	TSubclassOf<UUserWidget> HUDWidgetClass;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
-	UUserWidget* HUDWidgetInstance;
-
-	FTimerHandle UpdateHUDTimerHandle;
+	TTuple<FVector, FVector> GetCrosshairLocationAndDirection();
 
 protected:
-	class UBGameInstance* GameInstance;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Icons")
+	UTexture2D* PistolIconTexture;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Icons")
+	UTexture2D* RifleIconTexture;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Textures")
-	UTexture2D* PistolTexture;
+	class UBGameInstance* GameInstance;
 
 	void SetInputUIOnly();
 	void SetInputGameOnly();
-
-	
 };
