@@ -19,7 +19,7 @@ ABMageEnemy::ABMageEnemy()
 	HealingCollision = CreateDefaultSubobject<USphereComponent>(TEXT("HealingCollision"));
 	HealingCollision->InitSphereRadius(HealingRadius);
 	HealingCollision->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	HealingCollision->SetupAttachment(Scene);
+	HealingCollision->SetupAttachment(RootComponent);
 }
 
 float ABMageEnemy::GetAttackRange() const

@@ -22,7 +22,7 @@ ABTankEnemy::ABTankEnemy()
 	ExplosionCollision = CreateDefaultSubobject<USphereComponent>(TEXT("ExplosionCollision"));
 	ExplosionCollision->InitSphereRadius(ExplosionRadius);
 	ExplosionCollision->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	ExplosionCollision->SetupAttachment(Scene);
+	ExplosionCollision->SetupAttachment(RootComponent);
 }
 
 float ABTankEnemy::GetAttackRange() const

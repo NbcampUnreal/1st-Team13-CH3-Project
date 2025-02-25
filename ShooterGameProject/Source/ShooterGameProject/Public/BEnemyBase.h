@@ -20,62 +20,76 @@ protected:
 
 	UFUNCTION()
 	void OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
-
+	UFUNCTION()
+	void OnMeleeAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+private:
+	FTimerHandle AttackTimerHandle;
+	FTimerHandle SkillTimerHandle;
 public:	
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Component")
-	USceneComponent* Scene;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Component")
-	UCapsuleComponent* Collision;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Component")
-	UStaticMeshComponent* StaticMesh;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	UAIPerceptionComponent* AIPerceptionComponent;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation")
-	UAnimMontage* AttackMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* MeleeAttackMontage;
 
 
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "AI|Components")
 	TArray<AActor*> PatrolPoints;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI|Properties")
+	//기본스탯
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	float MaxHP;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI|Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	float CurrentHP;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI|Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	float Power;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI|Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	float Speed;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI|Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	float AttackSpeed;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI|Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	float CoolTime;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI|Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	float SkillDuration;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI|Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	float AttackRange;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI|Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	bool bIsRanged;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI|Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Battle")
 	bool bIsInBattle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Battle")
+	bool bIsMeleeAttacking;
+
+	//projectile
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	TSubclassOf<class ABProjectileBase> ProjectileClass;
+
+	// Accuracy: 1.0이면 완벽, 0.0이면 가장 부정확
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	float Accuracy;
+
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void SpawnProjectile();
+
 	
-
-
-	FTimerHandle SkillTimerHandle;
 
 	virtual float GetAttackRange() const;
 	virtual float GetHP() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Battle")
 	virtual void Attack();
-	UFUNCTION(BlueprintCallable, Category = "Animation")
-	virtual void PlayAttackAnim();
-	virtual void DealDamageToPlayer();
+	UFUNCTION(BlueprintCallable, Category = "Battle")
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
-	UFUNCTION(BlueprintCallable, Category = "Skill")
+	UFUNCTION(BlueprintCallable, Category = "Battle")
 	virtual void UseSkill();
+	UFUNCTION(BlueprintCallable, Category = "Battle")
 	virtual void OnDeath();
+	UFUNCTION(BlueprintCallable, Category = "Battle")
 	virtual void DropItem();
+	UFUNCTION(BlueprintCallable, Category = "Battle")
 	virtual void GainHP(float HP);
-	virtual void SetPeripheralVisionAngle(float NewAngle);
+	UFUNCTION(BlueprintCallable, Category = "Battle")
 	virtual void Rally();
+	void PlayMeleeAttackMontage();
+	bool IsMeleeAttacking() const { return bIsMeleeAttacking; }
 };
