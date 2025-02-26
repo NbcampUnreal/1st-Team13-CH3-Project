@@ -4,7 +4,7 @@
 #include "Gameframework/Character.h"
 #include "BPlayerController.h"
 #include "BPlayerState.h"
-#include "BBaseWeapon.h"  // 기본 무기 클래스 포함
+#include "BBaseWeapon.h"  // 旮半掣 氍搓赴 韥措灅鞀� 韽暔
 #include "BCharacter.generated.h"
 struct FInputActionValue;
 
@@ -25,49 +25,12 @@ struct FReplicatedAcceleration
 UENUM(BlueprintType)
 enum class EWeaponSlot : uint8
 {
-	Primary,    // 주무기 (예: 소총)
-	Secondary,  // 보조무기 (예: 권총)
-	Melee,      // 근접무기 (예: 칼, 도끼)
-	Throwable,   // 투척무기 (예: 수류탄)
+	Primary,    // 欤茧旮� (鞓�: 靻岇礉)
+	Secondary,  // 氤挫“氍搓赴 (鞓�: 甓岇礉)
+	Melee,      // 攴检爲氍搓赴 (鞓�: 旃�, 霃勲伡)
+	Throwable,   // 韴矙氍搓赴 (鞓�: 靾橂韮�)
 	Max
 };
-//USTRUCT()
-//struct FSharedRepMovement
-//{
-//	GENERATED_BODY()
-//
-//	FSharedRepMovement();
-//
-//	bool FillForCharacter(ACharacter* Character);
-//	bool Equals(const FSharedRepMovement& Other, ACharacter* Character) const;
-//
-//	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
-//
-//	UPROPERTY(Transient)
-//	FRepMovement RepMovement;
-//
-//	UPROPERTY(Transient)
-//	float RepTimeStamp = 0.0f;
-//
-//	UPROPERTY(Transient)
-//	uint8 RepMovementMode = 0;
-//
-//	UPROPERTY(Transient)
-//	bool bProxyIsJumpForceApplied = false;
-//
-//	UPROPERTY(Transient)
-//	bool bIsCrouched = false;
-//};
-
-//template<>
-//struct TStructOpsTypeTraits<FSharedRepMovement> : public TStructOpsTypeTraitsBase2<FSharedRepMovement>
-//{
-//	enum
-//	{
-//		WithNetSerializer = true,
-//		WithNetSharedSerialization = true,
-//	};
-//};
 
 UCLASS()
 class ABCharacter :
@@ -80,16 +43,16 @@ public:
 	class ABPlayerState* GetBPlayerState() const;
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	class ABPlayerController* GetBPlayerController() const;
-	/** 캐릭터의 카메라가 바라보는 방향을 가져오는 함수 */
+	/** 旌愲Ν韯办潣 旃措⿺霛缄皜 氚旊澕氤措姅 氚╉枼鞚� 臧�鞝胳槫電� 頃垬 */
 	FVector GetCameraForwardVector() const;
-	// 🔹 현재 사용 중인 무기
+	// 馃敼 順勳灛 靷毄 欷戩澑 氍搓赴
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	EWeaponSlot ActiveWeaponSlot;
 
-	// 🔹 현재 장착된 무기 (각 슬롯에 해당하는 무기 저장)
+	// 馃敼 順勳灛 鞛レ癌霅� 氍搓赴 (臧� 鞀’鞐� 頃措嫻頃橂姅 氍搓赴 鞝�鞛�)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-	// 배열 초기화 예시
-	TArray<ABBaseWeapon*> EquippedWeapons;  // 슬롯에 대응하는 무기 배열
+	// 氚办棿 齑堦赴頇� 鞓堨嫓
+	TArray<ABBaseWeapon*> EquippedWeapons;  // 鞀’鞐� 雽�鞚戫晿電� 氍搓赴 氚办棿
 
 	void SetDraggingItem(AActor* NewItem);
 	void EquipWeapon(ABBaseWeapon* NewWeapon);
@@ -119,8 +82,14 @@ protected:
 	void Attack(const struct FInputActionValue& Value);
 	UFUNCTION()
 	void Reload(const struct FInputActionValue& Value);
-	void StartDragging();
-	void StopDragging();
+	UFUNCTION()
+	void AimStart(const FInputActionValue& Value);
+	UFUNCTION()
+	void StartDragging(const FInputActionValue& Value);
+	UFUNCTION()
+	void StopDragging(const FInputActionValue& Value);
+	UFUNCTION()
+	void AimStop(const FInputActionValue& Value);
 	virtual void BeginPlay() override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -131,9 +100,9 @@ private:
 	UPROPERTY()
 	FReplicatedAcceleration ReplicatedAcceleration;
 
-	FTimerHandle DragUpdateTimer; // 드래그 타이머
+	FTimerHandle DragUpdateTimer; // 霌滊灅攴� 韮�鞚措ǜ
 	bool bIsDragging = false;
 	ABBaseItem* DraggingItem = nullptr;
 
-	void UpdateDragging(); // 드래그 위치 업데이트
+	void UpdateDragging(); // 霌滊灅攴� 鞙勳箻 鞐呺嵃鞚错姼
 };

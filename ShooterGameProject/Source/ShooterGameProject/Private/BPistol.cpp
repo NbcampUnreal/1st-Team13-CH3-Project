@@ -1,8 +1,10 @@
 #include "BPistol.h"
 #include "BCharacter.h"       // BCharacter 포함
+#include "BGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/SphereComponent.h"
 #include "DrawDebugHelpers.h"
+
 
 ABPistol::ABPistol()
 {
@@ -57,7 +59,39 @@ void ABPistol::Attack()
 
     FVector MuzzleLocation = GunMuzzle ? GunMuzzle->GetComponentLocation() : GetActorLocation();
     FRotator MuzzleRotation = OwnerCharacter->GetControlRotation();
-    FVector ShootDirection = MuzzleRotation.Vector();  // 🔹 발사 방향 설정
+
+    // 🔹 크로스헤어 방향 가져오기
+    UBGameInstance* GameInstance = Cast<UBGameInstance>(GetWorld()->GetGameInstance());
+    if (!GameInstance)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("GameInstance를 찾을 수 없습니다!"));
+        return;
+    }
+
+    UBUIManager* UIManager = GameInstance->GetUIManagerInstance();
+    if (!UIManager)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UBUIManager를 찾을 수 없습니다!"));
+        return;
+    }
+
+    TTuple<FVector, FVector> CrosshairData = UIManager->GetCrosshairLocationAndDirection();
+    FVector CrosshairLocation = CrosshairData.Get<0>();
+    FVector CrosshairDirection = CrosshairData.Get<1>();
+    FVector EndTrace = CrosshairLocation + (CrosshairDirection * 15000.0f);
+
+    // 🔹 라인트레이스 설정
+    FHitResult HitResult;
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(this);
+    Params.AddIgnoredActor(OwnerCharacter);
+
+    if (GetWorld()->LineTraceSingleByChannel(HitResult, CrosshairLocation, EndTrace, ECC_Visibility, Params))
+    {
+        EndTrace = HitResult.ImpactPoint;
+    }
+
+    FVector AdjustedShootDirection = (EndTrace - MuzzleLocation).GetSafeNormal();
 
     // 🔹 총알 스폰
     if (ProjectileClass)
@@ -65,13 +99,20 @@ void ABPistol::Attack()
         FActorSpawnParameters SpawnParams;
         SpawnParams.Owner = this;
         SpawnParams.Instigator = OwnerCharacter;
+
         UE_LOG(LogTemp, Log, TEXT("총알 스폰 시도: %s"), *ProjectileClass->GetName());
+
         // 총알 생성
-        ABProjectileBase* Projectile = GetWorld()->SpawnActor<ABProjectileBase>(ProjectileClass, MuzzleLocation, MuzzleRotation, SpawnParams);
+        ABProjectileBase* Projectile = GetWorld()->SpawnActor<ABProjectileBase>(
+            ProjectileClass, MuzzleLocation,
+            FRotationMatrix::MakeFromX(AdjustedShootDirection).Rotator(), // 조정된 방향 적용
+            SpawnParams
+        );
+
         if (Projectile)
         {
             UE_LOG(LogTemp, Log, TEXT("총알 스폰 성공: %s"), *Projectile->GetName());
-            Projectile->FireInDirection(ShootDirection);  // 🔹 총알 발사
+            Projectile->FireInDirection(AdjustedShootDirection);  // 🔹 조정된 방향으로 발사
         }
     }
     else
