@@ -35,6 +35,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUD")
 	UUserWidget* HUDWidgetInstance;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|WeaponWheel")
+	TSubclassOf<UUserWidget> WeaponWheelClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|WeaponWheel")
+	UUserWidget* WeaponWheelInstance;
+
 	/* UUserWidget objects in HUD */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
 	class UNotificationWidget* NotificationWidget;
@@ -69,6 +74,8 @@ public:
 	UUserWidget* GetGameOverWidgetInstance();
 	UFUNCTION(BlueprintPure)
 	UUserWidget* GetHUDWidgetInstance();
+	UFUNCTION(BlueprintPure)
+	UUserWidget* GetWeaponWheelInstance();
 
 	/* Title Screen */
 	UFUNCTION(BlueprintCallable)
@@ -95,6 +102,12 @@ public:
 	void EnterGameOverScreen();
 	UFUNCTION(BlueprintCallable)
 	void ExitGameOverScreen();
+
+	/* Weapon Wheel */
+	UFUNCTION(BlueprintCallable)
+	void EnterWeaponWheel();
+	UFUNCTION(BlueprintCallable)
+	void ExitWeaponWheel();
 
 	/* HUD */
 	UFUNCTION(BlueprintCallable)

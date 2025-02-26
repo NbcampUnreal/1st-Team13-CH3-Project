@@ -8,6 +8,7 @@
 #include "MissionWidget.h"
 #include "WeaponAmmoWidget.h"
 #include "CrosshairWidget.h"
+#include "BUIWeaponWheel.h"
 
 UBUIManager::UBUIManager()
 {
@@ -49,11 +50,19 @@ UBUIManager::UBUIManager()
 		HUDWidgetClass = HUDWidgetClassFinder.Class;
 	}
 
+	// WeaponWheel
+	ConstructorHelpers::FClassFinder<UUserWidget> WeaponWheelClassFinder(TEXT("/Game/UI/WBP/WBP_BUIWeaponWheel"));
+	if (WeaponWheelClassFinder.Succeeded())
+	{
+		WeaponWheelClass = WeaponWheelClassFinder.Class;
+	}
+
 	TitleWidgetInstance = nullptr;
 	LevelTransitionWidgetInstance = nullptr;
 	InGameMenuWidgetInstance = nullptr;
 	GameOverWidgetInstance = nullptr;
 	HUDWidgetInstance = nullptr;
+	WeaponWheelInstance = nullptr;
 
 	NotificationWidget = nullptr;
 	ItemNotificationWidget = nullptr;
@@ -79,6 +88,7 @@ UUserWidget* UBUIManager::GetLevelTransitionWidgetInstance() { return LevelTrans
 UUserWidget* UBUIManager::GetInGameMenuWidgetInstance() { return InGameMenuWidgetInstance; }
 UUserWidget* UBUIManager::GetGameOverWidgetInstance() { return GameOverWidgetInstance; }
 UUserWidget* UBUIManager::GetHUDWidgetInstance() { return HUDWidgetInstance; }
+UUserWidget* UBUIManager::GetWeaponWheelInstance() { return WeaponWheelInstance; }
 
 /****************** TITLE SCREEN ******************/
 // Create Title widget instance
@@ -224,7 +234,7 @@ void UBUIManager::EnterGameOverScreen()
 	}
 }
 
-// Plays a fade-out animation and is removed from parent (WBP Graph Function)
+// Remove Instance (WBP Graph Function)
 void UBUIManager::ExitGameOverScreen()
 {
 	if (GameOverWidgetInstance)
@@ -232,6 +242,38 @@ void UBUIManager::ExitGameOverScreen()
 		GameOverWidgetInstance->RemoveFromParent();
 		GameOverWidgetInstance = nullptr;
 		SetInputGameOnly();
+	}
+}
+
+/****************** WEAPON WHEEL ******************/
+// Create weapon wheel widget instance --> animation in WBP
+void UBUIManager::EnterWeaponWheel()
+{
+	if (WeaponWheelClass && WeaponWheelInstance == nullptr)
+	{
+		if (GameInstance)
+		{
+			WeaponWheelInstance = CreateWidget<UUserWidget>(GameInstance, WeaponWheelClass);
+			if (WeaponWheelInstance)
+			{
+				WeaponWheelInstance->AddToViewport();
+				SetInputUIOnly(); // TODO: This won't respond to key released event, will it? Should I change IMC?
+			}
+		}
+	}
+}
+
+// Remove instance (To be called when fade out animation is finished)
+void UBUIManager::ExitWeaponWheel()
+{
+	if (WeaponWheelInstance)
+	{
+		if (UBUIWeaponWheel* WeaponWheelWidget = Cast<UBUIWeaponWheel>(WeaponWheelInstance))
+		{
+			WeaponWheelWidget->ExitWeaponWheel();
+			WeaponWheelInstance = nullptr;
+			SetInputGameOnly();
+		}
 	}
 }
 
