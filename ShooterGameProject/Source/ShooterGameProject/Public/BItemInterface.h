@@ -39,6 +39,7 @@ public:
 	// 장비, 돈, 총알
 	// 상점 구매용 아이템 포션 등의 고려
 	virtual void ActivateItem(AActor* Activator) = 0;
+	virtual void UseItem(AActor* Activator) = 0;
 	virtual FName GetItemType() const = 0;
 	virtual FName GetItemName() const = 0;
 	

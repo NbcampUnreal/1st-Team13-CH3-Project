@@ -6,6 +6,8 @@
 #include "BGameInstance.h"
 #include "BPlayerController.h"
 #include "BCharacter.h"
+#include "NotificationWidget.h"
+#include "ItemNotificationWidget.h"
 
 UBUIManager::UBUIManager()
 {
@@ -48,10 +50,16 @@ UBUIManager::UBUIManager()
 	}
 	
 	/**** Get and assign textures ****/
-	ConstructorHelpers::FObjectFinder<UTexture2D> PistolTextureFinder(TEXT("/Game/UI/Textures/T_Pistol.T_Pistol"));
-	if (PistolTextureFinder.Succeeded())
+	ConstructorHelpers::FObjectFinder<UTexture2D> PistolIconFinder(TEXT("/Game/UI/Textures/T_Pistol_Icon.T_Pistol_Icon"));
+	if (PistolIconFinder.Succeeded())
 	{
-		PistolTexture = PistolTextureFinder.Object;
+		PistolIconTexture = PistolIconFinder.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<UTexture2D> RifleIconFinder(TEXT("/Game/UI/Textures/T_Rifle_Icon.T_Rifle_Icon"));
+	if (RifleIconFinder.Succeeded())
+	{
+		RifleIconTexture  = RifleIconFinder.Object;
 	}
 
 	TitleWidgetInstance = nullptr;
@@ -59,6 +67,8 @@ UBUIManager::UBUIManager()
 	InGameMenuWidgetInstance = nullptr;
 	GameOverWidgetInstance = nullptr;
 	HUDWidgetInstance = nullptr;
+	NotificationWidget = nullptr;
+
 }
 
 // Create HUD widget when properties are initialized
@@ -317,8 +327,6 @@ void UBUIManager::RemoveHUD()
 // Update timed elements in HUD (repeated by UpdateHUDTimerHandle)
 void UBUIManager::UpdateHUDTimed()
 {
-	// UpdateHUDStatus();
-	// UpdateHUDLevelTimer();
 	// UpdateHUDMap(); 호출??
 }
 
@@ -351,21 +359,11 @@ void UBUIManager::UpdateHUDHealth(float CurrentHP, float MaxHP)
 	}
 }
 
-//void UBUIManager::UpdateHUDStatus()
-//{
-	// TODO: check character status & remaining time
-//}
-
-//void UBUIManager::UpdateHUDLevelTimer()
-//{
-	// TODO: check level timer remaining time
-//}
-
-void UBUIManager::UpdateHUDQuickSlot(FName ItemType, int32 Count)
+void UBUIManager::UpdateHUDQuickSlot(FName ItemName, int32 Count)
 {
 	// TODO: Based on ItemType, change the count of that item in quick slot
 	FName WidgetName = "";
-	if (ItemType == "FirstAidKit")
+	if (ItemName == "FirstAidKit")
 	{
 		WidgetName = "QuickSlotCountText_0";
 	}
@@ -397,11 +395,14 @@ void UBUIManager::UpdateHUDAmmo(int32 LoadedCount, int32 InventoryCount)
 
 void UBUIManager::UpdateHUDEquippedWeapon(FName WeaponType)
 {
-	// TODO: Based on the equipped weapon, change the icon / thumbnail
 	UTexture2D* WeaponTexture = nullptr;
-	if (WeaponType == "Pistol" && PistolTexture != nullptr)
+	if (WeaponType == "Pistol" && IsValid(PistolIconTexture))
 	{
-		WeaponTexture = PistolTexture;
+		WeaponTexture = PistolIconTexture;
+	}
+	else if (WeaponType == "Rifle" && IsValid(RifleIconTexture))
+	{
+		WeaponTexture = RifleIconTexture;
 	}
 
 	if (HUDWidgetInstance)
@@ -416,5 +417,76 @@ void UBUIManager::UpdateHUDEquippedWeapon(FName WeaponType)
 	}
 }
 
+void UBUIManager::DisplayNotification(FString Title, FString Message)
+{
+	if (HUDWidgetInstance)
+	{
+		NotificationWidget = Cast<UNotificationWidget>(HUDWidgetInstance->GetWidgetFromName(TEXT("NotificationWidget")));
+		//if (NotificationWidgetClass && NotificationWidget == nullptr)
+		//{
+		//	if (UWidget* HUDPanel = HUDWidgetInstance->GetWidgetFromName(TEXT("HUDPanel")))
+		//	{
+		//		NotificationWidget = CreateWidget<UNotificationWidget>(HUDPanel, NotificationWidgetClass, "NotificationWidget");
+		//		if (NotificationWidget)
+		//		{
+		//			NotificationWidget->SetAnchorsInViewport(FAnchors(0.5f, 0.f));
+		//			NotificationWidget->SetPositionInViewport(FVector2D(0.f, 50.f));
+		//			NotificationWidget->SetDesiredSizeInViewport(FVector2D(500.f, 150.f));
+		//			NotificationWidget->SetAlignmentInViewport(FVector2D(0.5f, 0.f));
+		//			NotificationWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+		//			UE_LOG(LogTemp, Warning, TEXT("NotificationWidget Created"))
+		//		}
+		//	}
+		//}
+		if (NotificationWidget)
+		{
+			NotificationWidget->DisplayNotification(Title, Message);
+		}
+	}
+}
 
+void UBUIManager::RemoveNotification()
+{
+	if (NotificationWidget)
+	{
+		NotificationWidget->RemoveNotification();
+		//NotificationWidget->RemoveFromParent();
+		//NotificationWidget = nullptr;
+		UE_LOG(LogTemp, Warning, TEXT("Things inside NotificationWidget Removed"))
+	}
+}
+
+void UBUIManager::DisplayItemNotification(FName ItemName)
+{
+	if (HUDWidgetInstance)
+	{
+		ItemNotificationWidget = Cast<UItemNotificationWidget>(
+			HUDWidgetInstance->GetWidgetFromName("ItemNotificationWidget"));
+		{
+			ItemNotificationWidget->DisplayNotification(ItemName);
+		}
+	}
+}
+
+void UBUIManager::RemoveItemNotification()
+{
+	if (ItemNotificationWidget)
+	{
+		ItemNotificationWidget->RemoveNotification();
+	}
+}
+
+TTuple<FVector, FVector> UBUIManager::GetCrosshairLocationAndDirection()
+{
+	FVector CrosshairLocation = FVector::ZeroVector;
+	FVector CrosshairDirection = FVector::ZeroVector;
+	if (APlayerController* PlayerController = GameInstance->GetFirstLocalPlayerController())
+	{
+		FVector2D ViewportSize;
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+		PlayerController->DeprojectScreenPositionToWorld(
+			0.5f * ViewportSize.X, 0.5f * ViewportSize.Y, CrosshairLocation, CrosshairDirection);
+	}
+	return TTuple<FVector, FVector>(CrosshairLocation, CrosshairDirection);
+}
 

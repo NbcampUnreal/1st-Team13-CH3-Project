@@ -4,7 +4,9 @@
 #include "Gameframework/Character.h"
 #include "BPlayerController.h"
 #include "BPlayerState.h"
+#include "BBaseWeapon.h"  // 旮半掣 氍搓赴 韥措灅鞀� 韽暔
 #include "BCharacter.generated.h"
+struct FInputActionValue;
 
 USTRUCT()
 struct FReplicatedAcceleration
@@ -23,52 +25,15 @@ struct FReplicatedAcceleration
 UENUM(BlueprintType)
 enum class EWeaponSlot : uint8
 {
-	Primary,    // 주무�?(?? ?�총)
-	Secondary,  // 보조무기 (?? 권총)
-	Melee,      // 근접무기 (?? �? ?�끼)
-	Throwable,   // ?�척무기 (?? ?�류??
+	Primary,    // 欤茧旮� (鞓�: 靻岇礉)
+	Secondary,  // 氤挫“氍搓赴 (鞓�: 甓岇礉)
+	Melee,      // 攴检爲氍搓赴 (鞓�: 旃�, 霃勲伡)
+	Throwable,   // 韴矙氍搓赴 (鞓�: 靾橂韮�)
 	Max
 };
-//USTRUCT()
-//struct FSharedRepMovement
-//{
-//	GENERATED_BODY()
-//
-//	FSharedRepMovement();
-//
-//	bool FillForCharacter(ACharacter* Character);
-//	bool Equals(const FSharedRepMovement& Other, ACharacter* Character) const;
-//
-//	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
-//
-//	UPROPERTY(Transient)
-//	FRepMovement RepMovement;
-//
-//	UPROPERTY(Transient)
-//	float RepTimeStamp = 0.0f;
-//
-//	UPROPERTY(Transient)
-//	uint8 RepMovementMode = 0;
-//
-//	UPROPERTY(Transient)
-//	bool bProxyIsJumpForceApplied = false;
-//
-//	UPROPERTY(Transient)
-//	bool bIsCrouched = false;
-//};
-
-//template<>
-//struct TStructOpsTypeTraits<FSharedRepMovement> : public TStructOpsTypeTraitsBase2<FSharedRepMovement>
-//{
-//	enum
-//	{
-//		WithNetSerializer = true,
-//		WithNetSharedSerialization = true,
-//	};
-//};
 
 UCLASS()
-class ABCharacter : 
+class ABCharacter :
 	public ACharacter
 {
 	GENERATED_BODY()
@@ -78,6 +43,19 @@ public:
 	class ABPlayerState* GetBPlayerState() const;
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	class ABPlayerController* GetBPlayerController() const;
+	/** 旌愲Ν韯办潣 旃措⿺霛缄皜 氚旊澕氤措姅 氚╉枼鞚� 臧�鞝胳槫電� 頃垬 */
+	FVector GetCameraForwardVector() const;
+	// 馃敼 順勳灛 靷毄 欷戩澑 氍搓赴
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	EWeaponSlot ActiveWeaponSlot;
+
+	// 馃敼 順勳灛 鞛レ癌霅� 氍搓赴 (臧� 鞀’鞐� 頃措嫻頃橂姅 氍搓赴 鞝�鞛�)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	// 氚办棿 齑堦赴頇� 鞓堨嫓
+	TArray<ABBaseWeapon*> EquippedWeapons;  // 鞀’鞐� 雽�鞚戫晿電� 氍搓赴 氚办棿
+
+	void SetDraggingItem(AActor* NewItem);
+	void EquipWeapon(ABBaseWeapon* NewWeapon);
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UCameraComponent> CameraComp;
@@ -86,7 +64,6 @@ protected:
 	TObjectPtr<class UCapsuleComponent> Collision;
 	TObjectPtr<class USkeletalMeshComponent> Skeletal;
 	TObjectPtr<class UBMovementComponent> MoveComp;
-protected:
 	//UFUNCTION(NetMulticast, unreliable)
 	//void FastSharedReplication(const FSharedRepMovement& SharedRepMovement);
 	UFUNCTION()
@@ -105,11 +82,27 @@ protected:
 	void Attack(const struct FInputActionValue& Value);
 	UFUNCTION()
 	void Reload(const struct FInputActionValue& Value);
-	void StartDragging();
-	void StopDragging();
+	UFUNCTION()
+	void AimStart(const FInputActionValue& Value);
+	UFUNCTION()
+	void StartDragging(const FInputActionValue& Value);
+	UFUNCTION()
+	void StopDragging(const FInputActionValue& Value);
+	UFUNCTION()
+	void AimStop(const FInputActionValue& Value);
 	virtual void BeginPlay() override;
+
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	void FireOnce();
+	void StopFire();
+	FTimerHandle FireTimerHandle;
 private:
 	UPROPERTY()
 	FReplicatedAcceleration ReplicatedAcceleration;
+
+	FTimerHandle DragUpdateTimer; // 霌滊灅攴� 韮�鞚措ǜ
+	bool bIsDragging = false;
+	ABBaseItem* DraggingItem = nullptr;
+
+	void UpdateDragging(); // 霌滊灅攴� 鞙勳箻 鞐呺嵃鞚错姼
 };
