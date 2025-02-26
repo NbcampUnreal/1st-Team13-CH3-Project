@@ -4,7 +4,7 @@
 #include "Components/VerticalBox.h"
 #include "Blueprint/WidgetTree.h"
 
-void UNotificationWidget::DisplayNotification(FString Title, FString Message)
+void UNotificationWidget::DisplayNotification(const FString& Title, const FString& Message)
 {
 	UVerticalBox* NotificationVBox = Cast<UVerticalBox>(GetWidgetFromName("NotificationVBox"));
 	if (NotificationVBox == nullptr)
@@ -25,6 +25,12 @@ void UNotificationWidget::DisplayNotification(FString Title, FString Message)
 			NotificationVBox->AddChildToVerticalBox(NotificationTitleText);
 			NotificationTitleText->SetText(FText::FromString(Title));
 			NotificationTitleText->SetAutoWrapText(true);
+			NotificationTitleText->SetJustification(ETextJustify::Center);
+
+			FSlateFontInfo FontInfo = NotificationTitleText->GetFont();
+			FontInfo.TypefaceFontName = "Regular";
+			FontInfo.Size = 24.f;
+			NotificationTitleText->SetFont(FontInfo);
 		}
 
 		UTextBlock* NotificationMessageText = Cast<UTextBlock>(GetWidgetFromName("NotificationMessageText"));
@@ -38,6 +44,12 @@ void UNotificationWidget::DisplayNotification(FString Title, FString Message)
 			NotificationVBox->AddChildToVerticalBox(NotificationMessageText);
 			NotificationMessageText->SetText(FText::FromString(Message));
 			NotificationMessageText->SetAutoWrapText(true);
+			NotificationMessageText->SetJustification(ETextJustify::Center);
+
+			FSlateFontInfo FontInfo = NotificationMessageText->GetFont();
+			FontInfo.TypefaceFontName = "Light";
+			FontInfo.Size = 24.f;
+			NotificationMessageText->SetFont(FontInfo);
 		}
 	}
 
@@ -60,10 +72,10 @@ void UNotificationWidget::RemoveNotification()
 		NotificationMessageText = nullptr;
 	}
 
-	if (UVerticalBox* NotificationVBox = Cast<UVerticalBox>(GetWidgetFromName("NotificationVBox")))
-	{
+	//if (UVerticalBox* NotificationVBox = Cast<UVerticalBox>(GetWidgetFromName("NotificationVBox")))
+	//{
 		//WidgetTree->RemoveWidget(NotificationVBox);
-		NotificationVBox->RemoveFromParent();
-		NotificationVBox = nullptr;
-	}
+		//NotificationVBox->RemoveFromParent();
+		//NotificationVBox = nullptr;
+	//}
 }
