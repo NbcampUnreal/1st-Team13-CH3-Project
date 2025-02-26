@@ -4,8 +4,8 @@
 #include "BFirstAidKit.h"
 #include "BPistol.h"
 #include "BRifle.h"
-//#include "BShotgun.h"
-//#include "BMeleeWeapon.h"
+#include "BShotgun.h"
+#include "BMeleeWeapon.h"
 #include "BGrenadeWeapon.h"
 
 
@@ -51,37 +51,29 @@ void UBUIWeaponWheel::ExitWeaponWheel_Implementation()
 				return;
 			}
 
-			/*
+			
 			// Equip Shotgun
 			if (HoveredItemName == "Shotgun")
 			{
 				// Return if Shotgun is already equipped
 				if (EquippedWeapon && EquippedWeapon->IsA<ABShotgun>()) return;
 
-				if (BCharacter)
-				{
-					ABShotgun* TempShotgun = NewObject<ABShotgun>(BCharacter);
-					BCharacter->EquipWeapon(TempShotgun);
-				}
+				ABShotgun* TempShotgun = NewObject<ABShotgun>(BCharacter);
+				BCharacter->EquipWeapon(TempShotgun);
 				return;
 			}
-			*/
+			
 
-			/*
 			// Equip Shotgun
 			if (HoveredItemName == "Melee")
 			{
 				// Return if Melee is already equipped
 				if (EquippedWeapon && EquippedWeapon->IsA<ABMeleeWeapon>()) return;
 
-				if (BCharacter)
-				{
-					ABMeleeWeapon* TempMeleeWeapon = NewObject<ABMeleeWeapon>(BCharacter);
-					BCharacter->EquipWeapon(TempMeleeWeapon);
-				}
+				ABMeleeWeapon* TempMeleeWeapon = NewObject<ABMeleeWeapon>(BCharacter);
+				BCharacter->EquipWeapon(TempMeleeWeapon);
 				return;
 			}
-			*/
 
 			// Equip Grenade
 			if (HoveredItemName == "Grenade")
@@ -91,7 +83,6 @@ void UBUIWeaponWheel::ExitWeaponWheel_Implementation()
 
 				ABGrenadeWeapon* TempGrenade = NewObject<ABGrenadeWeapon>(BCharacter);
 				BCharacter->EquipWeapon(TempGrenade);
-				
 				return;
 			}
 		}
