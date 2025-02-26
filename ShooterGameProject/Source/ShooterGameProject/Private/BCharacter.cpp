@@ -13,17 +13,17 @@ ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UBMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = false;
-	ActiveWeaponSlot = EWeaponSlot::Primary;  // 기본적으로 주무기를 활성화
-	// 배열의 크기를 ActiveWeaponSlot에 맞게 확장
-	EquippedWeapons.SetNumZeroed(4);  // ActiveWeaponSlot에 맞게 배열 크기 설정
+	ActiveWeaponSlot = EWeaponSlot::Primary;  // ê¸°ë³¸ì ìœ¼ë¡œ ì£¼ë¬´ê¸°ë¥¼ í™œì„±í™”
+	// ë°°ì—´ì˜ í¬ê¸°ë¥¼ ActiveWeaponSlotì— ë§žê²Œ í™•ìž¥
+	EquippedWeapons.SetNumZeroed(4);  // ActiveWeaponSlotì— ë§žê²Œ ë°°ì—´ í¬ê¸° ì„¤ì •
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->TargetArmLength = 300.f;
-	SpringArm->bUsePawnControlRotation = true; // ȸ���� ī�޶� �̵��Ѵ�.
+	SpringArm->bUsePawnControlRotation = true; // ?Œì „??ì¹´ë©”?¼ë„ ?´ë™?œë‹¤.
 	SpringArm->SetupAttachment(GetRootComponent());
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArm);
-	CameraComp->bUsePawnControlRotation = false; // ī�޶� ȸ���ϸ� ���ž����Ƿ� false
+	CameraComp->bUsePawnControlRotation = false; // ì¹´ë©”?¼ë„ ?Œì „?˜ë©´ ?•ì‹ ?†ìœ¼ë¯€ë¡?false
 
 	Collision = GetCapsuleComponent();
 	check(Collision);
@@ -65,7 +65,7 @@ FVector ABCharacter::GetCameraForwardVector() const
 		return CameraComp->GetForwardVector();
 	}
 
-	return GetActorForwardVector();  // 카메라가 없으면 기본 방향 반환
+	return GetActorForwardVector();  // ì¹´ë©”ë¼ê°€ ì—†ìœ¼ë©´ ê¸°ë³¸ ë°©í–¥ ë°˜í™˜
 }
 
 void ABCharacter::Move(const FInputActionValue& Value)
@@ -111,7 +111,7 @@ void ABCharacter::StartSprint(const FInputActionValue& Value)
 {
 	if (Value.Get<bool>())
 	{
-		// PlayerState�� �����ͼ� ó���ϵ��� ����.
+		// PlayerStateë¥?ê°€?¸ì???ì²˜ë¦¬?˜ë„ë¡??˜ìž.
 		// TODO : GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 	}
 }
@@ -120,7 +120,7 @@ void ABCharacter::StopSprint(const FInputActionValue& Value)
 {
 	if (!Value.Get<bool>())
 	{
-		// PlayerState�� �����ͼ� ó���ϵ��� ����.
+		// PlayerStateë¥?ê°€?¸ì???ì²˜ë¦¬?˜ë„ë¡??˜ìž.
 		// TODO : GetCharacterMovement()->MaxWalkSpeed = NomalSpeed;
 	}
 }
@@ -129,7 +129,23 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 {
 	if (Value.Get<bool>())
 	{
-		// TODO : Reload
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("Reload"));
+	}
+}
+
+void ABCharacter::AimStart(const FInputActionValue& Value)
+{
+	if (Value.Get<bool>())
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("AimStart"));
+	}
+}
+
+void ABCharacter::AimStop(const FInputActionValue& Value)
+{
+	if (!Value.Get<bool>())
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f,FColor::Blue, *FString("AimStop"));
 	}
 }
 
@@ -138,7 +154,7 @@ void ABCharacter::SetDraggingItem(AActor* NewItem)
 	ABBaseItem* Item = Cast<ABBaseItem>(NewItem);
 	if (Item)
 	{
-		// 아이템이 특정 소켓에 장착되어 있다면 드래그 불가
+		// ì•„ì´í…œì´ íŠ¹ì • ì†Œì¼“ì— ìž¥ì°©ë˜ì–´ ìžˆë‹¤ë©´ ë“œëž˜ê·¸ ë¶ˆê°€
 		if (Item->GetAttachParentSocketName() == "WeaponSocket")
 		{
 			return;
@@ -148,9 +164,6 @@ void ABCharacter::SetDraggingItem(AActor* NewItem)
 	}
 }
 
-<<<<<<< Updated upstream
-void ABCharacter::StartDragging()
-=======
 void ABCharacter::StartDragging(const FInputActionValue& Value)
 {
 	bool Drag = Value.Get<bool>();
@@ -172,7 +185,6 @@ void ABCharacter::StopDragging(const FInputActionValue& Value)
 }
 
 void ABCharacter::AimStop(const FInputActionValue& Value)
->>>>>>> Stashed changes
 {
 	if (DraggingItem)
 	{
@@ -224,10 +236,10 @@ void ABCharacter::UpdateDragging()
 			if (PlayerController->DeprojectMousePositionToWorld(WorldLocation, WorldDirection))
 			{
 				FVector TargetLocation = WorldLocation + WorldDirection * 200.0f;
-				// 아이템 위치 업데이트
-				DraggingItem->SetActorEnableCollision(false);  // 충돌 비활성화
+				// ì•„ì´í…œ ìœ„ì¹˜ ì—…ë°ì´íŠ¸
+				DraggingItem->SetActorEnableCollision(false);  // ì¶©ëŒ ë¹„í™œì„±í™”
 				DraggingItem->SetActorLocation(TargetLocation);
-				DraggingItem->SetActorEnableCollision(true);   // 이동 후 충돌 다시 활성화
+				DraggingItem->SetActorEnableCollision(true);   // ì´ë™ í›„ ì¶©ëŒ ë‹¤ì‹œ í™œì„±í™”
 				bool bMoved = DraggingItem->SetActorLocation(TargetLocation);
 			}
 			else
@@ -249,19 +261,16 @@ void ABCharacter::BeginPlay()
 }
 void ABCharacter::Attack(const struct FInputActionValue& Value)
 {
-<<<<<<< Updated upstream
 	ABBaseWeapon* CurrentWeapon = EquippedWeapons[(int32)ActiveWeaponSlot];
 	if (!CurrentWeapon) return;
 
 	if (CurrentWeapon->WeaponType == "Pistol")
 	{
-		// 권총: 한 번 클릭하면 한 발 발사
 		CurrentWeapon->Attack();
 	}
 	else if (CurrentWeapon->WeaponType == "Rifle")
 	{
 
-		// 🔹 타이머가 이미 실행 중이면 다시 설정하지 않음
 		if (!GetWorld()->GetTimerManager().IsTimerActive(FireTimerHandle))
 		{
 			GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &ABCharacter::FireOnce, CurrentWeapon->FireRate, true);
@@ -269,14 +278,11 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 	}
 	else 
 	{
-		// 투척무기: 투척
 			CurrentWeapon->Attack();
-=======
 	bool Trigger = Value.Get<bool>();
 	if (Trigger == true)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("Attack"));
->>>>>>> Stashed changes
 	}
 }
 void ABCharacter::FireOnce()
@@ -291,10 +297,10 @@ void ABCharacter::FireOnce()
 void ABCharacter::StopFire()
 {
 	UE_LOG(LogTemp, Log, TEXT("StopFire"));
-	// 발사 멈추기
+	// ë°œì‚¬ ë©ˆì¶”ê¸°
 	GetWorld()->GetTimerManager().ClearTimer(FireTimerHandle);
 }
-// 무기 부착 함수
+// ë¬´ê¸° ë¶€ì°© í•¨ìˆ˜
 void ABCharacter::EquipWeapon(ABBaseWeapon* NewWeapon)
 {
 	if (!NewWeapon)
@@ -310,28 +316,28 @@ void ABCharacter::EquipWeapon(ABBaseWeapon* NewWeapon)
 		return;
 	}
 
-	// 🔹 현재 손 소켓에 장착된 무기 확인
+	// ðŸ”¹ í˜„ìž¬ ì† ì†Œì¼“ì— ìž¥ì°©ëœ ë¬´ê¸° í™•ì¸
 	ABBaseWeapon* CurrentWeapon = nullptr;
 
-	// 무기가 장착된 소켓이 있는지 확인
+	// ë¬´ê¸°ê°€ ìž¥ì°©ëœ ì†Œì¼“ì´ ìžˆëŠ”ì§€ í™•ì¸
 	for (USceneComponent* ChildComponent : CharacterMesh->GetAttachChildren())
 	{
 		ABBaseWeapon* AttachedWeapon = Cast<ABBaseWeapon>(ChildComponent->GetOwner());
 		if (AttachedWeapon)
 		{
 			CurrentWeapon = AttachedWeapon;
-			break;  // 첫 번째 장착된 무기만 가져옴
+			break;  // ì²« ë²ˆì§¸ ìž¥ì°©ëœ ë¬´ê¸°ë§Œ ê°€ì ¸ì˜´
 		}
 	}
 
 	if (!CurrentWeapon)
 	{
-		// 🔹 손에 무기가 없으면 바로 장착
+		// ðŸ”¹ ì†ì— ë¬´ê¸°ê°€ ì—†ìœ¼ë©´ ë°”ë¡œ ìž¥ì°©
 		FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
 		NewWeapon->AttachToComponent(CharacterMesh, AttachRules, TEXT("WeaponSocket"));
 		UE_LOG(LogTemp, Log, TEXT("WeaponType : %s"), *NewWeapon->WeaponType);
 
-		// 무기 타입에 따라 회전 조정
+		// ë¬´ê¸° íƒ€ìž…ì— ë”°ë¼ íšŒì „ ì¡°ì •
 		if (NewWeapon->WeaponType == "Rifle") {
 			FRotator AdjustedRotation(0.0f, -180.0f, 0.0f);
 			NewWeapon->SetActorRelativeRotation(AdjustedRotation);
@@ -341,18 +347,18 @@ void ABCharacter::EquipWeapon(ABBaseWeapon* NewWeapon)
 			NewWeapon->SetActorRelativeRotation(AdjustedRotation);
 		}
 
-		// 무기 정보 설정 및 충돌 처리
+		// ë¬´ê¸° ì •ë³´ ì„¤ì • ë° ì¶©ëŒ ì²˜ë¦¬
 		NewWeapon->SetOwnerCharacter(this);
 		NewWeapon->SetActorEnableCollision(false);
 		NewWeapon->SetActorHiddenInGame(false);
-		// 🔹 장착된 무기 배열에 추가 (Primary 슬롯에 장착)
+		// ðŸ”¹ ìž¥ì°©ëœ ë¬´ê¸° ë°°ì—´ì— ì¶”ê°€ (Primary ìŠ¬ë¡¯ì— ìž¥ì°©)
 		EquippedWeapons[(int32)EWeaponSlot::Primary] = NewWeapon;
 	}
 	else
 	{
-		// 🔹 이미 장착된 무기가 있다면 배열에 저장만 함
+		// ðŸ”¹ ì´ë¯¸ ìž¥ì°©ëœ ë¬´ê¸°ê°€ ìžˆë‹¤ë©´ ë°°ì—´ì— ì €ìž¥ë§Œ í•¨
 		EquippedWeapons.Add(NewWeapon);
-		// 🔹 인벤토리 만들면 들어갈 로직. 일단 드래그 되게 만들어놓음
+		// ðŸ”¹ ì¸ë²¤í† ë¦¬ ë§Œë“¤ë©´ ë“¤ì–´ê°ˆ ë¡œì§. ì¼ë‹¨ ë“œëž˜ê·¸ ë˜ê²Œ ë§Œë“¤ì–´ë†“ìŒ
 		SetDraggingItem(NewWeapon);
 	}
 }
@@ -404,7 +410,7 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		ETriggerEvent::Completed,
 		this,
 		&ABCharacter::StopJump);
-	// IA_Look 액션 마우스가 "움직일 때" Look() 호출
+	// IA_Look ì•¡ì…˜ ë§ˆìš°ìŠ¤ê°€ "ì›€ì§ì¼ ë•Œ" Look() í˜¸ì¶œ
 	EnhancedInput->BindAction(
 		PlayerController->AttackAction,
 		ETriggerEvent::Triggered,
@@ -432,4 +438,14 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		ETriggerEvent::Completed, 
 		this, 
 		&ABCharacter::StopDragging);
+	EnhancedInput->BindAction(
+		PlayerController->AimAction,
+		ETriggerEvent::Triggered,
+		this,
+		&ABCharacter::AimStart);
+	EnhancedInput->BindAction(
+		PlayerController->AimAction,
+		ETriggerEvent::Completed,
+		this,
+		&ABCharacter::AimStop);
 }
