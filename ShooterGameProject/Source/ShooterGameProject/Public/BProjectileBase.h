@@ -32,4 +32,9 @@ public:
     UFUNCTION()
     void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
     virtual void FireInDirection(const FVector& ShootDirection);
+
+    float Damage; // 개별 총알의 데미지
+
+public:
+    void SetDamage(float NewDamage) { Damage = NewDamage; }
 };

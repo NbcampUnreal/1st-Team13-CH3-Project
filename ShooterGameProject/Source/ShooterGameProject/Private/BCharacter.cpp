@@ -242,6 +242,11 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 			GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &ABCharacter::FireOnce, CurrentWeapon->FireRate, true);
 		}
 	}
+	else if (CurrentWeapon->WeaponType == "ShotGun")
+	{
+		// 권총: 한 번 클릭하면 한 발 발사
+		CurrentWeapon->Attack();
+	}
 	else 
 	{
 		// 투척무기: 투척
@@ -309,7 +314,10 @@ void ABCharacter::EquipWeapon(ABBaseWeapon* NewWeapon)
 			FRotator AdjustedRotation(0.0f, 90.0f, 90.0f);
 			NewWeapon->SetActorRelativeRotation(AdjustedRotation);
 		}
-
+		else if (NewWeapon->WeaponType.Equals("ShotGun", ESearchCase::IgnoreCase)) {
+			FRotator AdjustedRotation(0.0f, -180.0f, 0.0f);
+			NewWeapon->SetActorRelativeRotation(AdjustedRotation);
+		}
 		// 무기 정보 설정 및 충돌 처리
 		NewWeapon->SetOwnerCharacter(this);
 		NewWeapon->SetActorEnableCollision(false);

@@ -41,7 +41,7 @@ void ABGameMode::StartLevel()
 		BGameState->KilledEnemies = 0;
 		BGameState->CollectedKeys = 0;
 		BGameState->bIsDoorOpen = false;
-		BGameState->TimeLimit = 10.0f; //제한시간
+		BGameState->TimeLimit = 900.0f; //제한시간
 	}
 
 	StartGame();
