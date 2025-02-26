@@ -205,17 +205,6 @@ void ABCharacter::AimStop(const FInputActionValue& Value)
 }
 
 
-void ABCharacter::StopDragging()
-{
-	if (bIsDragging)
-	{
-		bIsDragging = false;
-		GetWorldTimerManager().ClearTimer(DragUpdateTimer);
-		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Blue, TEXT("Drag End"));
-	}
-}
-
-
 void ABCharacter::UpdateDragging()
 {
 	if (DraggingItem)
@@ -281,13 +270,14 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 		// 권총: 한 번 클릭하면 한 발 발사
 		CurrentWeapon->Attack();
 	}
-	else 
+	else
 	{
-			CurrentWeapon->Attack();
-	bool Trigger = Value.Get<bool>();
-	if (Trigger == true)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("Attack"));
+		CurrentWeapon->Attack();
+		bool Trigger = Value.Get<bool>();
+		if (Trigger == true)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("Attack"));
+		}
 	}
 }
 void ABCharacter::FireOnce()
@@ -351,16 +341,11 @@ void ABCharacter::EquipWeapon(ABBaseWeapon* NewWeapon)
 			FRotator AdjustedRotation(0.0f, 90.0f, 90.0f);
 			NewWeapon->SetActorRelativeRotation(AdjustedRotation);
 		}
-<<<<<<< HEAD
 		else if (NewWeapon->WeaponType.Equals("ShotGun", ESearchCase::IgnoreCase)) {
 			FRotator AdjustedRotation(0.0f, -180.0f, 0.0f);
 			NewWeapon->SetActorRelativeRotation(AdjustedRotation);
 		}
 		// 무기 정보 설정 및 충돌 처리
-=======
-
-		// ë¬´ê¸° ì •ë³´ ì„¤ì • ë° ì¶©ëŒ ì²˜ë¦¬
->>>>>>> b83d57d0c2b4d18c5d67b90f96605927c54b933c
 		NewWeapon->SetOwnerCharacter(this);
 		NewWeapon->SetActorEnableCollision(false);
 		NewWeapon->SetActorHiddenInGame(false);
@@ -423,7 +408,6 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		ETriggerEvent::Completed,
 		this,
 		&ABCharacter::StopJump);
-	// IA_Look ì•¡ì…˜ ë§ˆìš°ìŠ¤ê°€ "ì›€ì§ì¼ ë•Œ" Look() í˜¸ì¶œ
 	EnhancedInput->BindAction(
 		PlayerController->AttackAction,
 		ETriggerEvent::Triggered,
