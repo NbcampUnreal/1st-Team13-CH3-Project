@@ -3,15 +3,20 @@
 
 #include "BRifle.h"
 #include "BCharacter.h"       // BCharacter 포함
+#include "BUIManager.h"
+#include "BGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
 #include "Components/SphereComponent.h"
+
+
 ABRifle::ABRifle()
 {
     // 소총 기본 설정
     FireRate = 0.1f; // 예: 초당 10발
     AmmoCount = 30;  // 탄창 30발
     ItemPrice = 200; // 가격 200
+    WeaponName = "AK47";
     WeaponType = "Rifle";
     Damage = 25.0f;  // 소총 기본 데미지
     // 🔹 본체 (Root Component로 설정)
@@ -50,7 +55,7 @@ ABRifle::ABRifle()
     GunMuzzle->SetupAttachment(RootComponent); // 총구 위치 설정 (각 총기마다 다를 수 있음)
 }
 
-void ABRifle::Attack() 
+void ABRifle::Attack()
 {
     if (!OwnerCharacter)
     {
@@ -67,11 +72,38 @@ void ABRifle::Attack()
     // 🔹 탄약 1발 소모
     AmmoCount--;
 
-    // 🔹 총구 위치 및 방향
+    // 🔹 총구 위치 가져오기
     FVector MuzzleLocation = GunMuzzle ? GunMuzzle->GetComponentLocation() : GetActorLocation();
-    FVector ShootDirection = OwnerCharacter->GetCameraForwardVector();
-    FVector EndTrace = MuzzleLocation + (ShootDirection * 15000.0f);  // 15,000 거리까지 사격
-    FRotator MuzzleRotation = OwnerCharacter->GetControlRotation();
+
+    // 🔹 크로스헤어 방향 가져오기
+    UBGameInstance* GameInstance = Cast<UBGameInstance>(GetWorld()->GetGameInstance());
+    if (!GameInstance)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("GameInstance를 찾을 수 없습니다!"));
+        return;
+    }
+
+    UBUIManager* UIManager = GameInstance->GetUIManagerInstance();
+    if (!UIManager)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UBUIManager를 찾을 수 없습니다!"));
+        return;
+    }
+
+    TTuple<FVector, FVector> CrosshairData = UIManager->GetCrosshairLocationAndDirection();
+    FVector CrosshairLocation = CrosshairData.Get<0>();
+    FVector CrosshairDirection = CrosshairData.Get<1>();
+
+    // 🔹 크로스헤어 보정 (조금 더 먼 위치로 설정)
+    FVector AdjustedCrosshairLocation = CrosshairLocation + (CrosshairDirection * 150.0f);
+    FVector AdjustedEndTrace = AdjustedCrosshairLocation + (CrosshairDirection * 30000.0f);
+
+    // 🔹 로그 확인
+    float Distance = FVector::Dist(MuzzleLocation, AdjustedCrosshairLocation);
+    UE_LOG(LogTemp, Log, TEXT("MuzzleLocation: %s"), *MuzzleLocation.ToString());
+    UE_LOG(LogTemp, Log, TEXT("CrosshairLocation: %s"), *CrosshairLocation.ToString());
+    UE_LOG(LogTemp, Log, TEXT("보정된 CrosshairLocation: %s"), *AdjustedCrosshairLocation.ToString());
+    UE_LOG(LogTemp, Log, TEXT("총구-크로스헤어 거리: %f"), Distance);
 
     // 🔹 라인트레이스 설정
     FHitResult HitResult;
@@ -79,6 +111,25 @@ void ABRifle::Attack()
     Params.AddIgnoredActor(this);
     Params.AddIgnoredActor(OwnerCharacter);
 
+    // 🔹 라인트레이스 실행하여 크로스헤어 방향의 충돌지점 확인
+    if (GetWorld()->LineTraceSingleByChannel(HitResult, AdjustedCrosshairLocation, AdjustedEndTrace, ECC_Visibility, Params))
+    {
+        AdjustedEndTrace = HitResult.ImpactPoint;
+        UE_LOG(LogTemp, Log, TEXT("크로스헤어에 맞음, 충돌 지점: %s"), *HitResult.ImpactPoint.ToString());
+    }
+
+    // 🔹 총구에서 크로스헤어로 향하는 방향 벡터
+    FVector InitialShootDirection = (AdjustedEndTrace - MuzzleLocation).GetSafeNormal();
+
+    // 🔹 크로스헤어에서 최종 직선 방향 벡터
+    FVector FinalShootDirection = CrosshairDirection.GetSafeNormal();
+
+    // 🔹 로그 출력
+    UE_LOG(LogTemp, Log, TEXT("=== 발사 방향 디버깅 ==="));
+    UE_LOG(LogTemp, Log, TEXT("크로스헤어 충돌 지점: %s"), *AdjustedEndTrace.ToString());
+    UE_LOG(LogTemp, Log, TEXT("총구에서 크로스헤어 방향(초기): %s"), *InitialShootDirection.ToString());
+    UE_LOG(LogTemp, Log, TEXT("크로스헤어 기준 최종 발사 방향: %s"), *FinalShootDirection.ToString());
+    UE_LOG(LogTemp, Log, TEXT("크로스헤어 방향 벡터: %s"), *CrosshairDirection.ToString());
 
     // 🔹 총알 스폰
     if (ProjectileClass)
@@ -86,22 +137,24 @@ void ABRifle::Attack()
         FActorSpawnParameters SpawnParams;
         SpawnParams.Owner = this;
         SpawnParams.Instigator = OwnerCharacter;
+
         UE_LOG(LogTemp, Log, TEXT("총알 스폰 시도: %s"), *ProjectileClass->GetName());
-        // 총알 생성
-        ABProjectileBase* Projectile = GetWorld()->SpawnActor<ABProjectileBase>(ProjectileClass, MuzzleLocation, MuzzleRotation, SpawnParams);
+
+        // 🔹 총구에서 크로스헤어로 향하는 총알 생성
+        FVector AdjustedShootDirection = (AdjustedEndTrace - MuzzleLocation).GetSafeNormal();
+
+        ABProjectileBase* Projectile = GetWorld()->SpawnActor<ABProjectileBase>(
+            ProjectileClass, MuzzleLocation,
+            FRotationMatrix::MakeFromX(AdjustedShootDirection).Rotator(), // 조정된 초기 방향
+            SpawnParams
+        );
+
         if (Projectile)
         {
             UE_LOG(LogTemp, Log, TEXT("총알 스폰 성공: %s"), *Projectile->GetName());
-            Projectile->FireInDirection(ShootDirection);  // 🔹 총알 발사
+            Projectile->FireInDirection(AdjustedShootDirection); // 🔹 조정된 방향으로 발사
         }
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("ProjectileClass가 설정되지 않았습니다!"));
-    }
-    // 🔹 발사 사운드 재생
-    if (FireSound)
-    {
-        UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+
     }
 }
+
