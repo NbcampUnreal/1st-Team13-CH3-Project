@@ -141,13 +141,6 @@ void ABCharacter::AimStart(const FInputActionValue& Value)
 	}
 }
 
-void ABCharacter::AimStop(const FInputActionValue& Value)
-{
-	if (!Value.Get<bool>())
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.f,FColor::Blue, *FString("AimStop"));
-	}
-}
 
 void ABCharacter::SetDraggingItem(AActor* NewItem)
 {
