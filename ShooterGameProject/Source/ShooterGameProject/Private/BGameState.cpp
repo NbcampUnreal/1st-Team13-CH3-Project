@@ -10,6 +10,7 @@ ABGameState::ABGameState()
 	CollectedKeys = 0;
 	bIsDoorOpen = false;
 	TimeLimit = 10.0f;
+	RequiredKeyCount = 0;
 }
 void ABGameState::BeginPlay()
 {
@@ -18,11 +19,13 @@ void ABGameState::BeginPlay()
 
 void ABGameState::InitializeGameState()
 {
+	UE_LOG(LogTemp, Warning, TEXT("InitializeGameState! Door closed"));
 	SpawnedEnemies = 10; //ex
 	KilledEnemies = 0;
 	CollectedKeys = 0;
 	bIsDoorOpen = false;
 	TimeLimit = 10.0f;
+	RequiredKeyCount = 1;
 }
 
 void ABGameState::EnemyDefeated()
@@ -34,6 +37,7 @@ void ABGameState::EnemyDefeated()
 void ABGameState::ItemCollected()
 {
 	CollectedKeys++;
+	UE_LOG(LogTemp, Warning, TEXT("CollectedKey! Key : %d"), CollectedKeys);
 	CheckGameStatus();
 }
 
@@ -44,13 +48,15 @@ void ABGameState::CheckGameStatus()
 	{
 		if (SpawnedEnemies <= KilledEnemies)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("OpenDoor!"));
 			OpenDoor();
 		}
 	}
 	else
 	{
-		if (CollectedKeys >= 3 || SpawnedEnemies <= KilledEnemies)
+		if (CollectedKeys >= RequiredKeyCount || SpawnedEnemies <= KilledEnemies)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("OpenDoor!"));
 			OpenDoor();
 		}
 	}

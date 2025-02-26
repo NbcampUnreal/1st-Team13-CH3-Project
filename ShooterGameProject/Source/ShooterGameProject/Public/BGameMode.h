@@ -28,4 +28,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void QuitGame();
 	virtual void RestartGame() override;
+
+	UFUNCTION(BlueprintCallable)
+	void SpawnLevelKeyBox();
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawning")
+	TSubclassOf<AActor> KeyBoxClass;
 };

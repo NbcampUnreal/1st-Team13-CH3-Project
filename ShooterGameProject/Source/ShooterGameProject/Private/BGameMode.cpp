@@ -3,6 +3,7 @@
 #include "BPlayerController.h"
 #include "BCharacter.h"
 #include "BGameInstance.h"
+#include "BSpawnVolume.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 
@@ -30,6 +31,7 @@ void ABGameMode::BeginPlay()
 		GameInstance->GetUIManagerInstance()->LevelStartTransition();
 		StartLevel();
 	}	
+	UE_LOG(LogTemp, Warning, TEXT("GameMode BeginPlay"));
 }
 
 void ABGameMode::StartLevel()
@@ -39,7 +41,48 @@ void ABGameMode::StartLevel()
 	{
 		BGameState->InitializeGameState();
 	}
+	UE_LOG(LogTemp, Warning, TEXT("StartLevel: Spawning KeyBoxes!"));
+
+	SpawnLevelKeyBox();
 	StartGame();
+}
+void ABGameMode::SpawnLevelKeyBox()
+{
+	if (!KeyBoxClass)
+	{
+		UE_LOG(LogTemp, Error, TEXT("KeyBoxClass is NULL! Check if it is set in BP_BGameMode."));
+		return;
+	}
+
+	ABGameState* BGameState = GetGameState<ABGameState>();
+	if (!BGameState) return;
+
+	int32 RequiredKeyCount = BGameState->RequiredKeyCount;
+
+	TArray<AActor*> SpawnVolumes;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABSpawnVolume::StaticClass(), SpawnVolumes);
+
+	if (SpawnVolumes.Num() == 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("No ABSpawnVolume found in the level!"));
+		return;
+	}
+
+	ABSpawnVolume* SpawnVolume = Cast<ABSpawnVolume>(SpawnVolumes[0]);
+	if (!SpawnVolume) return;
+
+	for (int32 i = 0; i < RequiredKeyCount; i++)
+	{
+		AActor* SpawnedKeyBox = SpawnVolume->SpawnKeyBox(KeyBoxClass);
+		if (!SpawnedKeyBox)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to spawn KeyBox!"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("KeyBox spawned at %s"), *SpawnedKeyBox->GetActorLocation().ToString());
+		}
+	}
 }
 
 void ABGameMode::StartGame()
@@ -69,7 +112,6 @@ void ABGameMode::StartGame()
 void ABGameMode::onDoorReached() //문에 플레이어 도달 시 호출
 {
 	ABGameState* BGameState = GetGameState<ABGameState>();
-	BGameState->OpenDoor(); //test
 	if (BGameState->bIsDoorOpen)
 	{
 		UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
