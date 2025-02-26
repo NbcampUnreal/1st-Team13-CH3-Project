@@ -44,7 +44,6 @@ void UWeaponAmmoWidget::UpdateWeapon(const FName& WeaponType)
 
 	if (UImage* WeaponImage = Cast<UImage>(GetWidgetFromName(TEXT("WeaponImage"))))
 	{
-		WeaponImage->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		if (WeaponTexture)
 		{
 			WeaponImage->SetBrushFromTexture(WeaponTexture);
