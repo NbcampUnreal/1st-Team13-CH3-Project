@@ -34,7 +34,7 @@ ABShotgun::ABShotgun()
 
     // 🔹 총구 위치 정보 (GunMuzzle)
     GunMuzzle = CreateDefaultSubobject<USceneComponent>(TEXT("GunMuzzle"));
-    GunMuzzle->SetupAttachment(RootComponent);
+    GunMuzzle->SetupAttachment(ShotGunBody);
 
     //총기 배출구 생성
     ShellEjectSocket = CreateDefaultSubobject<USceneComponent>(TEXT("ShellEjectSocket"));
@@ -97,10 +97,10 @@ void ABShotgun::Attack()
 
         UNiagaraComponent* NiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
             MuzzleFlashEffect,
-            GunMuzzle,
+            ShotGunBody,
             TEXT("GunMuzzle"), // 소켓 이름
-            GunMuzzle ? GunMuzzle->GetRelativeLocation() : FVector::ZeroVector, // 🔹 총구 위치 반영
-            GunMuzzle ? GunMuzzle->GetRelativeRotation() : FRotator::ZeroRotator, // 🔹 총구 회전 반영
+            FVector::ZeroVector,
+            FRotator::ZeroRotator,
             EAttachLocation::SnapToTarget,
             true
         );

@@ -73,8 +73,8 @@ void ABPistol::Attack()
             MuzzleFlashEffect,
             WeaponMesh,            
             TEXT("GunMuzzle"), // 소켓 이름
-            GunMuzzle ? GunMuzzle->GetRelativeLocation() : FVector::ZeroVector, // 🔹 총구 위치 반영
-            GunMuzzle ? GunMuzzle->GetRelativeRotation() : FRotator::ZeroRotator, // 🔹 총구 회전 반영
+            FVector::ZeroVector,
+            FRotator::ZeroRotator,
             EAttachLocation::SnapToTarget,
             true
         );
