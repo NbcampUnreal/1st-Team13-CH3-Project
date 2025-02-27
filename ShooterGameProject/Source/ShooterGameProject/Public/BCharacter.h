@@ -25,8 +25,9 @@ struct FReplicatedAcceleration
 UENUM(BlueprintType)
 enum class EWeaponSlot : uint8
 {
-	Primary,    // 欤茧旮� (鞓�: 靻岇礉)
-	Secondary,  // 氤挫“氍搓赴 (鞓�: 甓岇礉)
+	Pistol,    // 欤茧旮� (鞓�: 靻岇礉)
+	Rifle,  // 氤挫“氍搓赴 (鞓�: 甓岇礉)
+	ShotGun,  // 氤挫“氍搓赴 (鞓�: 甓岇礉)
 	Melee,      // 攴检爲氍搓赴 (鞓�: 旃�, 霃勲伡)
 	Throwable,   // 韴矙氍搓赴 (鞓�: 靾橂韮�)
 	Max
@@ -48,14 +49,17 @@ public:
 	// 馃敼 順勳灛 靷毄 欷戩澑 氍搓赴
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	EWeaponSlot ActiveWeaponSlot;
-
+	ABBaseWeapon* EquippedWeapon; // 현재 장착된 무기
 	// 馃敼 順勳灛 鞛レ癌霅� 氍搓赴 (臧� 鞀’鞐� 頃措嫻頃橂姅 氍搓赴 鞝�鞛�)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	// 氚办棿 齑堦赴頇� 鞓堨嫓
 	TArray<ABBaseWeapon*> EquippedWeapons;  // 鞀’鞐� 雽�鞚戫晿電� 氍搓赴 氚办棿
 
 	void SetDraggingItem(AActor* NewItem);
-	void EquipWeapon(ABBaseWeapon* NewWeapon);
+	void PickupWeapon(ABBaseWeapon* NewWeapon);
+	ABBaseWeapon* GetCurrentWeapon() const;
+	
+	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UCameraComponent> CameraComp;
@@ -93,8 +97,12 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	void FireOnce();
 	void StopFire();
+	void EquipPistol();
+	void EquipRifle();
+	void EquipShotgun();
+	void EquipMelee();
+	void EquipWeaponByType(EWeaponSlot Slot);
 	FTimerHandle FireTimerHandle;
 private:
 	UPROPERTY()

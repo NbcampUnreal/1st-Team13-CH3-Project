@@ -5,11 +5,11 @@
 #include "CoreMinimal.h"
 #include "BBaseGun.h"
 #include "BProjectileBase.h"
+#include "BBulletShell.h"
 #include "BRifle.generated.h"
 
-/**
- * 
- */
+class UNiagaraSystem; // 머즐 플래시용 나이아가라 시스템
+
 UCLASS()
 class SHOOTERGAMEPROJECT_API ABRifle : public ABBaseGun
 {
@@ -19,43 +19,44 @@ public:
     ABRifle();
 
     virtual void Attack() override;
-    
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gun")
     UParticleSystem* ImpactEffect;
-    // 🔹 본체 (기본 루트)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category = "Components")
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
     UStaticMeshComponent* RifleBody;
 
-    // 🔹 탄창
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
     UStaticMeshComponent* Magazine;
 
-    // 🔹 조준경 (옵션)
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
     UStaticMeshComponent* Scope;
-    
-    // 🔹 총기 뒷쪽 몸통
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
     UStaticMeshComponent* Derriere;
 
-    // 🔹 총기 트리거
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
     UStaticMeshComponent* Trigger;
 
-    // 🔹 소염기/총구 (옵션)
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
     UStaticMeshComponent* Muzzle;
-    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
+    TSubclassOf<ABProjectileBase> ProjectileClass;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gun")
     USceneComponent* GunMuzzle;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
-    TSubclassOf<ABProjectileBase> ProjectileClass;  // 🔹 총알 클래스 추가
-
-    // 피스톨 기본 데미지
+    // 탄피 배출 위치
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    USceneComponent* ShellEjectSocket;
+  
+    // 머즐 플래시 효과
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gun")
+    UNiagaraSystem* MuzzleFlashEffect;
     UPROPERTY(EditAnywhere, Category = "Gun")
     float Damage;
-
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    TSubclassOf<ABBulletShell> ShellClass;  // 🔹 탄피 클래스 추가
     UPROPERTY(EditAnywhere, Category = "Gun")
     USoundBase* FireSound;
-    bool bDebugDraw = true;  // 기본값을 true로 설정하여 디버깅할 때 선이 그려지도록 할 수 있습니다.
+
+    bool bDebugDraw = true;
 };

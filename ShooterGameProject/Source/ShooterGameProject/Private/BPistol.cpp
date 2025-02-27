@@ -2,8 +2,11 @@
 #include "BCharacter.h"       // BCharacter 포함
 #include "BGameInstance.h"
 #include "Kismet/GameplayStatics.h"
+#include "NiagaraComponent.h"  // 🔹 UNiagaraComponent 정의 포함
+#include "NiagaraFunctionLibrary.h"
 #include "Components/SphereComponent.h"
 #include "DrawDebugHelpers.h"
+
 
 
 ABPistol::ABPistol()
@@ -16,7 +19,6 @@ ABPistol::ABPistol()
     WeaponName = "M1911";
     WeaponType = "Pistol";
     // 스태틱 메시 컴포넌트 초기화
-    WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
     RootComponent = WeaponMesh;  // RootComponent로 설정
 
     FRotator NewRotation(0.0f, 90.0f, 90.0f); // 예: Y축으로 90도 회전
@@ -26,8 +28,9 @@ ABPistol::ABPistol()
     // 기본 총구 위치를 설정 (이것은 예시이며, 적절한 값으로 설정할 필요 있음)
     GunMuzzle = CreateDefaultSubobject<USceneComponent>(TEXT("GunMuzzle"));
     GunMuzzle->SetupAttachment(RootComponent); // 총구 위치 설정 (각 총기마다 다를 수 있음)
-    
-
+    //총기 배출구 생성
+    ShellEjectSocket = CreateDefaultSubobject<USceneComponent>(TEXT("ShellEjectSocket"));
+    ShellEjectSocket->SetupAttachment(RootComponent);  // 루트 컴포넌트에 부착
     // 물리 시뮬레이션 끄기
     DisablePhysicsSimulation();
 }
@@ -58,8 +61,29 @@ void ABPistol::Attack()
     }
 
     FVector MuzzleLocation = GunMuzzle ? GunMuzzle->GetComponentLocation() : GetActorLocation();
-    FRotator MuzzleRotation = OwnerCharacter->GetControlRotation();
+    // 🔹 머즐 플래시 효과 재생
+    if (MuzzleFlashEffect)
+    {
+        FVector MuzzleFlashLocation = GunMuzzle ? GunMuzzle->GetComponentLocation()
+            + (GetActorForwardVector()) // 🔹 총구에서 약간 앞으로 조정
+            : GetActorLocation();
+        FRotator MuzzleFlashRotation = OwnerCharacter->GetControlRotation(); // 🔹 카메라 방향을 바라보도록 설정
 
+        UNiagaraComponent* NiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
+            MuzzleFlashEffect,
+            WeaponMesh,            
+            TEXT("GunMuzzle"), // 소켓 이름
+            FVector::ZeroVector,
+            FRotator::ZeroRotator,
+            EAttachLocation::SnapToTarget,
+            true
+        );
+        if (NiagaraComp)
+        {
+            // 나이아가라 파티클의 'Lifetime'을 설정
+            NiagaraComp->SetFloatParameter(TEXT("Lifetime"), 0.001f); // 0.05초 지속
+        }
+    }
     // 🔹 크로스헤어 방향 가져오기
     UBGameInstance* GameInstance = Cast<UBGameInstance>(GetWorld()->GetGameInstance());
     if (!GameInstance)
@@ -125,6 +149,42 @@ void ABPistol::Attack()
     {
         UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
     }
+
+    if (ShellClass)
+    {
+        FVector ShellEjectLocation = ShellEjectSocket
+            ? ShellEjectSocket->GetComponentLocation()
+            + (GetActorForwardVector() * -35.0f)  // 🔹 총기 뒷부분으로 이동
+            + (GetActorRightVector() * 5.0f)      // 🔹 오른쪽으로 이동
+            + (GetActorUpVector() * 2.0f)         // 🔹 살짝 위로 조정
+            : GetActorLocation();
+
+        FRotator ShellEjectRotation = ShellEjectSocket
+            ? ShellEjectSocket->GetComponentRotation()
+            : FRotator::ZeroRotator;
+
+        UE_LOG(LogTemp, Log, TEXT("탄피 스폰 시도: %s"), *ShellClass->GetName());
+
+        ABBulletShell* Shell = GetWorld()->SpawnActor<ABBulletShell>(ShellClass, ShellEjectLocation, ShellEjectRotation);
+
+        if (Shell)
+        {
+            UE_LOG(LogTemp, Log, TEXT("탄피 스폰 성공: %s"), *Shell->GetName());
+            Shell->SetShellType("Pistol");
+
+            FVector EjectDirection =
+                (GetActorRightVector() * FMath::RandRange(4.5f, 5.0f)) +  // 🔹 오른쪽으로 더 강하게 튀게
+                (GetActorUpVector() * FMath::RandRange(1.5f, 2.0f)) +    // 🔹 위로 더 튀게
+                (GetActorForwardVector() * FMath::RandRange(-1.0f, -2.0f)); // 🔹 약간 뒤로 밀려나게
+
+            Shell->GetShellMesh()->AddImpulse(EjectDirection * 30.0f); 
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("탄피 스폰 실패!"));
+        }
+    }
+
 }
 
 void ABPistol::DisablePhysicsSimulation()
