@@ -5,7 +5,7 @@ void UQuickslotWidget::UpdateQuickslot(const FName& ItemName, const int32& Count
 {
 	// Based on ItemName, change the count of that item in quick slot
 	FString WidgetNameString = ItemName.ToString() + TEXT("Count");
-	FName WidgetName(WidgetNameString);
+	FName WidgetName(*WidgetNameString);
 
 	if (UTextBlock* QuickslotCount = Cast<UTextBlock>(GetWidgetFromName(WidgetName)))
 	{
