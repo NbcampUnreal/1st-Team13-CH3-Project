@@ -245,6 +245,10 @@ void ABCharacter::BeginPlay()
 void ABCharacter::Attack(const struct FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Log, TEXT("Attack() called"));
+	if (EquippedWeapon == nullptr) 
+	{
+		return;
+	}
 	UE_LOG(LogTemp, Warning, TEXT("⚔️ 공격 시작: %s"), *EquippedWeapon->GetName());
 	
 	// 🔹 유효한 슬롯인지 확인
@@ -260,14 +264,6 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("No weapon equipped in slot: %d"), (int32)ActiveWeaponSlot);
 		return;
-	}
-	if (ABShotgun* Shotgun = Cast<ABShotgun>(EquippedWeapon))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("✅ CurrentWeapon은 ABShotgun입니다."));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("❌ CurrentWeapon이 ABShotgun이 아닙니다!"));
 	}
 	UE_LOG(LogTemp, Warning, TEXT("🔍 [FireOnce] 현재 무기 타입: %s"), *CurrentWeapon->WeaponType);
 

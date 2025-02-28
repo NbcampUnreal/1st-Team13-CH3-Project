@@ -1,6 +1,7 @@
 #include "BProjectileBase.h"
 #include "Components/SphereComponent.h"
 #include "Components/DecalComponent.h"
+#include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 ABProjectileBase::ABProjectileBase()
@@ -29,12 +30,11 @@ ABProjectileBase::ABProjectileBase()
     // 🔹 발사체끼리 충돌하지 않도록 설정
     if (CollisionComponent)
     {
-        CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+        CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
         CollisionComponent->SetCollisionObjectType(ECC_PhysicsBody);
-
-        // 다른 탄환과 충돌 무시
-        CollisionComponent->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
-        CollisionComponent->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
+        CollisionComponent->SetCollisionResponseToAllChannels(ECR_Block);
+        CollisionComponent->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);  // 다른 탄환과 충돌 방지
+        // ✅ 캐릭터(Pawn)와 충돌 무시
         CollisionComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
     }
 
@@ -50,6 +50,11 @@ ABProjectileBase::ABProjectileBase()
 void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
     UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+    UE_LOG(LogTemp, Warning, TEXT("ABProjectileBase::OnHit Called!"));
+    if (OtherActor && OtherActor != this && OtherComp)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *OtherActor->GetName());
+    }
     if (OtherActor && OtherActor != this && OtherComp)
     {
         // ✅ 데미지 적용
@@ -71,6 +76,73 @@ void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
                 BulletDecal->SetFadeScreenSize(0.01f); // 화면 멀어지면 자동 제거
                 BulletDecal->SetFadeOut(5.0f, 1.0f);  // 5초 후에 1초 동안 서서히 사라짐
             }
+        }
+        // ✅ 충돌한 표면의 Physical Material 가져오기
+        UPhysicalMaterial* PhysMaterial = Hit.PhysMaterial.IsValid() ? Hit.PhysMaterial.Get() : nullptr;
+        float SurfaceValue = 0.0f;  // 기본값
+        if (PhysMaterial)
+        {
+            // ✅ Surface Type 확인
+            EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(PhysMaterial);
+            FString MaterialName = PhysMaterial->GetName();
+
+            UE_LOG(LogTemp, Warning, TEXT("Surface Type: %d, Physical Material: %s"),
+                (int32)SurfaceType, *MaterialName);
+
+            switch (SurfaceType)
+            {
+            case EPhysicalSurface::SurfaceType1:  // 금속 표면
+                SurfaceValue = 0.0f;  // 금속 소리
+                break;
+            case EPhysicalSurface::SurfaceType2:  // 바닥 표면
+                SurfaceValue = 1.0f;  // 바닥 소리
+                break;
+            case EPhysicalSurface::SurfaceType3:  // 나무 표면
+                SurfaceValue = 2.0f;  // 나무 소리
+                break;
+            case EPhysicalSurface::SurfaceType4:  // 콘크리트 표면
+                SurfaceValue = 3.0f;  // 콘크리트 소리
+                break;
+            case EPhysicalSurface::SurfaceType5:  // 적 표면
+                SurfaceValue = 4.0f;  // 적 소리
+                break;
+            default:
+                SurfaceValue = 0.0f;  // 기본 소리
+                break;
+            }
+
+        }
+        else
+        {
+            SurfaceValue = 0.0f;
+            UE_LOG(LogTemp, Error, TEXT("PhysMaterial is NULL!"));
+        }
+        
+        // ✅ 오디오 컴포넌트를 생성하여 파라미터 적용
+        if (HitSoundCue)
+        {
+            UAudioComponent* AudioComponent = UGameplayStatics::SpawnSoundAttached(
+                HitSoundCue,
+                this->GetRootComponent(),  // 현재 발사체의 루트에 붙이기
+                NAME_None,
+                Hit.ImpactPoint,
+                EAttachLocation::KeepWorldPosition,
+                true  // AutoDestroy 설정
+            );
+
+            if (AudioComponent)
+            {
+                AudioComponent->SetFloatParameter(TEXT("SurfaceType"), SurfaceValue);
+                UE_LOG(LogTemp, Warning, TEXT("Sound Parameter Applied: SurfaceValue = %f"), SurfaceValue);
+            }
+            else
+            {
+                UE_LOG(LogTemp, Error, TEXT("Failed to create Audio Component!"));
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("HitSoundCue is NULL!"));
         }
 
         // ✅ 총알 제거 (충돌 후 사라지게)
