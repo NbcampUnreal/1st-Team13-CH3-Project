@@ -53,7 +53,6 @@ ABShopManagerPawn::ABShopManagerPawn()
 
 	bIsShopEnabled = false;
 	bIsShopWidgetOpen = false;
-	EnableShop(); // TODO: DELETE
 }
 
 

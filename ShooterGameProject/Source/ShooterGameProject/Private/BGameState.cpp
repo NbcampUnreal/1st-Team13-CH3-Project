@@ -1,6 +1,9 @@
 #include "BGameState.h"
 #include "BGameInstance.h"
 #include "BUIManager.h"
+#include "BShopManagerPawn.h"
+#include "Kismet/GameplayStatics.h"
+
 
 ABGameState::ABGameState()
 {
@@ -67,6 +70,17 @@ void ABGameState::CheckGameStatus()
 void ABGameState::OpenDoor()
 {
 	bIsDoorOpen = true;
+
+	TArray<AActor*> ShopManagerPawns;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABShopManagerPawn::StaticClass(), ShopManagerPawns);
+
+	if (!ShopManagerPawns.IsEmpty())
+	{
+		if (ABShopManagerPawn* ShopManagerPawn = Cast<ABShopManagerPawn>(ShopManagerPawns[0]))
+		{
+			ShopManagerPawn->EnableShop();
+		}
+	}
 }
 
 void ABGameState::TriggerGameOver()
