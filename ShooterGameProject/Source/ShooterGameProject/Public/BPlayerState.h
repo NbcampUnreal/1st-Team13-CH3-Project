@@ -8,7 +8,7 @@
 //DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(Health_DeathEvent, AActor*, OwningActor);
 //DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(Health_AttributeChanged, ULyraHealthComponent*, HealthComponent, float, OldValue, float, NewValue, AActor*, Instigator);
 // Keep 
-// ¾î¶»°Ô ¾²°Ô µÉÁö ¸ð¸£´Ï ÀÏ´Ü ÅµÇØµÎÀÚ
+// ï¿½î¶»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ð¸£´ï¿½ ï¿½Ï´ï¿½ Åµï¿½Øµï¿½ï¿½ï¿½
 UENUM(BlueprintType)
 enum class EDeathState : uint8
 {
@@ -46,7 +46,7 @@ public:
 	float GetCurrentHealth() const;
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	float GetMaxHealth() const;
-	// 0 ~ 1°ª ¸®ÅÏ (ProgressBarÀü¿ë)
+	// 0 ~ 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ProgressBarï¿½ï¿½ï¿½ï¿½)
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	float GetHealthNormalized() const;
 
@@ -66,6 +66,6 @@ public:
 	void Attack(AActor* Actor);
 private:
 	void LevelUP();
-	//	ÄÉ¸¯ÅÍ ·¹º§¾÷À» À§ÇÑ Å×ÀÌºí
+	//	ï¿½É¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìºï¿½
 	TMap<int32, int32> LevelTable;
 };

@@ -8,15 +8,29 @@ UCLASS()
 class SHOOTERGAMEPROJECT_API ABEnemyAIController : public AAIController
 {
 	GENERATED_BODY()
-	
+
 public:
-	virtual void OnPossess(APawn* InPawn) override;
-	virtual void BeginPlay() override;
-	virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
+	ABEnemyAIController();
 
 protected:
-	int32 CurrentPatrolIndex = 0;
+	virtual void BeginPlay() override;
+	virtual void OnPossess(APawn* InPawn) override;
 
-	void MoveToCurrentPatrolPoint();
-	void AttackPlayer();
+	// AIPerception 컴포넌트 및 Sight 설정
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
+	class UAIPerceptionComponent* AIPerceptionComponent;
+
+	UPROPERTY()
+	class UAISenseConfig_Sight* SightConfig;
+
+	// 전투 상태 (bIsInBattle)는 이제 AIController에서 관리
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Battle")
+	bool bIsInBattle;
+	FTimerHandle RallyTimerHandle;
+
+	// OnPerceptionUpdated 이벤트 함수
+	UFUNCTION()
+	void OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
+
+	void UpdateRallyMoveCommand();
 };

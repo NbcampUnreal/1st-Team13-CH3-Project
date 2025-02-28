@@ -1,4 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -20,6 +19,9 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	FString WeaponType;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UStaticMeshComponent* WeaponMesh;
 
 
 	// 무기의 데미지 (자식 클래스에서 상속받아 값만 바꿔줄 예정)
@@ -31,6 +33,7 @@ public:
 	FName WeaponName;
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	float FireRate;
+	float LastFireTime;
 	UPROPERTY()
 	ABCharacter* Character;  // 무기를 장착한 캐릭터
 
@@ -47,5 +50,8 @@ public:
 	// 무기 소유 캐릭터
 	UPROPERTY()
 	ABCharacter* OwnerCharacter;
+
+	// 🔹 WeaponMesh Getter 추가
+	FORCEINLINE UStaticMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 	
 };

@@ -3,12 +3,14 @@
 #include "BPlayerController.h"
 #include "BCharacter.h"
 #include "BGameInstance.h"
+#include "BSpawnVolume.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 
 
 ABGameMode::ABGameMode()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ABGameMode::ABGameMode()"));
 	DefaultPawnClass = ABCharacter::StaticClass();
 	PlayerControllerClass = ABPlayerController::StaticClass();
 	GameStateClass = ABGameState::StaticClass();
@@ -17,6 +19,7 @@ ABGameMode::ABGameMode()
 
 void ABGameMode::BeginPlay()
 {
+	UE_LOG(LogTemp, Warning, TEXT("GameMode BeginPlay start"));
 	Super::BeginPlay();
 
 	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
@@ -28,8 +31,10 @@ void ABGameMode::BeginPlay()
 	else
 	{
 		GameInstance->GetUIManagerInstance()->LevelStartTransition();
+		UE_LOG(LogTemp, Warning, TEXT("ABGameMode::BeginPlay().StartLevel()"));
 		StartLevel();
-	}
+	}	
+	UE_LOG(LogTemp, Warning, TEXT("GameMode BeginPlay end"));
 }
 
 void ABGameMode::StartLevel()
@@ -37,19 +42,52 @@ void ABGameMode::StartLevel()
 	ABGameState* BGameState = GetGameState<ABGameState>();
 	if (BGameState)
 	{
-		BGameState->SpawnedEnemies = 10; //스폰할 적 수
-		BGameState->KilledEnemies = 0;
-		BGameState->CollectedKeys = 0;
-		BGameState->bIsDoorOpen = false;
-		BGameState->TimeLimit = 10.0f; //제한시간
+		BGameState->InitializeGameState();
+	}
+	UE_LOG(LogTemp, Warning, TEXT("StartLevel: Spawning KeyBoxes!"));
+	SpawnLevelKeyBox();
+
+	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance()); //resetHUD
+	if (GameInstance)
+	{
+		UE_LOG(LogTemp, Log, TEXT("StartGame().RemoveHUD"));
+		GameInstance->GetUIManagerInstance()->RemoveHUD();
 	}
 
 	StartGame();
 }
+void ABGameMode::SpawnLevelKeyBox()
+{
+	ABGameState* BGameState = GetGameState<ABGameState>();
+	if (!BGameState) return;
+
+	int32 RequiredKeyCount = BGameState->RequiredKeyCount;
+
+	TArray<AActor*> SpawnVolumes;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABSpawnVolume::StaticClass(), SpawnVolumes);
+
+	if (SpawnVolumes.Num() == 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("No ABSpawnVolume found in the level!"));
+		return;
+	}
+
+
+	for (int32 i = 0; i < RequiredKeyCount; i++)
+	{
+        int32 RandomIndex = FMath::RandRange(0, SpawnVolumes.Num() - 1);
+        ABSpawnVolume* SpawnVolume = Cast<ABSpawnVolume>(SpawnVolumes[RandomIndex]);
+
+        if (SpawnVolume)
+        {
+            SpawnVolume->SpawnKeyBox(KeyBoxClass);
+        }
+	}
+}
 
 void ABGameMode::StartGame()
 {
-	UE_LOG(LogTemp, Log, TEXT("Start! Eliminate all the enemies!"));
+	UE_LOG(LogTemp, Log, TEXT("StartGame! Eliminate all the enemies!"));
 	ABGameState* BGameState = GetGameState<ABGameState>();
 
 	GetWorldTimerManager().SetTimer
@@ -65,78 +103,61 @@ void ABGameMode::StartGame()
 	{
 		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
 		{
-			UIManager->DisplayHUD();
-		}
+			UE_LOG(LogTemp, Log, TEXT("StartGame().DisplayHUD()"));
+						UIManager->DisplayHUD();
+			}
 	}
-}
-
-void ABGameMode::EnemyDefeated() //적 처치 시 호출
-{
-	ABGameState* BGameState = GetGameState<ABGameState>();
-	if (BGameState)
+	if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 	{
-		BGameState->KilledEnemies++;
-	}
-	CheckGameStatus();
-}
-
-void ABGameMode::ItemCollected() //클리어 조건 아이템 획득 시 호출
-{
-	ABGameState* BGameState = GetGameState<ABGameState>();
-	if (BGameState)
-	{
-		BGameState->CollectedKeys++;
-	}
-	CheckGameStatus();
-}
-
-void ABGameMode::CheckGameStatus() //게임 클리어 조건 체크
-{
-	ABGameState* BGameState = GetGameState<ABGameState>();
-	if (!BGameState) return;
-
-	if (BGameState->CollectedKeys >= 3 || BGameState->SpawnedEnemies <= BGameState->KilledEnemies) //키 3개 이상 획득 or 스폰된 적 전부 처치 시
-	{
-		OpenDoor();
-		return;
+		PlayerController->SetInputMode(FInputModeGameOnly());
+		PlayerController->bShowMouseCursor = false;
 	}
 
-}
-
-void ABGameMode::OpenDoor()
-{
-	ABGameState* BGameState = GetGameState<ABGameState>();
-	if (BGameState)
-	{
-		BGameState->bIsDoorOpen = true;
-	}
 }
 
 void ABGameMode::onDoorReached() //문에 플레이어 도달 시 호출
 {
 	ABGameState* BGameState = GetGameState<ABGameState>();
-	if (BGameState && BGameState->bIsDoorOpen)
+	if (BGameState->bIsDoorOpen)
 	{
 		UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
 		if (GameInstance)
 		{
 			GameInstance->GetUIManagerInstance()->LevelEndTransition();
 		}
+		NextLevel();
 	}
 }
 
 void ABGameMode::NextLevel() //다음 레벨로 이동
 {
-	UE_LOG(LogTemp, Log, TEXT("Loading next level"));
-	UGameplayStatics::OpenLevel(this, "StartLevel"); //다음 레벨 이름 수정 必
+	UE_LOG(LogTemp, Log, TEXT("StartNextLevel()"));
+
+	if (UBGameInstance* BGameInstance = GetGameInstance<UBGameInstance>())
+	{
+		int32 CurrentStage = BGameInstance->GetCurrentStage() + 1;
+		BGameInstance->SetCurrentStage(CurrentStage);
+		UE_LOG(LogTemp, Log, TEXT("Loading next level: %d"), CurrentStage);
+
+		FName NextLevelName = "MainLevel";
+		if (CurrentStage % 3 == 0)
+		{
+			if (FMath::RandRange(0, 100) < 90)
+			{
+				NextLevelName = "BonusLevel";
+			}
+		}
+
+		UE_LOG(LogTemp, Log, TEXT("Loading next level: %s"), *NextLevelName.ToString());
+		UGameplayStatics::OpenLevel(this, NextLevelName);
+	}
 }
 
 void ABGameMode::EndGame()
 {
-	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
-	if (GameInstance)
+	if (ABGameState* BGameState = GetGameState<ABGameState>())
 	{
-		GameInstance->GetUIManagerInstance()->EnterGameOverScreen();
+		BGameState->TriggerGameOver();
 	}
 }
 
@@ -145,13 +166,15 @@ void ABGameMode::RestartGame()
 	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
 	if (GameInstance)
 	{
+		GameInstance->SetCurrentStage(0);
 		GameInstance->HasTitleScreenBeenShown = false;
 		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
 		{
+			UE_LOG(LogTemp, Log, TEXT("RestartGame().RemoveHUD"));
 			UIManager->RemoveHUD();
 		}
 	}
-	UGameplayStatics::OpenLevel(this, "StartLevel"); // 메인레벨로 가서 메뉴띄우기
+	UGameplayStatics::OpenLevel(this, "StartLevel");
 }
 
 void ABGameMode::QuitGame()

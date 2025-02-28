@@ -4,17 +4,66 @@
 #include "UObject/NoExportTypes.h"
 #include "BUIManager.generated.h"
 
-
 UCLASS()
 class SHOOTERGAMEPROJECT_API UBUIManager : public UObject
 {
 	GENERATED_BODY()
 	
 public:	
-	UBUIManager();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|TitleScreen")
+	TSubclassOf<UUserWidget> TitleWidgetClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|TitleScreen")
+	UUserWidget* TitleWidgetInstance;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|LevelTransition")
+	TSubclassOf<UUserWidget> LevelTransitionWidgetClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|LevelTransition")
+	UUserWidget* LevelTransitionWidgetInstance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|InGameMenu")
+	TSubclassOf<UUserWidget> InGameMenuWidgetClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|InGameMenu")
+	UUserWidget* InGameMenuWidgetInstance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|GameOver")
+	TSubclassOf<UUserWidget> GameOverWidgetClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|GameOver")
+	UUserWidget* GameOverWidgetInstance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|HUD")
+	TSubclassOf<UUserWidget> HUDWidgetClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUD")
+	UUserWidget* HUDWidgetInstance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|WeaponWheel")
+	TSubclassOf<UUserWidget> WeaponWheelClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|WeaponWheel")
+	UUserWidget* WeaponWheelInstance;
+
+	/* UUserWidget objects in HUD */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
+	class UNotificationWidget* NotificationWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
+	class UItemNotificationWidget* ItemNotificationWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
+	class UHealthAndLevelWidget* HealthAndLevelWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
+	class UMapWidget* MapWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
+	class UMissionWidget* MissionWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
+	class UQuickslotWidget* QuickslotWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
+	class UWeaponAmmoWidget* WeaponAmmoWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
+	class UCrosshairWidget* CrosshairWidget;
+
+	FTimerHandle UpdateHUDTimerHandle;
+
+	UBUIManager();
 	virtual void PostInitProperties() override;
 
+	/* Getter functions for UUserWidget instances */
 	UFUNCTION(BlueprintPure)
 	UUserWidget* GetTitleWidgetInstance();
 	UFUNCTION(BlueprintPure)
@@ -25,12 +74,16 @@ public:
 	UUserWidget* GetGameOverWidgetInstance();
 	UFUNCTION(BlueprintPure)
 	UUserWidget* GetHUDWidgetInstance();
+	UFUNCTION(BlueprintPure)
+	UUserWidget* GetWeaponWheelInstance();
 
+	/* Title Screen */
 	UFUNCTION(BlueprintCallable)
 	void EnterTitleScreen();
 	UFUNCTION(BlueprintCallable)
 	void ExitTitleScreen();
 
+	/* Level Transition */
 	UFUNCTION(BlueprintCallable)
 	void LevelStartTransition();
 	UFUNCTION(BlueprintCallable)
@@ -38,69 +91,56 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RemoveLevelTransition();
 
+	/* In-Game Menu */
 	UFUNCTION(BlueprintCallable)
 	void EnterInGameMenu();
 	UFUNCTION(BlueprintCallable)
 	void ExitInGameMenu();
 
+	/* Game Over Screen*/
 	UFUNCTION(BlueprintCallable)
 	void EnterGameOverScreen();
 	UFUNCTION(BlueprintCallable)
 	void ExitGameOverScreen();
 
-	
-	void OnFire();
+	/* Weapon Wheel */
+	UFUNCTION(BlueprintCallable)
+	void EnterWeaponWheel();
+	UFUNCTION(BlueprintCallable)
+	void ExitWeaponWheel();
+
+	/* HUD */
 	UFUNCTION(BlueprintCallable)
 	void DisplayHUD();
 	UFUNCTION(BlueprintCallable)
 	void CollapseHUD();
 	void RemoveHUD();
+	
+	void UpdateHUDHealth(const float& CurrentHP, const float& MaxHP);
+	void UpdateHUDLevelAndExp(const int32& PlayerLevel, const float& CurrentExp, const float& MaxExp);
+	void UpdateHUDQuickSlot(const FName& ItemName, const int32& Count);
+	void UpdateHUDLoadedAmmo(const int32& LoadedAmmo);
+	void UpdateHUDInventoryAmmo(const int32& InventoryAmmo);
+	void UpdateHUDEquippedWeapon(const FName& WeaponType);
 	void UpdateHUDTimed();
-	void UpdateHUDHealth(float CurrentHP, float MaxHP);
-	//void UpdateHUDStatus();
-	//void UpdateHUDLevelTimer();
-	//void UpdateHUDMission(const FString& Title, const FString& Content, int32 CurrentCount, int32 MaxCount);
-	//void UpdateHUDMap();
-	void UpdateHUDQuickSlot(FName ItemType, int32 Count);
-	void UpdateHUDAmmo(int32 LoadedCount, int32 InventoryCount);
-	void UpdateHUDEquippedWeapon(FName WeaponType);
-	//void UpdateHUDStance();
+	void UpdateHUDMap();
+	void UpdateHUDItemMission(const FName& ItemName, const int32& CurrentCount, const int32& TargetCount);
+	void UpdateHUDBonusMission(const int32& CurrentCount, const int32& TargetCount);
+	void RemoveAllMissions();
+	void OnFire(); // Crosshair animation when fired
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	TSubclassOf<UUserWidget> TitleWidgetClass;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
-	UUserWidget* TitleWidgetInstance;
+	/* Notification (Top Center) / Added Item Notification (Left Center) */
+	void DisplayNotification(const FString& Title, const FString& Message);
+	void DisplayItemNotification(const FName& ItemName);
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	TSubclassOf<UUserWidget> LevelTransitionWidgetClass;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
-	UUserWidget* LevelTransitionWidgetInstance;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	TSubclassOf<UUserWidget> InGameMenuWidgetClass;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
-	UUserWidget* InGameMenuWidgetInstance;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	TSubclassOf<UUserWidget> GameOverWidgetClass;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
-	UUserWidget* GameOverWidgetInstance;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	TSubclassOf<UUserWidget> HUDWidgetClass;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
-	UUserWidget* HUDWidgetInstance;
-
-	FTimerHandle UpdateHUDTimerHandle;
+	/* Crosshair Location and Direction for weapons */
+	TTuple<FVector, FVector> GetCrosshairLocationAndDirection();
 
 protected:
+	/* Owning Game Instance */
 	class UBGameInstance* GameInstance;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Textures")
-	UTexture2D* PistolTexture;
-
+	/* Switch Input Mode and Mouse Cursor Visibility */
 	void SetInputUIOnly();
 	void SetInputGameOnly();
-
-	
 };

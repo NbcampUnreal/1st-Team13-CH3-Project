@@ -65,8 +65,8 @@ void ABPlayerState::StartDeath()
 
 	check(Owner);
 
-	// TODO: Á×±â ½ÃÀÛÇÏ¸é ¾Ë·ÁÁà¾ßÇÑ´Ù.
-	// Animation µ¿ÀÛ
+	// TODO: ï¿½×±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+	// Animation ï¿½ï¿½ï¿½ï¿½
 }
 
 void ABPlayerState::FinishDeath()
@@ -80,8 +80,8 @@ void ABPlayerState::FinishDeath()
 	
 	check(Owner);
 
-	// TODO: Á×Àº ÀÌÈÄ ¾Ë·ÁÁà¾ßÇÑ´Ù.
-	// °´Ã¼ »èÁ¦ÇÒ °Í
+	// TODO: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+	// ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
 }
 
 float ABPlayerState::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -121,7 +121,7 @@ void ABPlayerState::AddExp(int32 Exp)
 void ABPlayerState::Attack(AActor* Actor)
 {
 	UGameplayStatics::ApplyDamage(Actor,
-		AttackDamage, // TODO : ¹«±â°¡ ÀÖ´Ù¸é ¹«±â µ¥¹ÌÁö¸¦ Ãß°¡ÇØ¼­ ¿Ã¸®´Â°Ô ÁÁÀ»µí
+		AttackDamage, // TODO : ï¿½ï¿½ï¿½â°¡ ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ø¼ï¿½ ï¿½Ã¸ï¿½ï¿½Â°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		nullptr,
 		this,
 		UDamageType::StaticClass());

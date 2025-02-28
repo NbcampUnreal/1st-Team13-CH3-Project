@@ -3,15 +3,12 @@
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h"
 
-ABPlayerController::ABPlayerController() :
-	InputMappingContext(nullptr),
-	MoveAction(nullptr),
-	LookAction(nullptr),
-	SprintAction(nullptr), 
-	AttackAction(nullptr),
-	ReloadAction(nullptr)
+ABPlayerController::ABPlayerController()
 {
-
+	// 마우스 입력 활성화
+	bShowMouseCursor = true;
+	bEnableClickEvents = true;
+	bEnableMouseOverEvents = true;
 }
 
 void ABPlayerController::BeginPlay()

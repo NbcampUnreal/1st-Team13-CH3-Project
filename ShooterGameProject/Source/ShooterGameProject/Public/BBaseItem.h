@@ -16,7 +16,8 @@ class SHOOTERGAMEPROJECT_API ABBaseItem : public AActor, public IBItemInterface
 public:	
 	// Sets default values for this actor's properties
 	ABBaseItem();
-
+	// 아이템을 제거하는 공통 함수 (추가 이펙트나 로직을 넣을 수 있음)
+	virtual void DestroyItem();
 protected:
 	// 아이템 유형(타입)을 편집 가능하게 지정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
@@ -36,7 +37,7 @@ protected:
 	// 아이템 시각 표현용 스태틱 메시
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Component")
 	UStaticMeshComponent* StaticMesh;
-	
+	bool bIsDragging = false;
 	virtual void BeginPlay() override;
 	// IItemInterface에서 요구하는 함수들을 반드시 구현
 	virtual void OnItemOverlap(
@@ -46,6 +47,7 @@ protected:
 		int32 OtherBodyIndex,
 		bool bFromSweep,
 		const FHitResult& SweepResult) override;
+	
 	virtual void OnItemEndOverlap(
 		UPrimitiveComponent* OverlappedComp,
 		AActor* OtherActor,
@@ -54,7 +56,7 @@ protected:
 	virtual void ActivateItem(AActor* Activator) override;
 	virtual FName GetItemType() const override;
 	virtual FName GetItemName() const override;
-	// 아이템을 제거하는 공통 함수 (추가 이펙트나 로직을 넣을 수 있음)
-	virtual void DestroyItem();
+	virtual void UseItem(AActor* Activator) override;
+
 
 };
