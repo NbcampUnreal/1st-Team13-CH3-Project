@@ -4,6 +4,7 @@
 
 ABGameState::ABGameState()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ABGameState::ABGameState()"));
 	CurrentScore = 0;
 	KilledEnemies = 0;
 	SpawnedEnemies = 0;
@@ -14,6 +15,7 @@ ABGameState::ABGameState()
 }
 void ABGameState::BeginPlay()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ABGameState::BeginPlay()"));
 	Super::BeginPlay();
 }
 
@@ -24,7 +26,7 @@ void ABGameState::InitializeGameState()
 	KilledEnemies = 0;
 	CollectedKeys = 0;
 	bIsDoorOpen = false;
-	TimeLimit = 10.0f;
+	TimeLimit = 15.0f;
 	RequiredKeyCount = 1;
 }
 

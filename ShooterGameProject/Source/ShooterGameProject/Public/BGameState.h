@@ -12,7 +12,7 @@ public:
     ABGameState();
     virtual void BeginPlay() override;
 
-    UPROPERTY(VisibleAnyWhere, BlueprintReadOnly, Category = "GameState")
+    UPROPERTY(VisibleAnyWhere, BlueprintReadOnly, Category = "Game State")
     int32 CurrentScore;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game State")
     int32 KilledEnemies;

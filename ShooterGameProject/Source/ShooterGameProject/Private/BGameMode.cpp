@@ -10,6 +10,7 @@
 
 ABGameMode::ABGameMode()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ABGameMode::ABGameMode()"));
 	DefaultPawnClass = ABCharacter::StaticClass();
 	PlayerControllerClass = ABPlayerController::StaticClass();
 	GameStateClass = ABGameState::StaticClass();
@@ -18,6 +19,7 @@ ABGameMode::ABGameMode()
 
 void ABGameMode::BeginPlay()
 {
+	UE_LOG(LogTemp, Warning, TEXT("GameMode BeginPlay start"));
 	Super::BeginPlay();
 
 	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
@@ -29,9 +31,10 @@ void ABGameMode::BeginPlay()
 	else
 	{
 		GameInstance->GetUIManagerInstance()->LevelStartTransition();
+		UE_LOG(LogTemp, Warning, TEXT("ABGameMode::BeginPlay().StartLevel()"));
 		StartLevel();
 	}	
-	UE_LOG(LogTemp, Warning, TEXT("GameMode BeginPlay"));
+	UE_LOG(LogTemp, Warning, TEXT("GameMode BeginPlay end"));
 }
 
 void ABGameMode::StartLevel()
@@ -42,18 +45,19 @@ void ABGameMode::StartLevel()
 		BGameState->InitializeGameState();
 	}
 	UE_LOG(LogTemp, Warning, TEXT("StartLevel: Spawning KeyBoxes!"));
-
 	SpawnLevelKeyBox();
+
+	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance()); //resetHUD
+	if (GameInstance)
+	{
+		UE_LOG(LogTemp, Log, TEXT("RestartGame().RemoveHUD"));
+		GameInstance->GetUIManagerInstance()->RemoveHUD();
+	}
+
 	StartGame();
 }
 void ABGameMode::SpawnLevelKeyBox()
 {
-	if (!KeyBoxClass)
-	{
-		UE_LOG(LogTemp, Error, TEXT("KeyBoxClass is NULL! Check if it is set in BP_BGameMode."));
-		return;
-	}
-
 	ABGameState* BGameState = GetGameState<ABGameState>();
 	if (!BGameState) return;
 
@@ -68,28 +72,24 @@ void ABGameMode::SpawnLevelKeyBox()
 		return;
 	}
 
-	ABSpawnVolume* SpawnVolume = Cast<ABSpawnVolume>(SpawnVolumes[0]);
-	if (!SpawnVolume) return;
 
 	for (int32 i = 0; i < RequiredKeyCount; i++)
 	{
-		AActor* SpawnedKeyBox = SpawnVolume->SpawnKeyBox(KeyBoxClass);
-		if (!SpawnedKeyBox)
-		{
-			UE_LOG(LogTemp, Error, TEXT("Failed to spawn KeyBox!"));
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("KeyBox spawned at %s"), *SpawnedKeyBox->GetActorLocation().ToString());
-		}
+        int32 RandomIndex = FMath::RandRange(0, SpawnVolumes.Num() - 1);
+        ABSpawnVolume* SpawnVolume = Cast<ABSpawnVolume>(SpawnVolumes[RandomIndex]);
+
+        if (SpawnVolume)
+        {
+            SpawnVolume->SpawnKeyBox(KeyBoxClass);
+        }
 	}
 }
 
 void ABGameMode::StartGame()
 {
-	UE_LOG(LogTemp, Log, TEXT("Start! Eliminate all the enemies!"));
+	UE_LOG(LogTemp, Log, TEXT("StartGame! Eliminate all the enemies!"));
 	ABGameState* BGameState = GetGameState<ABGameState>();
-	
+
 	GetWorldTimerManager().SetTimer
 	(
 		LevelTimerHandle,
@@ -103,10 +103,16 @@ void ABGameMode::StartGame()
 	{
 		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
 		{
-			UIManager->DisplayHUD();
-		}
+			UE_LOG(LogTemp, Log, TEXT("StartGame().DisplayHUD()"));
+						UIManager->DisplayHUD();
+			}
 	}
-	
+	if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+	{
+		PlayerController->SetInputMode(FInputModeGameOnly());
+		PlayerController->bShowMouseCursor = false;
+	}
+
 }
 
 void ABGameMode::onDoorReached() //문에 플레이어 도달 시 호출
@@ -125,6 +131,8 @@ void ABGameMode::onDoorReached() //문에 플레이어 도달 시 호출
 
 void ABGameMode::NextLevel() //다음 레벨로 이동
 {
+	UE_LOG(LogTemp, Log, TEXT("StartNextLevel()"));
+
 	if (UBGameInstance* BGameInstance = GetGameInstance<UBGameInstance>())
 	{
 		int32 CurrentStage = BGameInstance->GetCurrentStage() + 1;
@@ -132,9 +140,9 @@ void ABGameMode::NextLevel() //다음 레벨로 이동
 		UE_LOG(LogTemp, Log, TEXT("Loading next level: %d"), CurrentStage);
 
 		FName NextLevelName = "MainLevel";
-		if (CurrentStage == 3)
+		if (CurrentStage % 3 == 0)
 		{
-			if (FMath::RandRange(0, 100) < 90) // 3번째 스테이지는 90% 확률로 보너스 레벨 맵
+			if (FMath::RandRange(0, 100) < 90)
 			{
 				NextLevelName = "BonusLevel";
 			}
@@ -158,9 +166,11 @@ void ABGameMode::RestartGame()
 	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
 	if (GameInstance)
 	{
+		GameInstance->SetCurrentStage(0);
 		GameInstance->HasTitleScreenBeenShown = false;
 		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
 		{
+			UE_LOG(LogTemp, Log, TEXT("RestartGame().RemoveHUD"));
 			UIManager->RemoveHUD();
 		}
 	}

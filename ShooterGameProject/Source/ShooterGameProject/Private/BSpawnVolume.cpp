@@ -23,8 +23,6 @@ FVector ABSpawnVolume::GetRandomPointInVolume() const
         FMath::FRandRange(-BoxExtent.Y, BoxExtent.Y),
         FMath::FRandRange(-BoxExtent.Z, BoxExtent.Z));
 
-    UE_LOG(LogTemp, Warning, TEXT("Spawn Location: %s"), *SpawnLocation.ToString());
-
     return SpawnLocation;
 }
 
@@ -38,15 +36,6 @@ AActor* ABSpawnVolume::SpawnKeyBox(TSubclassOf<AActor> ItemClass)
 
     FVector SpawnLocation = GetRandomPointInVolume();
     AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(ItemClass, SpawnLocation, FRotator::ZeroRotator);
-
-    if (!SpawnedActor)
-    {
-        UE_LOG(LogTemp, Error, TEXT("SpawnActor failed to spawn KeyBox at %s"), *SpawnLocation.ToString());
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("KeyBox successfully spawned at %s"), *SpawnLocation.ToString());
-    }
 
     return SpawnedActor;
 }
