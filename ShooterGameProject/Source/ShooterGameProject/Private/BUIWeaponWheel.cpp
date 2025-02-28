@@ -23,7 +23,7 @@ void UBUIWeaponWheel::ExitWeaponWheel_Implementation()
 	{
 		if (ABCharacter* BCharacter = Cast<ABCharacter>(PlayerController->GetCharacter()))
 		{
-			ABBaseItem* EquippedWeapon = BCharacter->EquippedWeapons[(int32)EWeaponSlot::Primary];
+			// ABBaseItem* EquippedWeapon = BCharacter->EquippedWeapons[(int32)EWeaponSlot::Primary];
 
 			// Equip Pistol
 		// TODO: Equip the pistol that's actually in the inventory
@@ -32,11 +32,11 @@ void UBUIWeaponWheel::ExitWeaponWheel_Implementation()
 			if (HoveredItemName == "Pistol")
 			{
 				// Return if it's not already equipped
-				if (EquippedWeapon && EquippedWeapon->IsA<ABPistol>()) return;
+				//if (EquippedWeapon && EquippedWeapon->IsA<ABPistol>()) return;
 
 				// THIS IS TEMPORARY!!!!!!
-				ABPistol* TempPistol = NewObject<ABPistol>(BCharacter);
-				BCharacter->EquipWeapon(TempPistol);
+				//ABPistol* TempPistol = NewObject<ABPistol>(BCharacter);
+				//BCharacter->EquipWeapon(TempPistol);
 				return;
 			}
 
@@ -44,10 +44,10 @@ void UBUIWeaponWheel::ExitWeaponWheel_Implementation()
 			if (HoveredItemName == "Rifle")
 			{
 				// Return if rifle is already equipped
-				if (EquippedWeapon && EquippedWeapon->IsA<ABRifle>()) return;
+				//if (EquippedWeapon && EquippedWeapon->IsA<ABRifle>()) return;
 
-				ABRifle* TempRifle = NewObject<ABRifle>(BCharacter);
-				BCharacter->EquipWeapon(TempRifle);	
+				//ABRifle* TempRifle = NewObject<ABRifle>(BCharacter);
+				//BCharacter->EquipWeapon(TempRifle);	
 				return;
 			}
 
@@ -56,10 +56,10 @@ void UBUIWeaponWheel::ExitWeaponWheel_Implementation()
 			if (HoveredItemName == "Shotgun")
 			{
 				// Return if Shotgun is already equipped
-				if (EquippedWeapon && EquippedWeapon->IsA<ABShotgun>()) return;
+				//if (EquippedWeapon && EquippedWeapon->IsA<ABShotgun>()) return;
 
-				ABShotgun* TempShotgun = NewObject<ABShotgun>(BCharacter);
-				BCharacter->EquipWeapon(TempShotgun);
+				//ABShotgun* TempShotgun = NewObject<ABShotgun>(BCharacter);
+				//BCharacter->EquipWeapon(TempShotgun);
 				return;
 			}
 			
@@ -68,10 +68,10 @@ void UBUIWeaponWheel::ExitWeaponWheel_Implementation()
 			if (HoveredItemName == "Melee")
 			{
 				// Return if Melee is already equipped
-				if (EquippedWeapon && EquippedWeapon->IsA<ABMeleeWeapon>()) return;
+				//if (EquippedWeapon && EquippedWeapon->IsA<ABMeleeWeapon>()) return;
 
-				ABMeleeWeapon* TempMeleeWeapon = NewObject<ABMeleeWeapon>(BCharacter);
-				BCharacter->EquipWeapon(TempMeleeWeapon);
+				//ABMeleeWeapon* TempMeleeWeapon = NewObject<ABMeleeWeapon>(BCharacter);
+				//BCharacter->EquipWeapon(TempMeleeWeapon);
 				return;
 			}
 
@@ -79,10 +79,10 @@ void UBUIWeaponWheel::ExitWeaponWheel_Implementation()
 			if (HoveredItemName == "Grenade")
 			{
 				// Return if Grenade is already equipped
-				if (EquippedWeapon && EquippedWeapon->IsA<ABGrenadeWeapon>()) return;
+				//if (EquippedWeapon && EquippedWeapon->IsA<ABGrenadeWeapon>()) return;
 
-				ABGrenadeWeapon* TempGrenade = NewObject<ABGrenadeWeapon>(BCharacter);
-				BCharacter->EquipWeapon(TempGrenade);
+				//ABGrenadeWeapon* TempGrenade = NewObject<ABGrenadeWeapon>(BCharacter);
+				//BCharacter->EquipWeapon(TempGrenade);
 				return;
 			}
 		}
