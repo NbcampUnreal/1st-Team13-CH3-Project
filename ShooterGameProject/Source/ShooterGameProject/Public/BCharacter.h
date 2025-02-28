@@ -58,7 +58,10 @@ public:
 	void SetDraggingItem(AActor* NewItem);
 	void PickupWeapon(ABBaseWeapon* NewWeapon);
 	ABBaseWeapon* GetCurrentWeapon() const;
-	
+	void EquipPistol();
+	void EquipRifle();
+	void EquipShotgun();
+	void EquipMelee();
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
@@ -98,10 +101,7 @@ protected:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void StopFire();
-	void EquipPistol();
-	void EquipRifle();
-	void EquipShotgun();
-	void EquipMelee();
+	
 	void EquipWeaponByType(EWeaponSlot Slot);
 	FTimerHandle FireTimerHandle;
 private:
