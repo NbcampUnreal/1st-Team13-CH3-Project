@@ -18,6 +18,13 @@ UItemNotificationWidget::UItemNotificationWidget(const FObjectInitializer& Objec
 	{
 		FirstAidKitIcon = FirstAidKitIconFinder.Object;
 	}
+
+	ConstructorHelpers::FObjectFinder<UTexture2D> GrenadeIconFinder(
+		TEXT("/Game/UI/Textures/T_Grenade_Icon.T_Grenade_Icon"));
+	if (GrenadeIconFinder.Succeeded())
+	{
+		GrenadeIcon = GrenadeIconFinder.Object;
+	}
 	
 	RobotoItalic = LoadObject<UObject>(this, TEXT("/Game/UI/Fonts/Font_RobotoItalic.Font_RobotoItalic"));
 
@@ -25,7 +32,6 @@ UItemNotificationWidget::UItemNotificationWidget(const FObjectInitializer& Objec
 		TEXT("/Game/UI/Materials/MI_HUDGlowOutline_Purple.MI_HUDGlowOutline_Purple"));
 	if (PurpleGlowMaterialFinder.Succeeded())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Material Succeeded"))
 		PurpleGlowMaterial = PurpleGlowMaterialFinder.Object;
 	}
 
@@ -43,7 +49,11 @@ void UItemNotificationWidget::DisplayNotification(FName ItemName)
 		ItemTexture = FirstAidKitIcon;
 		DisplayItemName = "First Aid Kit";
 	}
-	// else if (ItemName == "Grenade") 
+	else if (ItemName == "Grenade")
+	{
+		ItemTexture = GrenadeIcon;
+		DisplayItemName = "Grenade";
+	}
 
 	/********** Horizontal Box **********/
 	UHorizontalBox* ItemNotificationHBox = Cast<UHorizontalBox>(GetWidgetFromName("ItemNotificationHBox"));
@@ -51,7 +61,6 @@ void UItemNotificationWidget::DisplayNotification(FName ItemName)
 	{
 		ItemNotificationHBox = WidgetTree->ConstructWidget<UHorizontalBox>(
 			UHorizontalBox::StaticClass(), TEXT("ItemNotificationHBox"));
-		if (ItemNotificationHBox) UE_LOG(LogTemp, Warning, TEXT("Item HBox Created"))
 	}
 	if (ItemNotificationHBox)
 	{
@@ -63,7 +72,6 @@ void UItemNotificationWidget::DisplayNotification(FName ItemName)
 		{
 			ItemNotificationImage = WidgetTree->ConstructWidget<UImage>(
 				UImage::StaticClass(), TEXT("ItemNotificationImage"));
-			if (ItemNotificationImage) UE_LOG(LogTemp, Warning, TEXT("Item Image Created"))
 		}
 		if (ItemNotificationImage)
 		{
@@ -73,7 +81,6 @@ void UItemNotificationWidget::DisplayNotification(FName ItemName)
 			if (ItemTexture)
 			{
 				ItemNotificationImage->SetBrushFromTexture(ItemTexture);
-				UE_LOG(LogTemp, Warning, TEXT("Item Texture Set"))
 			}
 			ItemNotificationImage->SetDesiredSizeOverride(FVector2D(ImageSizeX, ImageSizeY));
 
@@ -82,7 +89,6 @@ void UItemNotificationWidget::DisplayNotification(FName ItemName)
 			{
 				ImageSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Left);
 				ImageSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Center);
-				UE_LOG(LogTemp, Warning, TEXT("Item Alignment Set"))
 			}
 		}
 
@@ -92,8 +98,6 @@ void UItemNotificationWidget::DisplayNotification(FName ItemName)
 		{
 			ItemNotificationVBox = WidgetTree->ConstructWidget<UVerticalBox>(
 				UVerticalBox::StaticClass(), TEXT("ItemNotificationVBox"));
-
-			if (ItemNotificationVBox) UE_LOG(LogTemp, Warning, TEXT("Item VBox Created"))
 		}
 		if (ItemNotificationVBox)
 		{
@@ -110,15 +114,13 @@ void UItemNotificationWidget::DisplayNotification(FName ItemName)
 			UTextBlock* ItemNotificationTitle = Cast<UTextBlock>(GetWidgetFromName("ItemNotificationTitle"));
 			if (ItemNotificationTitle == nullptr)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Item Title Created"))
-					ItemNotificationTitle = WidgetTree->ConstructWidget<UTextBlock>(
-						UTextBlock::StaticClass(), TEXT("ItemNotificationTitle"));
+				ItemNotificationTitle = WidgetTree->ConstructWidget<UTextBlock>(
+					UTextBlock::StaticClass(), TEXT("ItemNotificationTitle"));
 			}
 			if (ItemNotificationTitle)
 			{
 				ItemNotificationVBox->AddChildToVerticalBox(ItemNotificationTitle);
 
-				UE_LOG(LogTemp, Warning, TEXT("Item Title SetText"))
 				ItemNotificationTitle->SetText(FText::FromString("NEW ITEM ADDED"));
 				// TODO: Set Font, Size, outline material, etc.
 
@@ -145,13 +147,11 @@ void UItemNotificationWidget::DisplayNotification(FName ItemName)
 			{
 				ItemNotificationName = WidgetTree->ConstructWidget<UTextBlock>(
 					UTextBlock::StaticClass(), TEXT("ItemNotificationName"));
-				UE_LOG(LogTemp, Warning, TEXT("Item Name Created"))
 			}
 			if (ItemNotificationName)
 			{
 				ItemNotificationVBox->AddChildToVerticalBox(ItemNotificationName);
 
-				UE_LOG(LogTemp, Warning, TEXT("Item Name SetText"))
 				ItemNotificationName->SetText(FText::FromName(DisplayItemName));
 				ItemNotificationName->SetAutoWrapText(true);
 				ItemNotificationName->SetColorAndOpacity(FLinearColor(0.6f, 1.f, 0.f, 1.f));
@@ -184,36 +184,31 @@ void UItemNotificationWidget::RemoveNotification()
 	{
 		ItemNotificationTitle->RemoveFromParent();
 		ItemNotificationTitle = nullptr;
-		UE_LOG(LogTemp, Warning, TEXT("NotificationTitle Removed"))
 	}
 
 	if (UTextBlock* ItemNotificationName = Cast<UTextBlock>(GetWidgetFromName("ItemNotificationName")))
 	{
 		ItemNotificationName->RemoveFromParent();
 		ItemNotificationName = nullptr;
-		UE_LOG(LogTemp, Warning, TEXT("NotificationMessage Removed"))
 	}
 
 	if (UVerticalBox* ItemNotificationVBox = Cast<UVerticalBox>(GetWidgetFromName("ItemNotificationVBox")))
 	{
 		ItemNotificationVBox->RemoveFromParent();
 		ItemNotificationVBox = nullptr;
-		UE_LOG(LogTemp, Warning, TEXT("ItemNotificationVBox Removed"))
 	}
 
 	if (UImage* ItemNotificationImage = Cast<UImage>(GetWidgetFromName("ItemNotificationImage")))
 	{
 		ItemNotificationImage->RemoveFromParent();
 		ItemNotificationImage = nullptr;
-		UE_LOG(LogTemp, Warning, TEXT("ItemNotificationImage Removed"))
 	}
 
-	if (UHorizontalBox* ItemNotificationHBox = Cast<UHorizontalBox>(GetWidgetFromName("ItemNotificationHBox")))
-	{
-		ItemNotificationHBox->RemoveFromParent(); // No Parent. How should I remove this?
+	//if (UHorizontalBox* ItemNotificationHBox = Cast<UHorizontalBox>(GetWidgetFromName("ItemNotificationHBox")))
+	//{
+		//ItemNotificationHBox->RemoveFromParent(); // No Parent. How should I remove this?
 		//ItemNotificationHBox->RemoveFromRoot();
-		ItemNotificationHBox = nullptr;
-		UE_LOG(LogTemp, Warning, TEXT("ItemNotificationHBox Removed"))
-	}
+		//ItemNotificationHBox = nullptr;
+	//}
 }
 

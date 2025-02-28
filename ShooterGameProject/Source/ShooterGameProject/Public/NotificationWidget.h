@@ -11,7 +11,7 @@ class SHOOTERGAMEPROJECT_API UNotificationWidget : public UUserWidget
 	
 public:
 	UFUNCTION(BlueprintCallable)
-	void DisplayNotification(FString Title, FString Message);
+	void DisplayNotification(const FString& Title, const FString& Message);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void FadeInOutNotification();
