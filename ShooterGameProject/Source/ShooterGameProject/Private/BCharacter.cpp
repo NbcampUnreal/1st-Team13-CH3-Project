@@ -8,14 +8,15 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "BMovementComponent.h"
+#include <BShotGun.h>
 
 ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UBMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = false;
-	ActiveWeaponSlot = EWeaponSlot::Primary;  // ê¸°ë³¸ì ìœ¼ë¡œ ì£¼ë¬´ê¸°ë¥¼ í™œì„±í™”
+	ActiveWeaponSlot = EWeaponSlot::Pistol;  // ê¸°ë³¸ì ìœ¼ë¡œ ì£¼ë¬´ê¸°ë¥¼ í™œì„±í™”
 	// ë°°ì—´ì˜ í¬ê¸°ë¥¼ ActiveWeaponSlotì— ë§žê²Œ í™•ìž¥
-	EquippedWeapons.SetNumZeroed(4);  // ActiveWeaponSlotì— ë§žê²Œ ë°°ì—´ í¬ê¸° ì„¤ì •
+	EquippedWeapons.SetNumZeroed(5);  // ActiveWeaponSlotì— ë§žê²Œ ë°°ì—´ í¬ê¸° ì„¤ì •
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->TargetArmLength = 300.f;
 	SpringArm->bUsePawnControlRotation = true; // ?Œì „??ì¹´ë©”?¼ë„ ?´ë™?œë‹¤.
@@ -243,44 +244,33 @@ void ABCharacter::BeginPlay()
 }
 void ABCharacter::Attack(const struct FInputActionValue& Value)
 {
-	ABBaseWeapon* CurrentWeapon = EquippedWeapons[(int32)ActiveWeaponSlot];
-	if (!CurrentWeapon) return;
+	UE_LOG(LogTemp, Log, TEXT("Attack() called"));
+	if (EquippedWeapon == nullptr) 
+	{
+		return;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("⚔️ 공격 시작: %s"), *EquippedWeapon->GetName());
+	
+	// 🔹 유효한 슬롯인지 확인
+	if (!EquippedWeapons.IsValidIndex((int32)ActiveWeaponSlot))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid ActiveWeaponSlot: %d"), (int32)ActiveWeaponSlot);
+		return;
+	}
 
-	if (CurrentWeapon->WeaponType == "Pistol")
-	{
-		CurrentWeapon->Attack();
-	}
-	else if (CurrentWeapon->WeaponType == "Rifle")
-	{
-
-		if (!GetWorld()->GetTimerManager().IsTimerActive(FireTimerHandle))
-		{
-			GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &ABCharacter::FireOnce, CurrentWeapon->FireRate, true);
-		}
-	}
-	else if (CurrentWeapon->WeaponType == "ShotGun")
-	{
-		// 권총: 한 번 클릭하면 한 발 발사
-		CurrentWeapon->Attack();
-	}
-	else
-	{
-		CurrentWeapon->Attack();
-		bool Trigger = Value.Get<bool>();
-		if (Trigger == true)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("Attack"));
-		}
-	}
-}
-void ABCharacter::FireOnce()
-{
+	// 🔹 현재 슬롯의 무기 가져오기
 	ABBaseWeapon* CurrentWeapon = EquippedWeapons[(int32)ActiveWeaponSlot];
-	if (CurrentWeapon)
+	if (!CurrentWeapon)
 	{
-		CurrentWeapon->Attack();
+		UE_LOG(LogTemp, Warning, TEXT("No weapon equipped in slot: %d"), (int32)ActiveWeaponSlot);
+		return;
 	}
+	UE_LOG(LogTemp, Warning, TEXT("🔍 [FireOnce] 현재 무기 타입: %s"), *CurrentWeapon->WeaponType);
+
+	
+	CurrentWeapon->Attack();
 }
+
 
 void ABCharacter::StopFire()
 {
@@ -288,71 +278,206 @@ void ABCharacter::StopFire()
 	// ë°œì‚¬ ë©ˆì¶”ê¸°
 	GetWorld()->GetTimerManager().ClearTimer(FireTimerHandle);
 }
-// ë¬´ê¸° ë¶€ì°© í•¨ìˆ˜
-void ABCharacter::EquipWeapon(ABBaseWeapon* NewWeapon)
+
+void ABCharacter::PickupWeapon(ABBaseWeapon* NewWeapon)
 {
 	if (!NewWeapon)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to equip weapon. NewWeapon is null."));
+		UE_LOG(LogTemp, Warning, TEXT("❌ Failed to pick up weapon. NewWeapon is null."));
 		return;
 	}
 
-	USkeletalMeshComponent* CharacterMesh = GetMesh();
-	if (!CharacterMesh)
+	// 🔹 이미 인벤토리에 있는지 확인
+	for (ABBaseWeapon* ExistingWeapon : EquippedWeapons)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Character Mesh is null."));
-		return;
-	}
-
-	// ðŸ”¹ í˜„ìž¬ ì† ì†Œì¼“ì— ìž¥ì°©ëœ ë¬´ê¸° í™•ì¸
-	ABBaseWeapon* CurrentWeapon = nullptr;
-
-	// ë¬´ê¸°ê°€ ìž¥ì°©ëœ ì†Œì¼“ì´ ìžˆëŠ”ì§€ í™•ì¸
-	for (USceneComponent* ChildComponent : CharacterMesh->GetAttachChildren())
-	{
-		ABBaseWeapon* AttachedWeapon = Cast<ABBaseWeapon>(ChildComponent->GetOwner());
-		if (AttachedWeapon)
+		if (ExistingWeapon == NewWeapon)  // 같은 무기인지 확인
 		{
-			CurrentWeapon = AttachedWeapon;
-			break;  // ì²« ë²ˆì§¸ ìž¥ì°©ëœ ë¬´ê¸°ë§Œ ê°€ì ¸ì˜´
+			return;  // 중복 추가 방지
 		}
 	}
 
-	if (!CurrentWeapon)
+	// 🔹 무기 배열에 추가 (배열 크기 체크)
+	if (NewWeapon->WeaponType.Equals("Melee", ESearchCase::IgnoreCase))
 	{
-		// ðŸ”¹ ì†ì— ë¬´ê¸°ê°€ ì—†ìœ¼ë©´ ë°”ë¡œ ìž¥ì°©
-		FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
-		NewWeapon->AttachToComponent(CharacterMesh, AttachRules, TEXT("WeaponSocket"));
-		UE_LOG(LogTemp, Log, TEXT("WeaponType : %s"), *NewWeapon->WeaponType);
+		EquippedWeapons[(int32)EWeaponSlot::Melee] = NewWeapon;
+	}
+	else if (NewWeapon->WeaponType.Equals("Grenade", ESearchCase::IgnoreCase))
+	{
+		EquippedWeapons[(int32)EWeaponSlot::Throwable] = NewWeapon;
+	}
+	else if (NewWeapon->WeaponType.Equals("Rifle", ESearchCase::IgnoreCase))
+	{
+		EquippedWeapons[(int32)EWeaponSlot::Rifle] = NewWeapon;
+	}
+	else if (NewWeapon->WeaponType.Equals("Pistol", ESearchCase::IgnoreCase))
+	{
+		EquippedWeapons[(int32)EWeaponSlot::Pistol] = NewWeapon;
+	}
+	else if (NewWeapon->WeaponType.Equals("ShotGun", ESearchCase::IgnoreCase))
+	{
+		EquippedWeapons[(int32)EWeaponSlot::ShotGun] = NewWeapon;
+	}
 
-		// ë¬´ê¸° íƒ€ìž…ì— ë”°ë¼ íšŒì „ ì¡°ì •
-		if (NewWeapon->WeaponType == "Rifle") {
-			FRotator AdjustedRotation(0.0f, -180.0f, 0.0f);
-			NewWeapon->SetActorRelativeRotation(AdjustedRotation);
+	// ✅ 여기서 바로 WeaponSocket으로 부착하지 않음
+	FName StorageSocketName = TEXT("WeaponStorageSocket");
+	if (GetMesh()->DoesSocketExist(StorageSocketName))
+	{
+		NewWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, StorageSocketName);
+		UE_LOG(LogTemp, Log, TEXT("✅ Weapon stored in %s"), *StorageSocketName.ToString());
+		NewWeapon->SetActorHiddenInGame(true);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("✅ Picked up WeaponType: %s"), *NewWeapon->WeaponType);
+}
+
+ABBaseWeapon* ABCharacter::GetCurrentWeapon() const
+{
+	return EquippedWeapon;
+}
+
+
+
+void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
+{
+	// 🔹 인덱스가 올바른지 검사
+	if (!EquippedWeapons.IsValidIndex((int32)Slot))
+	{
+		UE_LOG(LogTemp, Error, TEXT("EquipWeaponByType: Slot %d is out of bounds! Max size: %d"),
+			(int32)Slot, EquippedWeapons.Num());
+		return;
+	}
+
+	// 🔹 무기 배열 크기가 부족하면 확장
+	if (EquippedWeapons.Num() <= (int32)Slot)
+	{
+		EquippedWeapons.SetNum((int32)Slot + 1);
+	}
+
+	// 🔹 현재 슬롯 업데이트
+	ActiveWeaponSlot = Slot;
+	ABBaseWeapon* WeaponToEquip = EquippedWeapons[(int32)Slot];
+
+	if (!WeaponToEquip)
+	{
+		UE_LOG(LogTemp, Error, TEXT("❌ WeaponToEquip is nullptr! Slot: %d"), (int32)Slot);
+		return;
+	}
+
+	// 🔹 타이머 초기화 (발사 딜레이 리셋)
+	GetWorldTimerManager().ClearTimer(FireTimerHandle);
+
+	// 🔹 무기 메쉬 확인
+	UStaticMeshComponent* WeaponMesh = WeaponToEquip->FindComponentByClass<UStaticMeshComponent>();
+	if (!WeaponMesh)
+	{
+		UE_LOG(LogTemp, Error, TEXT("❌ WeaponMesh is nullptr for %s"), *WeaponToEquip->GetName());
+		return;
+	}
+
+	// 🔹 기존 장착 무기 숨기기 + 인벤토리에 저장
+	if (EquippedWeapon)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Hiding previously equipped weapon: %s"), *EquippedWeapon->WeaponType);
+		EquippedWeapon->SetActorHiddenInGame(true);
+		EquippedWeapon->SetActorEnableCollision(false);
+		EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);  // ✅ 맵에 남아있는 문제 해결
+
+		// 무기 보관 위치 설정
+		FName StorageSocketName = TEXT("WeaponBackSocket");
+		if (EquippedWeapon->WeaponType == "Pistol")
+		{
+			StorageSocketName = TEXT("PistolHolsterSocket");
 		}
-		else if (NewWeapon->WeaponType == "Pistol") {
-			FRotator AdjustedRotation(0.0f, 90.0f, 90.0f);
-			NewWeapon->SetActorRelativeRotation(AdjustedRotation);
+		else if (EquippedWeapon->WeaponType == "Shotgun")
+		{
+			StorageSocketName = TEXT("ShotgunBackSocket");
 		}
-		else if (NewWeapon->WeaponType.Equals("ShotGun", ESearchCase::IgnoreCase)) {
-			FRotator AdjustedRotation(0.0f, -180.0f, 0.0f);
-			NewWeapon->SetActorRelativeRotation(AdjustedRotation);
+		else if (EquippedWeapon->WeaponType == "Rifle")
+		{
+			StorageSocketName = TEXT("RifleBackSocket");
 		}
-		// 무기 정보 설정 및 충돌 처리
-		NewWeapon->SetOwnerCharacter(this);
-		NewWeapon->SetActorEnableCollision(false);
-		NewWeapon->SetActorHiddenInGame(false);
-		// ðŸ”¹ ìž¥ì°©ëœ ë¬´ê¸° ë°°ì—´ì— ì¶”ê°€ (Primary ìŠ¬ë¡¯ì— ìž¥ì°©)
-		EquippedWeapons[(int32)EWeaponSlot::Primary] = NewWeapon;
+		else if (EquippedWeapon->WeaponType == "Melee")
+		{
+			StorageSocketName = TEXT("MeleeSocket");
+		}
+		if (GetMesh()->DoesSocketExist(StorageSocketName))
+		{
+			EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, StorageSocketName);
+		}
+	}
+
+	// 🔹 새로운 무기 장착
+	FName TargetSocketName = TEXT("WeaponSocket");
+	if (GetMesh()->DoesSocketExist(TargetSocketName))
+	{
+		// 🔹 먼저 무기를 숨김 해제
+		WeaponToEquip->SetActorHiddenInGame(false);
+		WeaponToEquip->SetActorEnableCollision(true);
+		WeaponToEquip->ForceNetUpdate(); // 네트워크 동기화
+
+		// 🔹 무기 부착
+		WeaponToEquip->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TargetSocketName);
+
+		// 🔹 무기 메쉬 처리
+		if (WeaponMesh)
+		{
+			WeaponMesh->SetHiddenInGame(false);
+			WeaponMesh->SetVisibility(true);
+			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);  // ✅ 무기 충돌 제거
+		}
+
+		// 🔹 무기 회전값 조정 (무기 타입별)
+		FRotator AdjustedRotation(0.0f, 0.0f, 0.0f);
+		if (WeaponToEquip->WeaponType == "Rifle" || WeaponToEquip->WeaponType == "Shotgun")
+		{
+			AdjustedRotation = FRotator(0.0f, -180.0f, 0.0f);
+		}
+		else if (WeaponToEquip->WeaponType == "Pistol")
+		{
+			AdjustedRotation = FRotator(0.0f, 90.0f, 90.0f);
+		}
+		WeaponToEquip->SetActorRelativeRotation(AdjustedRotation);
+
+		// 🔹 장착된 무기 업데이트
+		EquippedWeapon = WeaponToEquip;
+
+		UE_LOG(LogTemp, Warning, TEXT("✅ Equipped %s on %s"), *EquippedWeapon->WeaponType, *TargetSocketName.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("📌 CurrentWeapon: %s"), *EquippedWeapon->GetName());
 	}
 	else
 	{
-		// ðŸ”¹ ì´ë¯¸ ìž¥ì°©ëœ ë¬´ê¸°ê°€ ìžˆë‹¤ë©´ ë°°ì—´ì— ì €ìž¥ë§Œ í•¨
-		EquippedWeapons.Add(NewWeapon);
-		// ðŸ”¹ ì¸ë²¤í† ë¦¬ ë§Œë“¤ë©´ ë“¤ì–´ê°ˆ ë¡œì§. ì¼ë‹¨ ë“œëž˜ê·¸ ë˜ê²Œ ë§Œë“¤ì–´ë†“ìŒ
-		SetDraggingItem(NewWeapon);
+		UE_LOG(LogTemp, Warning, TEXT("Weapon socket %s does not exist!"), *TargetSocketName.ToString());
 	}
 }
+
+void ABCharacter::EquipPistol()
+{
+	UE_LOG(LogTemp, Warning, TEXT("EquipPistol() called!"));
+	ActiveWeaponSlot = EWeaponSlot::Pistol;
+	EquipWeaponByType(ActiveWeaponSlot);
+}
+
+void ABCharacter::EquipRifle()
+{
+	UE_LOG(LogTemp, Warning, TEXT("EquipRifle() called!"));
+	ActiveWeaponSlot = EWeaponSlot::Rifle;
+	EquipWeaponByType(ActiveWeaponSlot);
+}
+
+void ABCharacter::EquipShotgun()
+{
+	UE_LOG(LogTemp, Warning, TEXT("EquipShotgun() called!"));
+	ActiveWeaponSlot = EWeaponSlot::ShotGun;
+	EquipWeaponByType(ActiveWeaponSlot);
+}
+
+void ABCharacter::EquipMelee()
+{
+	UE_LOG(LogTemp, Warning, TEXT("EquipMelee() called!"));
+	ActiveWeaponSlot = EWeaponSlot::Melee;
+	EquipWeaponByType(ActiveWeaponSlot);
+}
+
 
 
 void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -407,15 +532,10 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		this,
 		&ABCharacter::Attack
 	);
-	EnhancedInput->BindAction(
-		PlayerController->AttackAction,
-		ETriggerEvent::Completed,
-		this,
-		&ABCharacter::StopFire
-	);
+	
 	EnhancedInput->BindAction(
 		PlayerController->ReloadAction,
-		ETriggerEvent::Triggered,
+		ETriggerEvent::Completed,
 		this,
 		&ABCharacter::Reload);
 	EnhancedInput->BindAction(
@@ -438,4 +558,25 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		ETriggerEvent::Completed,
 		this,
 		&ABCharacter::AimStop);
+	EnhancedInput->BindAction(
+		PlayerController->EquipPistolAction,
+		ETriggerEvent::Completed,  // 🔹 키를 누르는 순간 실행되도록 변경
+		this,
+		&ABCharacter::EquipPistol);
+	EnhancedInput->BindAction(
+		PlayerController->EquipRifleAction,
+		ETriggerEvent::Completed,  // 🔹 키를 누르는 순간 실행
+		this,
+		&ABCharacter::EquipRifle);
+	EnhancedInput->BindAction(
+		PlayerController->EquipShotgunAction,
+		ETriggerEvent::Completed,  // 🔹 키를 누르는 순간 실행
+		this,
+		&ABCharacter::EquipShotgun);
+	EnhancedInput->BindAction(
+		PlayerController->EquipMeleeAction,
+		ETriggerEvent::Completed,  // 🔹 키를 누르는 순간 실행
+		this,
+		&ABCharacter::EquipMelee);
+	
 }

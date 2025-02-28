@@ -8,22 +8,31 @@ ABBaseWeapon::ABBaseWeapon()
 	ItemType = "Weapon";
     WeaponType = "Melee";
     WeaponDamage = 5;
-
+    // 🔹 WeaponMesh가 없는 경우, 여기서 새로 생성
+    WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
+    SetRootComponent(WeaponMesh);
 }
 
 void ABBaseWeapon::ActivateItem(AActor* Activator)
 {
-    // 플레이어 태그 확인
     if (Activator && Activator->ActorHasTag("Player"))
     {
-        // 캐릭터로 캐스팅
         ABCharacter* ActiveCharacter = Cast<ABCharacter>(Activator);
         if (ActiveCharacter)
         {
-            // 캐릭터의 무기 장착 함수 호출
-            ActiveCharacter->EquipWeapon(this);
+            ActiveCharacter->PickupWeapon(this);
 
-            // 🔹 DestroyItem()을 호출하지 않고, 인벤토리에 추가 후 관리
+            // 🔹 무기를 플레이어에게 붙이기
+            USkeletalMeshComponent* CharacterMesh = ActiveCharacter->GetMesh();
+            if (CharacterMesh)
+            {
+                FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
+                AttachToComponent(CharacterMesh, AttachRules, TEXT("WeaponSocket"));
+                SetOwnerCharacter(ActiveCharacter);
+                SetActorEnableCollision(false);
+                
+            }
+            UE_LOG(LogTemp, Log, TEXT("Picked up %s and attached to %s"), *GetName(), *ActiveCharacter->GetName());
         }
     }
 }
