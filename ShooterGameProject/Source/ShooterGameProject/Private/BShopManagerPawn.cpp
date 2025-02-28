@@ -113,23 +113,23 @@ void ABShopManagerPawn::CloseShopWidget()
 		ShopWidgetInstance->RemoveFromParent();
 		ShopWidgetInstance = nullptr;
 		bIsShopWidgetOpen = false;
-	}
 
-	PlayAnim("Wave");
-	
-	// Hide mouse cursor and set input mode to Game Only
-	if (GetWorld())
-	{
-		if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+		PlayAnim("Wave");
+
+		// Hide mouse cursor and set input mode to Game Only
+		if (GetWorld())
 		{
-			PlayerController->bShowMouseCursor = false;
-			PlayerController->SetInputMode(FInputModeGameOnly());
+			if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+			{
+				PlayerController->bShowMouseCursor = false;
+				PlayerController->SetInputMode(FInputModeGameOnly());
 
-			// Set view target to the character's camera component
-			PlayerController->SetViewTargetWithBlend(PlayerController->GetCharacter(), 0.5f);
+				// Set view target to the character's camera component
+				PlayerController->SetViewTargetWithBlend(PlayerController->GetCharacter(), 0.5f);
 
-			// Display character
-			PlayerController->GetCharacter()->SetActorHiddenInGame(false);
+				// Display character
+				PlayerController->GetCharacter()->SetActorHiddenInGame(false);
+			}
 		}
 	}
 }

@@ -10,6 +10,17 @@ class SHOOTERGAMEPROJECT_API UBShopWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop")
+	TSubclassOf<UUserWidget> ShopRowWidgetClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop")
+	class UDataTable* ShopDataTable;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UScrollBox* ShopScrollBox;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UTextBlock* PlayerGoldText;
+
+	class ABBaseItem* ItemToSell = nullptr;
+	
 	UFUNCTION(BlueprintCallable)
 	void DisplayPlayerGold();
 	UFUNCTION(BlueprintCallable)
@@ -21,13 +32,13 @@ public:
 	void ExecutePurchase();
 	UFUNCTION(BlueprintCallable)
 	void CancelPurchase();
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop")
-	TSubclassOf<UUserWidget> ShopRowWidgetClass;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop")
-	class UDataTable* ShopDataTable;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
-	class UScrollBox* ShopScrollBox;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
-	class UTextBlock* PlayerGoldText;
+
+	UFUNCTION(BlueprintCallable)
+	void ShowInventory();
+	UFUNCTION(BlueprintCallable)
+	void ConfirmSell();
+	UFUNCTION(BlueprintCallable)
+	void ExecuteSell();
+	UFUNCTION(BlueprintCallable)
+	void CancelSell();
 };

@@ -2,6 +2,7 @@
 #include "BShopRowWidget.h"
 #include "BShopItemRow.h"
 #include "BCharacter.h"
+#include "BBaseItem.h"
 #include "Components/TextBlock.h"
 #include "Components/ScrollBox.h"
 #include "Components/ScrollBoxSlot.h"
@@ -52,19 +53,64 @@ void UBShopWidget::AddItemsToScrollBox()
 	}
 }
 
+/********** BUY **********/
+// Display pop-up message confirming purchase
 void UBShopWidget::ConfirmPurchase()
 {
-	// Display a pop-up message confirming purchase
+	// Name
+
+	// Price
+
 }
 
-// Execute purchase on a Yes button click
+// Execute purchase logic on a YES button click
 void UBShopWidget::ExecutePurchase()
 {
-	// Check character's gold amount, deduct the price from character's gold, and add the item to the inventory
+	// Get information for the clicked item from the sub-widget
+	
+	// Conditions
+	// 1. character's got enough gold
+	// 2. when added, count of the item will not exceed the limit
+
+	// Execute
+	// 1. Deduct character's gold
+	// 2. Create the item object
+	// 3. Add it to player's inventory
 }
 
-// Cancel purchase on a No button click
+// Collapse pop-up message on a NO button click
 void UBShopWidget::CancelPurchase()
 {
-	// Remove the pop-up message
+	
+}
+
+/********* SELL *********/
+// Display inventory to let player select the item to sell
+void UBShopWidget::ShowInventory()
+{
+	
+}
+
+// To be called when an item is clicked in the inventory
+// Need to get a reference to the item that's clicked
+// Display a pop-up message confirming sell
+void UBShopWidget::ConfirmSell()
+{
+	// Name
+
+	// Price
+	
+	// Upgrade info if it's a weapon??
+}
+
+// Execute sell logic on a YES button click
+void UBShopWidget::ExecuteSell()
+{
+	// Remove the item from the inventory
+}
+
+// Collapse pop-up message on a NO button click
+void UBShopWidget::CancelSell()
+{
+
 }
