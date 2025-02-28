@@ -26,7 +26,7 @@ void ABGameState::InitializeGameState()
 	KilledEnemies = 0;
 	CollectedKeys = 0;
 	bIsDoorOpen = false;
-	TimeLimit = 15.0f;
+	TimeLimit = 20.0f;
 	RequiredKeyCount = 1;
 }
 

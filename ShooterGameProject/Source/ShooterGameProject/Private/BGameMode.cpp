@@ -50,7 +50,7 @@ void ABGameMode::StartLevel()
 	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance()); //resetHUD
 	if (GameInstance)
 	{
-		UE_LOG(LogTemp, Log, TEXT("RestartGame().RemoveHUD"));
+		UE_LOG(LogTemp, Log, TEXT("StartGame().RemoveHUD"));
 		GameInstance->GetUIManagerInstance()->RemoveHUD();
 	}
 
