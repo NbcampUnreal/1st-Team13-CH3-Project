@@ -5,12 +5,12 @@
 #include "BGameInstance.h"
 #include "BSpawnVolume.h"
 #include "Kismet/GameplayStatics.h"
+#include "SkyManager.h"
 #include "TimerManager.h"
 
 
 ABGameMode::ABGameMode()
 {
-	UE_LOG(LogTemp, Warning, TEXT("ABGameMode::ABGameMode()"));
 	DefaultPawnClass = ABCharacter::StaticClass();
 	PlayerControllerClass = ABPlayerController::StaticClass();
 	GameStateClass = ABGameState::StaticClass();
@@ -19,7 +19,6 @@ ABGameMode::ABGameMode()
 
 void ABGameMode::BeginPlay()
 {
-	UE_LOG(LogTemp, Warning, TEXT("GameMode BeginPlay start"));
 	Super::BeginPlay();
 
 	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
@@ -31,10 +30,8 @@ void ABGameMode::BeginPlay()
 	else
 	{
 		GameInstance->GetUIManagerInstance()->LevelStartTransition();
-		UE_LOG(LogTemp, Warning, TEXT("ABGameMode::BeginPlay().StartLevel()"));
 		StartLevel();
 	}	
-	UE_LOG(LogTemp, Warning, TEXT("GameMode BeginPlay end"));
 }
 
 void ABGameMode::StartLevel()
@@ -44,13 +41,11 @@ void ABGameMode::StartLevel()
 	{
 		BGameState->InitializeGameState();
 	}
-	UE_LOG(LogTemp, Warning, TEXT("StartLevel: Spawning KeyBoxes!"));
 	SpawnLevelKeyBox();
 
 	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance()); //resetHUD
 	if (GameInstance)
 	{
-		UE_LOG(LogTemp, Log, TEXT("StartGame().RemoveHUD"));
 		GameInstance->GetUIManagerInstance()->RemoveHUD();
 	}
 
@@ -101,11 +96,15 @@ void ABGameMode::StartGame()
 
 	if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
 	{
+		ASkyManager* SkyManager = Cast<ASkyManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ASkyManager::StaticClass()));
+		if (SkyManager)
+		{
+			SkyManager->UpdateSkyColor(GameInstance->GetCurrentStage());
+		}
 		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
 		{
-			UE_LOG(LogTemp, Log, TEXT("StartGame().DisplayHUD()"));
-						UIManager->DisplayHUD();
-			}
+			UIManager->DisplayHUD();
+		}
 	}
 	if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 	{
@@ -125,14 +124,11 @@ void ABGameMode::onDoorReached() //문에 플레이어 도달 시 호출
 		{
 			GameInstance->GetUIManagerInstance()->LevelEndTransition();
 		}
-		NextLevel();
 	}
 }
 
 void ABGameMode::NextLevel() //다음 레벨로 이동
 {
-	UE_LOG(LogTemp, Log, TEXT("StartNextLevel()"));
-
 	if (UBGameInstance* BGameInstance = GetGameInstance<UBGameInstance>())
 	{
 		int32 CurrentStage = BGameInstance->GetCurrentStage() + 1;
@@ -170,7 +166,6 @@ void ABGameMode::RestartGame()
 		GameInstance->HasTitleScreenBeenShown = false;
 		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
 		{
-			UE_LOG(LogTemp, Log, TEXT("RestartGame().RemoveHUD"));
 			UIManager->RemoveHUD();
 		}
 	}
