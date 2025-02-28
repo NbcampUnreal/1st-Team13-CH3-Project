@@ -62,7 +62,7 @@ void ABBulletShell::BeginPlay()
     // 탄피 바닥 충돌 시 사운드 재생
     if (ShellDropSound)
     {
-        UGameplayStatics::PlaySoundAtLocation(this, ShellDropSound, GetActorLocation(),0.5f,0.5f);
+        UGameplayStatics::PlaySoundAtLocation(this, ShellDropSound, GetActorLocation());
     }
     // 일정 시간 후 탄피 제거
     SetLifeSpan(5.0f);

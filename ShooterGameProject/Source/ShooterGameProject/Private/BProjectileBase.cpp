@@ -79,6 +79,7 @@ void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
         }
         // ✅ 충돌한 표면의 Physical Material 가져오기
         UPhysicalMaterial* PhysMaterial = Hit.PhysMaterial.IsValid() ? Hit.PhysMaterial.Get() : nullptr;
+
         float SurfaceValue = 0.0f;  // 기본값
         if (PhysMaterial)
         {
@@ -92,61 +93,44 @@ void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
             switch (SurfaceType)
             {
             case EPhysicalSurface::SurfaceType1:  // 금속 표면
-                SurfaceValue = 0.0f;  // 금속 소리
+                SurfaceValue = 0.0f;
                 break;
             case EPhysicalSurface::SurfaceType2:  // 바닥 표면
-                SurfaceValue = 1.0f;  // 바닥 소리
+                SurfaceValue = 1.0f;
                 break;
             case EPhysicalSurface::SurfaceType3:  // 나무 표면
-                SurfaceValue = 2.0f;  // 나무 소리
+                SurfaceValue = 2.0f;
                 break;
             case EPhysicalSurface::SurfaceType4:  // 콘크리트 표면
-                SurfaceValue = 3.0f;  // 콘크리트 소리
+                SurfaceValue = 3.0f;
                 break;
             case EPhysicalSurface::SurfaceType5:  // 적 표면
-                SurfaceValue = 4.0f;  // 적 소리
+                SurfaceValue = 4.0f;
                 break;
             default:
-                SurfaceValue = 0.0f;  // 기본 소리
+                SurfaceValue = 0.0f;
                 break;
             }
-
         }
         else
         {
-            SurfaceValue = 0.0f;
             UE_LOG(LogTemp, Error, TEXT("PhysMaterial is NULL!"));
         }
-        
-        // ✅ 오디오 컴포넌트를 생성하여 파라미터 적용
+
+        // ✅ PlaySoundAtLocation 사용하여 즉시 재생 (파라미터 필요 없음)
         if (HitSoundCue)
         {
-            UAudioComponent* AudioComponent = UGameplayStatics::SpawnSoundAttached(
-                HitSoundCue,
-                this->GetRootComponent(),  // 현재 발사체의 루트에 붙이기
-                NAME_None,
-                Hit.ImpactPoint,
-                EAttachLocation::KeepWorldPosition,
-                true  // AutoDestroy 설정
-            );
-
-            if (AudioComponent)
-            {
-                AudioComponent->SetFloatParameter(TEXT("SurfaceType"), SurfaceValue);
-                UE_LOG(LogTemp, Warning, TEXT("Sound Parameter Applied: SurfaceValue = %f"), SurfaceValue);
-            }
-            else
-            {
-                UE_LOG(LogTemp, Error, TEXT("Failed to create Audio Component!"));
-            }
+            UE_LOG(LogTemp, Warning, TEXT("Playing Sound at Impact Point!"));
+            UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSoundCue, Hit.ImpactPoint, 1.0f, 1.0f);
         }
         else
         {
             UE_LOG(LogTemp, Error, TEXT("HitSoundCue is NULL!"));
         }
 
-        // ✅ 총알 제거 (충돌 후 사라지게)
+        // ✅ 총알 제거
         Destroy();
+
     }
 }
 
