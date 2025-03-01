@@ -134,15 +134,6 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 	}
 }
 
-void ABCharacter::AimStart(const FInputActionValue& Value)
-{
-	if (Value.Get<bool>())
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("AimStart"));
-	}
-}
-
-
 void ABCharacter::SetDraggingItem(AActor* NewItem)
 {
 	ABBaseItem* Item = Cast<ABBaseItem>(NewItem);
@@ -178,25 +169,7 @@ void ABCharacter::StopDragging(const FInputActionValue& Value)
 	}
 }
 
-void ABCharacter::AimStop(const FInputActionValue& Value)
-{
-	if (DraggingItem)
-	{
-		bIsDragging = true;
-		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Blue, TEXT("Drag Start"));
 
-		bool bIsValid = GetWorldTimerManager().TimerExists(DragUpdateTimer);
-		if (bIsValid)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("Timer Already Exists!"));
-		}
-		else
-		{
-			GetWorldTimerManager().SetTimer(DragUpdateTimer, this, &ABCharacter::UpdateDragging, 0.01f, true);
-			GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green, TEXT("Timer Set Successfully!"));
-		}
-	}
-}
 
 
 void ABCharacter::UpdateDragging()
@@ -236,7 +209,49 @@ void ABCharacter::UpdateDragging()
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("UpdateDragging Failed: DraggingItem is NULL!"));
 	}
 }
+void ABCharacter::AimStart(const FInputActionValue& Value)
+{
+	if (Value.Get<bool>())
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("AimStart"));
+	}
+}
 
+void ABCharacter::AimStop(const FInputActionValue& Value)
+{
+	if (DraggingItem)
+	{
+		bIsDragging = true;
+		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Blue, TEXT("Drag Start"));
+
+		bool bIsValid = GetWorldTimerManager().TimerExists(DragUpdateTimer);
+		if (bIsValid)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("Timer Already Exists!"));
+		}
+		else
+		{
+			GetWorldTimerManager().SetTimer(DragUpdateTimer, this, &ABCharacter::UpdateDragging, 0.01f, true);
+			GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green, TEXT("Timer Set Successfully!"));
+		}
+	}
+}
+
+void ABCharacter::ZoomStart(const FInputActionValue& Value)
+{
+	if (CameraComp)
+	{
+		CameraComp->SetFieldOfView(ZoomedFOV); // 줌 상태 (예: 45.0f)
+	}
+}
+
+void ABCharacter::ZoomStop(const FInputActionValue& Value)
+{
+	if (CameraComp)
+	{
+		CameraComp->SetFieldOfView(DefaultFOV); // 원래 상태 (예: 90.0f)
+	}
+}
 
 void ABCharacter::BeginPlay()
 {
@@ -578,5 +593,14 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		ETriggerEvent::Completed,  // 🔹 키를 누르는 순간 실행
 		this,
 		&ABCharacter::EquipMelee);
-	
+	EnhancedInput->BindAction(
+		PlayerController->ZoomAction,
+		ETriggerEvent::Triggered,
+		this,
+		&ABCharacter::ZoomStart);
+	EnhancedInput->BindAction(
+		PlayerController->ZoomAction,
+		ETriggerEvent::Completed,
+		this,
+		&ABCharacter::ZoomStop);
 }
