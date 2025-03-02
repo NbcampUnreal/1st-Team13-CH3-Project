@@ -38,23 +38,30 @@ public:
 	// 기본 스탯
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	float MaxHP;
+	virtual float GetMaxHP() const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	float CurrentHP;
+	virtual float GetCurrentHP() const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	float Power;
+	virtual float GetPower() const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	float Speed;
+	virtual float GetSpeed() const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	float AttackSpeed;
+	virtual float GetAttackSpeed() const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	float CoolTime;
+	virtual float GetCoolTime() const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	float SkillDuration;
+	virtual float GetSkillDuration() const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	float AttackRange;
+	virtual float GetAttackRange() const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	bool bIsRanged;
-	// bIsInBattle는 이제 AIController에서 관리하므로 제거
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Battle")
 	bool bIsMeleeAttacking;
 
@@ -69,8 +76,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void SpawnProjectile();
 
-	virtual float GetAttackRange() const;
-	virtual float GetHP() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	virtual void Attack();

@@ -2,7 +2,13 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "BEnemyBase.h"
+#include "BAssassinEnemy.h"
+#include "BRangerEnemy.h"
+#include "BMageEnemy.h"
+#include "BTankEnemy.h"
 #include "BCharacter.h"
+#include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BlackboardData.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "NavigationSystem.h"
@@ -30,26 +36,75 @@ ABEnemyAIController::ABEnemyAIController()
 	AIPerceptionComponent->OnPerceptionUpdated.AddDynamic(this, &ABEnemyAIController::OnPerceptionUpdated);
 	bIsInBattle = false;
 
-
-
-	ABEnemyBase* Enemy = Cast<ABEnemyBase>(GetPawn());
-	UBlackboardComponent* BBComp = GetBlackboardComponent();
-	if (BBComp)
+	static ConstructorHelpers::FObjectFinder<UBehaviorTree> BT(TEXT("BehaviorTree'/Game/PJH/AI/BT_AI.BT_AI'"));
+	if (BT.Succeeded())
 	{
-		BBComp->SetValueAsFloat(TEXT("AttackRange"), Enemy->GetAttackRange());
+		AIBehaviorTree = BT.Object;
 	}
-
+	//static ConstructorHelpers::FObjectFinder<UBlackboardData> BB(TEXT("BlackboardData'/Game/PJH/AI/BB_AI.BB_AI'"));
+	//if (BB.Succeeded())
+	//{
+	//	BlackboardData = BB.Object;
+	//}
 }
 
 void ABEnemyAIController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (AIBehaviorTree != nullptr)
+	{
+		RunBehaviorTree(AIBehaviorTree);
+	}
 }
 
 void ABEnemyAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
+
+	
 	// 필요한 경우 Blackboard 초기화 등 추가 설정
+	ABCharacter* TempPlayer = Cast<ABCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+	UBlackboardComponent* BBComp = GetBlackboardComponent();
+	ABEnemyBase* Enemy = Cast<ABEnemyBase>(GetPawn());
+	if (BBComp)
+	{
+		if (TempPlayer)
+		{
+			BBComp->SetValueAsObject(TEXT("TargetActor"), TempPlayer);
+		}
+		BBComp->SetValueAsFloat(TEXT("MaxHP"), Enemy->GetMaxHP());
+		BBComp->SetValueAsFloat(TEXT("CurrentHP"), Enemy->GetCurrentHP());
+		BBComp->SetValueAsFloat(TEXT("Power"), Enemy->GetPower());
+		BBComp->SetValueAsFloat(TEXT("Speed"), Enemy->GetSpeed());
+		BBComp->SetValueAsFloat(TEXT("AttackSpeed"), Enemy->GetAttackSpeed());
+		BBComp->SetValueAsFloat(TEXT("CoolTime"), Enemy->GetCoolTime());
+		BBComp->SetValueAsFloat(TEXT("SkillDuration"), Enemy->GetSkillDuration());
+		BBComp->SetValueAsFloat(TEXT("AttackRange"), Enemy->GetAttackRange());
+
+		if (ABAssassinEnemy* Assassin = Cast<ABAssassinEnemy>(GetPawn()))
+		{
+			BBComp->SetValueAsBool(TEXT("bIsStealthed"), Assassin->bIsStealthed);
+		}
+
+		if (ABRangerEnemy* Ranger = Cast<ABRangerEnemy>(GetPawn()))
+		{
+			BBComp->SetValueAsBool(TEXT("bIsFastAttack"), Ranger->bIsFastAttack);
+			BBComp->SetValueAsFloat(TEXT("AttackSpeedIncreaseValue"), Ranger->GetAttackSpeedIncreaseValue());
+		}
+		if (ABMageEnemy* Mage = Cast<ABMageEnemy>(GetPawn()))
+		{
+			BBComp->SetValueAsFloat(TEXT("HealingRadius"), Mage->GetHealingRadius());
+			BBComp->SetValueAsFloat(TEXT("HealAmount"), Mage->GetHealAmount());
+		}
+		if (ABTankEnemy* Tank = Cast<ABTankEnemy>(GetPawn()))
+		{
+			BBComp->SetValueAsFloat(TEXT("ExplosionDamage"), Tank->GetExplosionDamage());
+			BBComp->SetValueAsFloat(TEXT("ExplosionDelay"), Tank->GetExplosionDelay());
+			BBComp->SetValueAsFloat(TEXT("ExplosionRadius"), Tank->GetExplosionRadius());
+			BBComp->SetValueAsBool(TEXT("bIsReflecting"), Tank->bIsReflecting);
+		}
+	}
 }
 
 void ABEnemyAIController::OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors)
@@ -242,4 +297,19 @@ void ABEnemyAIController::UpdateRallyMoveCommand()
 			}
 		}
 	}
+}
+
+bool ABEnemyAIController::IsPlayerOnNavMesh(ABCharacter* Player) const
+{
+	if (!Player)
+		return false;
+
+	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+	if (NavSys)
+	{
+		FNavLocation NavLocation;
+		// 50 유닛 반경으로 검사: DetectedPlayer의 위치 주변에 NavMesh 유효 지점이 있는지 확인
+		return NavSys->ProjectPointToNavigation(Player->GetActorLocation(), NavLocation, FVector(50.f, 50.f, 200.f));
+	}
+	return false;
 }
