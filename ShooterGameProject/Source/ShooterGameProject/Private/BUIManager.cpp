@@ -145,7 +145,7 @@ void UBUIManager::LevelStartTransition()
 		}
 	}
 
-	SetInputUIOnly();
+	//SetInputUIOnly();
 }
 
 // Plays a fade-in animation and is removed from parent (WBP Graph Function)
@@ -163,7 +163,7 @@ void UBUIManager::LevelEndTransition()
 		}
 	}
 
-	// Call WBP Event that plays widget animation and removes the widget upon animation finished event
+	// Call WBP Event that plays widget animation and calls NextLevel upon finished event
 	if (LevelTransitionWidgetInstance)
 	{
 		if (UFunction* OnLevelEnd = LevelTransitionWidgetInstance->FindFunction("OnLevelEnd"))
@@ -246,6 +246,8 @@ void UBUIManager::ExitGameOverScreen()
 }
 
 /****************** WEAPON WHEEL ******************/
+
+
 // Create weapon wheel widget instance --> animation in WBP
 void UBUIManager::EnterWeaponWheel()
 {
