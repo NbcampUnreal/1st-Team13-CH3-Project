@@ -11,8 +11,3 @@ ABBasicEnemy::ABBasicEnemy()//스킬 없음
 	AttackRange = 70.f;
 	bIsRanged = false;
 }
-
-float ABBasicEnemy::GetAttackRange() const
-{
-	return AttackRange;
-}

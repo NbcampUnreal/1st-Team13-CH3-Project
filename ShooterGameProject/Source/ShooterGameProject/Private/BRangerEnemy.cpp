@@ -1,4 +1,6 @@
 #include "BRangerEnemy.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "AIController.h"
 
 ABRangerEnemy::ABRangerEnemy()
 {
@@ -11,13 +13,14 @@ ABRangerEnemy::ABRangerEnemy()
 	SkillDuration = 5.f;
 	AttackRange = 1000.f;
 	bIsRanged = true;
+
 	bIsFastAttack = false;
 	AttackSpeedIncreaseValue = 2.f;
 }
 
-float ABRangerEnemy::GetAttackRange() const
+float ABRangerEnemy::GetAttackSpeedIncreaseValue()
 {
-	return AttackRange;
+	return AttackSpeedIncreaseValue;
 }
 
 void ABRangerEnemy::UseSkill()
