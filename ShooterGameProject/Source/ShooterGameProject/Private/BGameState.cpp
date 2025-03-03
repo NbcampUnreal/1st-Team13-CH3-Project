@@ -26,7 +26,7 @@ void ABGameState::InitializeGameState()
 	KilledEnemies = 0;
 	CollectedKeys = 0;
 	bIsDoorOpen = false;
-	TimeLimit = 20.0f;
+	TimeLimit = 30.0f;
 	RequiredKeyCount = 1;
 }
 
@@ -38,8 +38,6 @@ void ABGameState::EnemyDefeated()
 
 void ABGameState::ItemCollected()
 {
-	CollectedKeys++;
-	UE_LOG(LogTemp, Warning, TEXT("CollectedKey! Key : %d"), CollectedKeys);
 	CheckGameStatus();
 }
 

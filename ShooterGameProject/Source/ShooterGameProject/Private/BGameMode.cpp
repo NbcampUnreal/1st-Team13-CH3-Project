@@ -56,7 +56,7 @@ void ABGameMode::SpawnLevelKeyBox()
 	ABGameState* BGameState = GetGameState<ABGameState>();
 	if (!BGameState) return;
 
-	int32 RequiredKeyCount = BGameState->RequiredKeyCount;
+	//int32 RequiredKeyCount = BGameState->RequiredKeyCount;
 
 	TArray<AActor*> SpawnVolumes;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABSpawnVolume::StaticClass(), SpawnVolumes);
@@ -68,7 +68,7 @@ void ABGameMode::SpawnLevelKeyBox()
 	}
 
 
-	for (int32 i = 0; i < RequiredKeyCount; i++)
+	for (int32 i = 0; i < 5; i++)
 	{
         int32 RandomIndex = FMath::RandRange(0, SpawnVolumes.Num() - 1);
         ABSpawnVolume* SpawnVolume = Cast<ABSpawnVolume>(SpawnVolumes[RandomIndex]);
