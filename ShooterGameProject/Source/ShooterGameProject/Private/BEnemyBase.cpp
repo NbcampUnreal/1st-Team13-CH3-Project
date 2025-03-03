@@ -76,7 +76,7 @@ float ABEnemyBase::GetAttackRange() const
 	return AttackRange;
 }
 
-void ABEnemyBase::Attack()
+void ABEnemyBase::AttackPlayer()
 {
 	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
 	if (PlayerPawn)
