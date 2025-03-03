@@ -25,9 +25,19 @@ ABTankEnemy::ABTankEnemy()
 	ExplosionCollision->SetupAttachment(RootComponent);
 }
 
-float ABTankEnemy::GetAttackRange() const
+float ABTankEnemy::GetExplosionDamage()
 {
-	return AttackRange;
+	return ExplosionDamage;
+}
+
+float ABTankEnemy::GetExplosionDelay()
+{
+	return ExplosionDelay;
+}
+
+float ABTankEnemy::GetExplosionRadius()
+{
+	return ExplosionRadius;
 }
 
 void ABTankEnemy::UseSkill()

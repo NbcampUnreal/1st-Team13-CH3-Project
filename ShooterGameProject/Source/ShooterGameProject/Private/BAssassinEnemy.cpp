@@ -1,4 +1,6 @@
 #include "BAssassinEnemy.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "AIController.h"
 
 ABAssassinEnemy::ABAssassinEnemy()
 {
@@ -11,12 +13,8 @@ ABAssassinEnemy::ABAssassinEnemy()
 	SkillDuration = 3.f;
 	AttackRange = 100.f;
 	bIsRanged = false;
-	bIsStealthed = false;
-}
 
-float ABAssassinEnemy::GetAttackRange() const
-{
-	return AttackRange;
+	bIsStealthed = false;
 }
 
 void ABAssassinEnemy::UseSkill()

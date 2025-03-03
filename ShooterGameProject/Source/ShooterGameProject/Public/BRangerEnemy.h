@@ -11,13 +11,12 @@ class SHOOTERGAMEPROJECT_API ABRangerEnemy : public ABEnemyBase
 	
 public:
 	ABRangerEnemy();
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI|Properties|Ranger")
 	bool bIsFastAttack;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI|Properties|Ranger")
 	float AttackSpeedIncreaseValue;
-	
-	float GetAttackRange() const override;
+	float GetAttackSpeedIncreaseValue();
+
 	void UseSkill() override;
 	void EndSkill();
 };

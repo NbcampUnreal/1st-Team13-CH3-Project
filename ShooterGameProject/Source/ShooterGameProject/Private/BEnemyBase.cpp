@@ -36,17 +36,47 @@ void ABEnemyBase::BeginPlay()
 	Super::BeginPlay();
 }
 
+float ABEnemyBase::GetMaxHP() const
+{
+	return MaxHP;
+}
+
+float ABEnemyBase::GetCurrentHP() const
+{
+	return CurrentHP;
+}
+
+float ABEnemyBase::GetPower() const
+{
+	return Power;
+}
+
+float ABEnemyBase::GetSpeed() const
+{
+	return Speed;
+}
+
+float ABEnemyBase::GetAttackSpeed() const
+{
+	return AttackSpeed;
+}
+
+float ABEnemyBase::GetCoolTime() const
+{
+	return CoolTime;
+}
+
+float ABEnemyBase::GetSkillDuration() const
+{
+	return SkillDuration;
+}
+
 float ABEnemyBase::GetAttackRange() const
 {
 	return AttackRange;
 }
 
-float ABEnemyBase::GetHP() const
-{
-	return CurrentHP;
-}
-
-void ABEnemyBase::Attack()
+void ABEnemyBase::AttackPlayer()
 {
 	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
 	if (PlayerPawn)
