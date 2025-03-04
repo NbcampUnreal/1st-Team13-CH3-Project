@@ -19,7 +19,7 @@ public:
 	//회복량
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	float RecoveryHealth;
-
+	
 	// BaseItem Override
 	 void ActivateItem(AActor* Activator) override;
 	 FName GetItemType() const override;
