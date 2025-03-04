@@ -16,7 +16,9 @@ class SHOOTERGAMEPROJECT_API ABGrenadeWeapon : public ABBaseWeapon
 
 public:
     ABGrenadeWeapon();
-
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+    UStaticMeshComponent* GrenadeBody;
+    virtual void ActivateItem(AActor* Activator) override;
     // 공격 (수류탄 투척)
     virtual void Attack() override;
 

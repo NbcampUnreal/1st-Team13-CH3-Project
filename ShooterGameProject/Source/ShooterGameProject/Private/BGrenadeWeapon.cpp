@@ -11,6 +11,26 @@ ABGrenadeWeapon::ABGrenadeWeapon()
 {
     WeaponType = "Grenade";
     WeaponDamage = 200.0f; // 기본 폭발 데미지
+
+    // 🔹 본체 (Root Component로 설정)
+    GrenadeBody = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GrenadeBody"));
+    SetRootComponent(GrenadeBody);
+    FRotator NewRotation(0.0f, 0.0f, 0.0f); // 예: Y축으로 90도 회전
+    GrenadeBody->SetRelativeRotation(NewRotation);
+}
+
+void ABGrenadeWeapon::ActivateItem(AActor* Activator)
+{
+    if (Activator && Activator->ActorHasTag("Player"))
+    {
+        ABCharacter* ActiveCharacter = Cast<ABCharacter>(Activator);
+        if (ActiveCharacter)
+        {
+            ActiveCharacter->PickupWeapon(this);
+            ActiveCharacter->GrenadeCount++;
+            UE_LOG(LogTemp, Log, TEXT("Picked up %s and attached to %s"), *GetName(), *ActiveCharacter->GetName());
+        }
+    }
 }
 
 void ABGrenadeWeapon::Attack()
