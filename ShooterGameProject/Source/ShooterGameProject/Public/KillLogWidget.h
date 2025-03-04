@@ -14,8 +14,8 @@ public:
 	void UpdateKillLog(const FName& Name);
 	void UpdateKillLog_Implementation(const FName& Name);
 
-	UFUNCTION(BlueprintCallable)
-	void DeleteTexture();
+	//UFUNCTION(BlueprintCallable)
+	//void DeleteTexture();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	class UTextBlock* KillerName;
