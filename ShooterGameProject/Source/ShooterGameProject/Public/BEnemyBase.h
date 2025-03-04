@@ -62,6 +62,8 @@ public:
 	virtual float GetAttackRange() const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	bool bIsRanged;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
+	bool bIsDead;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Battle")
 	bool bIsMeleeAttacking;
 
