@@ -79,7 +79,7 @@ void ABShopManagerPawn::OpenShopWidget()
 			if (UBShopWidget* ShopWidget = Cast<UBShopWidget>(ShopWidgetInstance))
 			{
 				ShopWidget->AddItemsToScrollBox();
-				ShopWidget->DisplayPlayerGold();
+				ShopWidget->DisplayPlayerCoin();
 			}
 
 			bIsShopWidgetOpen = true;
