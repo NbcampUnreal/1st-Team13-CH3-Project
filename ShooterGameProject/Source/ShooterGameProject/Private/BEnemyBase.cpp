@@ -22,9 +22,9 @@ ABEnemyBase::ABEnemyBase()
 	AttackRange = 0.f;
 	Accuracy = 0.7f;
 	bIsRanged = false;   // false = 근거리
-	// bIsInBattle는 이제 AIController에서 관리합니다.
 	bIsMeleeAttacking = false;
 	MeleeAttackMontage = nullptr;
+	bIsDead = false;
 
 	// AIControllerClass 지정 → AIController가 감지 로직을 담당
 	AIControllerClass = ABEnemyAIController::StaticClass();

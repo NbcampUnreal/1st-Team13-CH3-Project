@@ -71,9 +71,12 @@ void ABGameState::OpenDoor()
 
 	if (!ShopManagerPawns.IsEmpty())
 	{
-		if (ABShopManagerPawn* ShopManagerPawn = Cast<ABShopManagerPawn>(ShopManagerPawns[0]))
+		for (int i = 0; i < ShopManagerPawns.Num(); i++)
 		{
-			ShopManagerPawn->EnableShop();
+			if (ABShopManagerPawn* ShopManagerPawn = Cast<ABShopManagerPawn>(ShopManagerPawns[i]))
+			{
+				ShopManagerPawn->EnableShop();
+			}
 		}
 	}
 }
