@@ -11,3 +11,8 @@ ABBasicEnemy::ABBasicEnemy()//스킬 없음
 	AttackRange = 150.f;
 	bIsRanged = false;
 }
+
+FName ABBasicEnemy::GetEnemyName() const
+{
+	return FName(TEXT("Basic Enemy"));
+}

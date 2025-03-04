@@ -7,6 +7,8 @@
 #include "BCharacter.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BProjectileBase.h"
+#include "BGameInstance.h"
+#include "BUIManager.h"
 
 class ABCharacter;
 
@@ -76,6 +78,11 @@ float ABEnemyBase::GetAttackRange() const
 	return AttackRange;
 }
 
+FName ABEnemyBase::GetEnemyName() const
+{
+	return FName(TEXT("Base"));
+}
+
 void ABEnemyBase::AttackPlayer()
 {
 	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
@@ -103,21 +110,29 @@ void ABEnemyBase::UseSkill()
 	return;
 }
 
-float ABEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
-{
-	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-	CurrentHP = FMath::Clamp(CurrentHP - DamageAmount, 0.f, MaxHP);
-	if (CurrentHP <= 0.f)
-	{
-		OnDeath();
-	}
-	return ActualDamage;
-}
+//float ABEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+//{
+//	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+//	CurrentHP = FMath::Clamp(CurrentHP - DamageAmount, 0.f, MaxHP);
+//	if (CurrentHP <= 0.f)
+//	{
+//		OnDeath();
+//	}
+//	return ActualDamage;
+//}
 
-void ABEnemyBase::OnDeath()
+void ABEnemyBase::EnemyOnDeath()
 {
 	DropItem();
 	Destroy();
+
+	if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
+	{
+		if (UBUIManager* UIManagerInstance = Cast<UBUIManager>(GameInstance->GetUIManagerInstance()))
+		{
+			UIManagerInstance->UpdateKillLog(GetEnemyName());
+		}
+	}
 }
 
 void ABEnemyBase::DropItem()

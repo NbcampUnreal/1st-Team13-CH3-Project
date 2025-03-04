@@ -56,7 +56,7 @@ void ABTankEnemy::EndSkill()
 	bIsReflecting = false;
 }
 
-void ABTankEnemy::OnDeath()
+void ABTankEnemy::EnemyOnDeath()
 {
 	Explode();
 	DropItem();
@@ -81,4 +81,9 @@ void ABTankEnemy::Explode()
 			);
 		}
 	}
+}
+
+FName ABTankEnemy::GetEnemyName() const
+{
+	return FName(TEXT("Tank Enemy"));
 }

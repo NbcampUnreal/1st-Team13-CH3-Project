@@ -47,3 +47,8 @@ void ABMageEnemy::UseSkill()
 		}
 	}
 }
+
+FName ABMageEnemy::GetEnemyName() const
+{
+	return FName(TEXT("Mage Enemy"));
+}

@@ -30,7 +30,8 @@ public:
 	FTimerHandle ExplosionTimerHandle;
 
 	void UseSkill() override;
-	void OnDeath() override;
+	void EnemyOnDeath() override;
 	virtual void Explode();
 	void EndSkill();
+	virtual FName GetEnemyName() const override;
 };
