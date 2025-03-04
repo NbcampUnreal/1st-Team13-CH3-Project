@@ -11,11 +11,11 @@ class SHOOTERGAMEPROJECT_API UKillLogWidget : public UUserWidget
 	
 public:
 	UFUNCTION(BlueprintNativeEvent)
-	void UpdateKillLog(const FName& Name, const FString& WeaponType = "Pistol");
-	void UpdateKillLog_Implementation(const FName& Name, const FString& WeaponType = "Pistol");
+	void UpdateKillLog(const FName& Name);
+	void UpdateKillLog_Implementation(const FName& Name);
 
-	UFUNCTION(BlueprintCallable)
-	void DeleteTexture();
+	//UFUNCTION(BlueprintCallable)
+	//void DeleteTexture();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	class UTextBlock* KillerName;
@@ -23,9 +23,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	class UTextBlock* KilledName;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
-	class UImage* WeaponIcon;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	//class UImage* WeaponIcon;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UTexture2D* WeaponIconTexture = nullptr;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	//UTexture2D* WeaponIconTexture = nullptr;
 };
