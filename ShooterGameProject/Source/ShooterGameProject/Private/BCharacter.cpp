@@ -451,6 +451,10 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 		{
 			AdjustedRotation = FRotator(0.0f, 90.0f, 90.0f);
 		}
+		else if (WeaponToEquip->WeaponType == "Melee")  // ✅ 근접 무기 회전값 추가
+		{
+			AdjustedRotation = FRotator(90.0f, -90.0f, 90.0f);
+		}
 		WeaponToEquip->SetActorRelativeRotation(AdjustedRotation);
 
 		// 🔹 장착된 무기 업데이트

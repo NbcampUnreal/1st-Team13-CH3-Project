@@ -12,4 +12,7 @@ class SHOOTERGAMEPROJECT_API UCrosshairWidget : public UUserWidget
 public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnFire();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnNormalHit();
 };

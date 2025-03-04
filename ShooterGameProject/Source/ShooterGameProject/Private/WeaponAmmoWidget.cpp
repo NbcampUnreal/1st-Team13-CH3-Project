@@ -25,7 +25,7 @@ UWeaponAmmoWidget::UWeaponAmmoWidget(const FObjectInitializer& ObjectInitializer
 	}
 }
 
-void UWeaponAmmoWidget::UpdateWeapon(const FName& WeaponType)
+void UWeaponAmmoWidget::UpdateWeapon(const FString& WeaponType)
 {
 	UTexture2D* WeaponTexture = nullptr;
 	if (WeaponType == "Pistol" && IsValid(PistolIconTexture))
@@ -55,7 +55,15 @@ void UWeaponAmmoWidget::UpdateLoadedAmmo(const int32& LoadedAmmo)
 {
 	if (UTextBlock* LoadedAmmoText = Cast<UTextBlock>(GetWidgetFromName(TEXT("LoadedAmmoText"))))
 	{
-		LoadedAmmoText->SetText(FText::FromString(FString::Printf(TEXT("%d"), LoadedAmmo)));
+		if (LoadedAmmo == -1)
+		{
+			LoadedAmmoText->SetText(FText::FromString(TEXT("")));
+		}
+		else
+		{
+			LoadedAmmoText->SetText(FText::FromString(FString::Printf(TEXT("%d"), LoadedAmmo)));
+		}
+		
 	}
 }
 
@@ -63,6 +71,13 @@ void UWeaponAmmoWidget::UpdateInventoryAmmo(const int32& InventoryAmmo)
 {
 	if (UTextBlock* InventoryAmmoText = Cast<UTextBlock>(GetWidgetFromName(TEXT("InventoryAmmoText"))))
 	{
-		InventoryAmmoText->SetText(FText::FromString(FString::Printf(TEXT("%d"), InventoryAmmo)));
+		if (InventoryAmmo == -1)
+		{
+			InventoryAmmoText->SetText(FText::FromString(TEXT("")));
+		}
+		else
+		{
+			InventoryAmmoText->SetText(FText::FromString(FString::Printf(TEXT("%d"), InventoryAmmo)));
+		}
 	}
 }
