@@ -6,7 +6,7 @@ void UKillLogWidget::UpdateKillLog_Implementation(const FName& Name)
 {
 	if (KillerName)
 	{
-		KillerName->SetText(FText::FromString(TEXT("Player")));
+		KillerName->SetText(FText::FromString(TEXT("Player Killed")));
 	}
 
 	if (KilledName)
