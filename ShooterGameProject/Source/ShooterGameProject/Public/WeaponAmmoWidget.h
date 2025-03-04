@@ -19,8 +19,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Textures")
 	UTexture2D* MeleeIconTexture;
 
-	void UpdateWeapon(const FName& WeaponType);
-	void UpdateLoadedAmmo(const int32& LoadedAmmo);
-	void UpdateInventoryAmmo(const int32& InventoryAmmo);
+	void UpdateWeapon(const FString& WeaponType);
+	void UpdateLoadedAmmo(const int32& LoadedAmmo = -1);
+	void UpdateInventoryAmmo(const int32& InventoryAmmo = -1);
 
 };

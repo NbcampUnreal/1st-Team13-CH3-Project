@@ -13,14 +13,14 @@ class SHOOTERGAMEPROJECT_API ABMageEnemy : public ABEnemyBase
 
 public:
 	ABMageEnemy();
-
 	USphereComponent* HealingCollision;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties|Mage")
 	float HealingRadius;
+	float GetHealingRadius();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties|Mage")
 	float HealAmount;
+	float GetHealAmount();
 
-	float GetAttackRange() const override;
 	void UseSkill() override;
 };

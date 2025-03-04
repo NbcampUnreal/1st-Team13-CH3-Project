@@ -16,7 +16,7 @@ void UAnimNotify_ApplyDamage::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
     {
         if (!Enemy->bIsRanged)
         {
-            Enemy->Attack();
+            Enemy->AttackPlayer();
         }
     }
 }

@@ -1,6 +1,5 @@
 #include "BMageEnemy.h"
 #include "Components/SphereComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "BEnemyBase.h"
 
 ABMageEnemy::ABMageEnemy()
@@ -8,11 +7,12 @@ ABMageEnemy::ABMageEnemy()
 	MaxHP = 100.f;
 	CurrentHP = MaxHP;
 	Power = 10.f;
-	Speed = 200.f;
+	Speed = 250.f;
 	AttackSpeed = 3.f;
 	CoolTime = 10.f;
-	AttackRange = 600.f;
+	AttackRange = 1200.f;
 	bIsRanged = true;
+
 	HealingRadius = 1500.f;
 	HealAmount = 20.f;
 
@@ -22,9 +22,14 @@ ABMageEnemy::ABMageEnemy()
 	HealingCollision->SetupAttachment(RootComponent);
 }
 
-float ABMageEnemy::GetAttackRange() const
+float ABMageEnemy::GetHealingRadius()
 {
-	return AttackRange;
+	return HealingRadius;
+}
+
+float ABMageEnemy::GetHealAmount()
+{
+	return HealAmount;
 }
 
 void ABMageEnemy::UseSkill()

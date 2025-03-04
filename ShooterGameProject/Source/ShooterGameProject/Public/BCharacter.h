@@ -58,9 +58,23 @@ public:
 	void SetDraggingItem(AActor* NewItem);
 	void PickupWeapon(ABBaseWeapon* NewWeapon);
 	ABBaseWeapon* GetCurrentWeapon() const;
-	
+	void EquipPistol();
+	void EquipRifle();
+	void EquipShotgun();
+	void EquipMelee();
 	
 protected:
+	/** 카메라 줌 관련 변수 */
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	float DefaultFOV = 90.0f;  // 기본 FOV 값
+
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	float ZoomedFOV = 60.0f;   // 줌 시 FOV 값
+
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	float ZoomInterpSpeed = 10.0f;  // FOV 변화 속도
+
+	bool bIsAiming = false;  // 줌 상태 여부
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UCameraComponent> CameraComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
@@ -89,19 +103,23 @@ protected:
 	UFUNCTION()
 	void AimStart(const FInputActionValue& Value);
 	UFUNCTION()
+	void AimStop(const FInputActionValue& Value);
+	
+	UFUNCTION()
+	void ZoomStart(const FInputActionValue& Value);
+	UFUNCTION()
+	void ZoomStop(const FInputActionValue& Value);
+	
+	UFUNCTION()
 	void StartDragging(const FInputActionValue& Value);
 	UFUNCTION()
 	void StopDragging(const FInputActionValue& Value);
-	UFUNCTION()
-	void AimStop(const FInputActionValue& Value);
+	
 	virtual void BeginPlay() override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void StopFire();
-	void EquipPistol();
-	void EquipRifle();
-	void EquipShotgun();
-	void EquipMelee();
+	
 	void EquipWeaponByType(EWeaponSlot Slot);
 	FTimerHandle FireTimerHandle;
 private:
@@ -109,6 +127,8 @@ private:
 	FReplicatedAcceleration ReplicatedAcceleration;
 
 	FTimerHandle DragUpdateTimer; // 霌滊灅攴� 韮�鞚措ǜ
+	/** 줌 상태 변경 시만 보간을 실행하기 위한 타이머 */
+	FTimerHandle ZoomTimerHandle;
 	bool bIsDragging = false;
 	ABBaseItem* DraggingItem = nullptr;
 
