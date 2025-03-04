@@ -514,16 +514,16 @@ void UBUIManager::UpdateKillLog(const FName& KilledName)
 {
 	if (HUDWidgetInstance && KillLogWidget)
 	{
-		if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
-		{
-			if (ABCharacter* Character = Cast<ABCharacter>(PlayerController->GetCharacter()))
-			{
-				if (ABBaseWeapon* EquippedWeapon = Character->GetCurrentWeapon())
-				{
-					KillLogWidget->UpdateKillLog(KilledName, EquippedWeapon->WeaponType);
-				}
-			}
-		}
+		//if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+		//{
+		//	if (ABCharacter* Character = Cast<ABCharacter>(PlayerController->GetCharacter()))
+		//	{
+		//		if (ABBaseWeapon* EquippedWeapon = Character->GetCurrentWeapon())
+		//		{
+					KillLogWidget->UpdateKillLog(KilledName);
+				//}
+			//}
+		//}
 	}
 }
 
