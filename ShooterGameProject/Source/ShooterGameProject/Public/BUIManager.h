@@ -58,6 +58,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
 	class UCrosshairWidget* CrosshairWidget;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|Inventory")
+	TSubclassOf<UUserWidget> InventoryWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|Inventory")
+	class UBInventoryWidget* InventoryWidgetInstance;
+
 	FTimerHandle UpdateHUDTimerHandle;
 
 	UBUIManager();
@@ -76,7 +81,8 @@ public:
 	UUserWidget* GetHUDWidgetInstance();
 	UFUNCTION(BlueprintPure)
 	UUserWidget* GetWeaponWheelInstance();
-
+	UFUNCTION(BlueprintPure)
+	UUserWidget* GetInventoryInstance();
 	/* Title Screen */
 	UFUNCTION(BlueprintCallable)
 	void EnterTitleScreen();
@@ -115,7 +121,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CollapseHUD();
 	void RemoveHUD();
-	
+	UFUNCTION(BlueprintCallable)
+	void ShowInventory();
+	UFUNCTION(BlueprintCallable)
+	void CloseInventory();
 	void UpdateHUDHealth(const float& CurrentHP, const float& MaxHP);
 	void UpdateHUDLevelAndExp(const int32& PlayerLevel, const float& CurrentExp, const float& MaxExp);
 	void UpdateHUDQuickSlot(const FName& ItemName, const int32& Count);
@@ -143,4 +152,5 @@ protected:
 	/* Switch Input Mode and Mouse Cursor Visibility */
 	void SetInputUIOnly();
 	void SetInputGameOnly();
+	void SetInputUIAndGame();
 };

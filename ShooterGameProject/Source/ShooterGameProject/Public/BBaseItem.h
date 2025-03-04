@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "BItemInterface.h"  // 만들어둔 인터페이스 헤더 포함
+#include "ItemStruct.h"
 #include "BBaseItem.generated.h"
 
 class USphereComponent;
@@ -18,6 +19,8 @@ public:
 	ABBaseItem();
 	// 아이템을 제거하는 공통 함수 (추가 이펙트나 로직을 넣을 수 있음)
 	virtual void DestroyItem();
+	FItemData GetItemData() const;
+	virtual FName GetItemType() const override;
 protected:
 	// 아이템 유형(타입)을 편집 가능하게 지정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
@@ -28,6 +31,8 @@ protected:
 	// 아이템 이름을 편집 가능하게 지정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	int32 ItemPrice;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | ItemInfo")
+	FItemData ItemData;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Component")
 	USceneComponent* Scene;
@@ -54,7 +59,7 @@ protected:
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex) override;
 	virtual void ActivateItem(AActor* Activator) override;
-	virtual FName GetItemType() const override;
+
 	virtual FName GetItemName() const override;
 	virtual void UseItem(AActor* Activator) override;
 

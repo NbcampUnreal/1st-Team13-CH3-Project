@@ -8,6 +8,12 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "BMovementComponent.h"
+#include "Components/SphereComponent.h"
+#include "BBaseItem.h"
+#include "BPlayerState.h"
+#include "BUIManager.h"
+#include "BGameInstance.h"
+#include "BInventoryWidget.h"
 #include <BShotGun.h>
 
 ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
@@ -46,7 +52,8 @@ ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 	MoveComp->bCanWalkOffLedgesWhenCrouching = true;
 	MoveComp->SetCrouchedHalfHeight(65.0f);
 
-	
+	CollectNearItem = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+	CollectNearItem->SetSphereRadius(400.f);
 }
 
 ABPlayerState* ABCharacter::GetBPlayerState() const
@@ -491,6 +498,42 @@ void ABCharacter::EquipMelee()
 	UE_LOG(LogTemp, Warning, TEXT("EquipMelee() called!"));
 	ActiveWeaponSlot = EWeaponSlot::Melee;
 	EquipWeaponByType(ActiveWeaponSlot);
+}
+
+TArray<ABBaseItem*> ABCharacter::GetNearItemArray() const
+{
+	TArray<AActor*> ActivateItem;
+	TArray<ABBaseItem*> BaseItem;
+
+	CollectNearItem->GetOverlappingActors(ActivateItem);
+
+	for (AActor* Actor : ActivateItem)
+	{
+		if (ABBaseItem* Base = Cast<ABBaseItem>(Actor))
+		{
+			BaseItem.Add(Base);
+		}
+	}
+	return BaseItem;
+}
+
+void ABCharacter::ShowInventory()
+{
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
+		{
+			UIManager->ShowInventory();
+			if (UBInventoryWidget* Inventory = Cast<UBInventoryWidget>(UIManager->GetInventoryInstance()))
+			{
+				Inventory->SendItemData(GetNearItemArray(), Cast<ABPlayerState>(GetPlayerState()));
+			}
+		}
+	}
+}
+
+void ABCharacter::CloseInventory()
+{
 }
 
 

@@ -1,6 +1,7 @@
 #include "BPlayerState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h" 
+#include "BBaseItem.h"
 
 ABPlayerState::ABPlayerState()
 {
@@ -22,6 +23,16 @@ void ABPlayerState::BeginPlay()
 	{
 		LevelTable.Add(i, (uint32)pow(((i + 2 - 1) * 50 / 49.f), 2.5f));
 	}
+}
+
+void ABPlayerState::SetPlayer(ABCharacter* PlayerPtr)
+{
+	Player = PlayerPtr;
+}
+
+ABCharacter* ABPlayerState::GetPlayer() const
+{
+	return Player;
 }
 
 void ABPlayerState::AddCoin(const int32 _Coin)
@@ -125,6 +136,47 @@ void ABPlayerState::Attack(AActor* Actor)
 		nullptr,
 		this,
 		UDamageType::StaticClass());
+}
+
+TArray<class ABBaseItem*> ABPlayerState::GetNearItemArray() const
+{	
+	return TArray<class ABBaseItem*>();
+}
+
+TArray<class ABBaseItem*> ABPlayerState::GetAllInventoryItem() const
+{
+	TArray<class ABBaseItem*> Items;
+
+	for (const auto& Arr : Inventory)
+	{
+		for (const auto& Item : Arr.Value)
+		{
+			Items.Add(Item);
+		}
+	}
+	return Items;
+}
+
+TArray<class ABBaseItem*> ABPlayerState::GetInventoryTypeItem(const FName& ItemType) const
+{
+	TArray<class ABBaseItem*> Items;
+
+	for (const auto& Item : Inventory[ItemType])
+	{
+		Items.Add(Item);
+	}
+
+	return Items;
+}
+
+void ABPlayerState::InventoryRemoveItem(ABBaseItem* Item)
+{
+	Inventory[Item->GetItemType()].Remove(Item);
+}
+
+void ABPlayerState::InventoryAddItem(ABBaseItem* Item)
+{
+	Inventory[Item->GetItemType()].Add(Item);
 }
 
 void ABPlayerState::LevelUP()

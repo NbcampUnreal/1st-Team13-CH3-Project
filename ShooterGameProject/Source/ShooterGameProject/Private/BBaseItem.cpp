@@ -29,6 +29,10 @@ ABBaseItem::ABBaseItem()
     Collision->OnComponentBeginOverlap.AddDynamic(this, &ABBaseItem::OnItemOverlap);
     Collision->OnComponentEndOverlap.AddDynamic(this, &ABBaseItem::OnItemEndOverlap);
 
+    if (ItemName.IsValid())
+    {
+        ItemData.ItemName = ItemName;        
+    }
 }
 
 // Called when the game starts or when spawned
@@ -87,6 +91,11 @@ void ABBaseItem::DestroyItem()
 {
 	// AActor에서 제공하는 Destroy() 함수로 객체 제거
 	Destroy();
+}
+
+FItemData ABBaseItem::GetItemData() const
+{
+    return ItemData;
 }
 
 

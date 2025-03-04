@@ -3,7 +3,6 @@
 #include "CoreMinimal.h"
 #include "Gameframework/Character.h"
 #include "BPlayerController.h"
-#include "BPlayerState.h"
 #include "BBaseWeapon.h"  // 旮半掣 氍搓赴 韥措灅鞀� 韽暔
 #include "BCharacter.generated.h"
 struct FInputActionValue;
@@ -62,7 +61,11 @@ public:
 	void EquipRifle();
 	void EquipShotgun();
 	void EquipMelee();
-	
+	UFUNCTION(BlueprintCallable, Category = "Collect")
+	TArray<class ABBaseItem*> GetNearItemArray() const;
+
+	void ShowInventory();
+	void CloseInventory();
 protected:
 	/** 카메라 줌 관련 변수 */
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
@@ -82,6 +85,8 @@ protected:
 	TObjectPtr<class UCapsuleComponent> Collision;
 	TObjectPtr<class USkeletalMeshComponent> Skeletal;
 	TObjectPtr<class UBMovementComponent> MoveComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<class USphereComponent> CollectNearItem;
 	//UFUNCTION(NetMulticast, unreliable)
 	//void FastSharedReplication(const FSharedRepMovement& SharedRepMovement);
 	UFUNCTION()

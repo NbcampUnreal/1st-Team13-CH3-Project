@@ -89,7 +89,7 @@ void ABGameState::TriggerGameOver()
 	{
 		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
 		{
-			UIManager->EnterGameOverScreen();
+			//UIManager->EnterGameOverScreen();
 		}
 	}
 }

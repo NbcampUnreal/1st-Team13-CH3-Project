@@ -5,6 +5,7 @@
 #include "BGameInstance.h"
 #include "BSpawnVolume.h"
 #include "Kismet/GameplayStatics.h"
+#include "BPlayerState.h"
 #include "TimerManager.h"
 
 
