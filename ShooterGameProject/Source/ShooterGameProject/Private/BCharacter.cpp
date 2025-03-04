@@ -257,15 +257,16 @@ void ABCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 }
+
 void ABCharacter::Attack(const struct FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Log, TEXT("Attack() called"));
-	if (EquippedWeapon == nullptr) 
+	if (EquippedWeapon == nullptr)
 	{
 		return;
 	}
 	UE_LOG(LogTemp, Warning, TEXT("⚔️ 공격 시작: %s"), *EquippedWeapon->GetName());
-	
+
 	// 🔹 유효한 슬롯인지 확인
 	if (!EquippedWeapons.IsValidIndex((int32)ActiveWeaponSlot))
 	{
@@ -280,12 +281,27 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 		UE_LOG(LogTemp, Warning, TEXT("No weapon equipped in slot: %d"), (int32)ActiveWeaponSlot);
 		return;
 	}
+
 	UE_LOG(LogTemp, Warning, TEXT("🔍 [FireOnce] 현재 무기 타입: %s"), *CurrentWeapon->WeaponType);
 
-	
+	// 🔹 수류탄인데 개수가 0이면 장착 해제
+	if (CurrentWeapon->WeaponType == "Grenade" && GrenadeCount <= 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("💣 수류탄 개수 0 -> 장착 해제"));
+		UnequipGrenade();
+		return;
+	}
+
 	CurrentWeapon->Attack();
 }
-
+void ABCharacter::UnequipGrenade()
+{
+	if (EquippedWeapon && EquippedWeapon->WeaponType == "Grenade")
+	{
+		EquipWeaponByType(EWeaponSlot::Throwable);
+		UE_LOG(LogTemp, Log, TEXT("💣 수류탄 장착 해제 완료!"));
+	}
+}
 
 void ABCharacter::StopFire()
 {
@@ -377,16 +393,38 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 		UE_LOG(LogTemp, Error, TEXT("❌ WeaponToEquip is nullptr! Slot: %d"), (int32)Slot);
 		return;
 	}
-
+	
 	// 🔹 타이머 초기화 (발사 딜레이 리셋)
 	GetWorldTimerManager().ClearTimer(FireTimerHandle);
 
 	// 🔹 무기 메쉬 확인
 	UStaticMeshComponent* WeaponMesh = WeaponToEquip->FindComponentByClass<UStaticMeshComponent>();
+	if (Slot == EWeaponSlot::Throwable && GrenadeCount < 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("❌ GrenadeCount is 0"));
+		WeaponMesh = nullptr; // 수류탄 카운트가 0인경우 장착 안되게 
+	}
 	if (!WeaponMesh)
 	{
 		UE_LOG(LogTemp, Error, TEXT("❌ WeaponMesh is nullptr for %s"), *WeaponToEquip->GetName());
-		return;
+		if (!WeaponMesh)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("❌ WeaponMesh is nullptr, unequipping current weapon"));
+			if (EquippedWeapon)
+			{
+				EquippedWeapon->SetActorHiddenInGame(true);
+				EquippedWeapon->SetActorEnableCollision(false);
+				EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+				// 무기 보관 위치 설정
+				FName StorageSocketName = TEXT("WeaponStorageSocket");
+				if (GetMesh()->DoesSocketExist(StorageSocketName))
+				{
+					EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, StorageSocketName);
+				}
+				EquippedWeapon = nullptr;
+			}
+			return;
+		}
 	}
 
 	// 🔹 기존 장착 무기 숨기기 + 인벤토리에 저장
@@ -398,23 +436,7 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 		EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);  // ✅ 맵에 남아있는 문제 해결
 
 		// 무기 보관 위치 설정
-		FName StorageSocketName = TEXT("WeaponBackSocket");
-		if (EquippedWeapon->WeaponType == "Pistol")
-		{
-			StorageSocketName = TEXT("PistolHolsterSocket");
-		}
-		else if (EquippedWeapon->WeaponType == "Shotgun")
-		{
-			StorageSocketName = TEXT("ShotgunBackSocket");
-		}
-		else if (EquippedWeapon->WeaponType == "Rifle")
-		{
-			StorageSocketName = TEXT("RifleBackSocket");
-		}
-		else if (EquippedWeapon->WeaponType == "Melee")
-		{
-			StorageSocketName = TEXT("MeleeSocket");
-		}
+		FName StorageSocketName = TEXT("WeaponStorageSocket");
 		if (GetMesh()->DoesSocketExist(StorageSocketName))
 		{
 			EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, StorageSocketName);
@@ -496,6 +518,13 @@ void ABCharacter::EquipMelee()
 	ActiveWeaponSlot = EWeaponSlot::Melee;
 	EquipWeaponByType(ActiveWeaponSlot);
 }
+void ABCharacter::EquipGrenade()
+{
+	UE_LOG(LogTemp, Warning, TEXT("EquipGrenade() called!"));
+	ActiveWeaponSlot = EWeaponSlot::Throwable;
+	EquipWeaponByType(ActiveWeaponSlot);
+}
+
 
 
 
@@ -597,6 +626,11 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		ETriggerEvent::Completed,  // 🔹 키를 누르는 순간 실행
 		this,
 		&ABCharacter::EquipMelee);
+	EnhancedInput->BindAction(
+		PlayerController->EquipGrenadeAction,
+		ETriggerEvent::Completed,  // 🔹 키를 누르는 순간 실행
+		this,
+		&ABCharacter::EquipGrenade);
 	EnhancedInput->BindAction(
 		PlayerController->ZoomAction,
 		ETriggerEvent::Triggered,

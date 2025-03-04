@@ -54,7 +54,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	// 氚办棿 齑堦赴頇� 鞓堨嫓
 	TArray<ABBaseWeapon*> EquippedWeapons;  // 鞀’鞐� 雽�鞚戫晿電� 氍搓赴 氚办棿
-
+	
+	int32 GrenadeCount;
+	int32 FirstAidKitCount;
 	void SetDraggingItem(AActor* NewItem);
 	void PickupWeapon(ABBaseWeapon* NewWeapon);
 	ABBaseWeapon* GetCurrentWeapon() const;
@@ -62,7 +64,8 @@ public:
 	void EquipRifle();
 	void EquipShotgun();
 	void EquipMelee();
-	
+	void EquipGrenade();
+	void UnequipGrenade();
 protected:
 	/** 카메라 줌 관련 변수 */
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
