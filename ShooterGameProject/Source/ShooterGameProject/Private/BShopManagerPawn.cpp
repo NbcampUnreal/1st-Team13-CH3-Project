@@ -144,15 +144,8 @@ void ABShopManagerPawn::OnCollisionBeginOverlap(UPrimitiveComponent* OverlappedC
 	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult& SweepResult)
 {
-	// TODO: Test if anything other than pawn generates overlap events with this collision box
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, TEXT("BeginOverlap"));	
-
 	if (OtherActor->IsA<ABCharacter>())
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, TEXT("Overlapped with BCharacter"));
-
-		// TODO: play waving animation on skeletal mesh?
-		
+	{		
 		// Display notification
 		if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
 		{
@@ -182,13 +175,9 @@ void ABShopManagerPawn::OnCollisionBeginOverlap(UPrimitiveComponent* OverlappedC
 
 void ABShopManagerPawn::OnCollisionEndOverlap(UPrimitiveComponent* OverlappedComp,
 	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, TEXT("EndOverlap"));
-	
+{	
 	if (OtherActor->IsA<ABCharacter>())
 	{
-		// TODO: play waving animation on skeletal mesh?
-
 		// Close shop widget in case the player somehow moves out of CollisionBox while the shop is open
 		CloseShopWidget();
 
