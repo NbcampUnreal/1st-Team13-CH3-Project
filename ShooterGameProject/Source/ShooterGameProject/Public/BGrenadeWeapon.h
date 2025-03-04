@@ -19,13 +19,12 @@ public:
 
     // 공격 (수류탄 투척)
     virtual void Attack() override;
-    virtual void ActivateItem(AActor* Activator) override;
+
 protected:
     // 수류탄 투척 프로젝타일 클래스 (BP에서 설정 가능)
     UPROPERTY(EditDefaultsOnly, Category = "Grenade")
     TSubclassOf<class AABGrenadeProjectile> GrenadeClass;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-    UStaticMeshComponent* GrenadeBody;
+
     // 투척 힘
     UPROPERTY(EditDefaultsOnly, Category = "Grenade")
     float ThrowStrength = 1000.0f;
