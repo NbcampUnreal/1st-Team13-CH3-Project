@@ -39,11 +39,11 @@ ABShopManagerPawn::ABShopManagerPawn()
 	Camera->SetupAttachment(StaticMesh);
 
 	// Get WBP class
-	ConstructorHelpers::FClassFinder<UUserWidget> ShopWidgetClassFinder(TEXT("/Game/Shop/WBP/WBP_BShopWidget"));
-	if (ShopWidgetClassFinder.Succeeded())
-	{
-		ShopWidgetClass = ShopWidgetClassFinder.Class;
-	}
+	//ConstructorHelpers::FClassFinder<UUserWidget> ShopWidgetClassFinder(TEXT("/Game/Shop/WBP/WBP_BShopWidget"));
+	//if (ShopWidgetClassFinder.Succeeded())
+	//{
+	//	ShopWidgetClass = ShopWidgetClassFinder.Class;
+	//}
 
 	// Initialize widget instance
 	ShopWidgetInstance = nullptr;
@@ -105,7 +105,7 @@ void ABShopManagerPawn::OpenShopWidget()
 void ABShopManagerPawn::CloseShopWidget()
 {
 	// Remove widget
-	if (ShopWidgetInstance)
+	if (ShopWidgetInstance && bIsShopWidgetOpen)
 	{
 		// Return camera to character camera?
 
