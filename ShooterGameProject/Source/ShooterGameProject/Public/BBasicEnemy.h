@@ -11,5 +11,4 @@ class SHOOTERGAMEPROJECT_API ABBasicEnemy : public ABEnemyBase
 	
 public:
 	ABBasicEnemy();
-	float GetAttackRange() const override;
 };

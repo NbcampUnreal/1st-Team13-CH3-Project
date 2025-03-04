@@ -11,11 +11,9 @@ class SHOOTERGAMEPROJECT_API ABAssassinEnemy : public ABEnemyBase
 	
 public:
 	ABAssassinEnemy();
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Properties|Assassin")
 	bool bIsStealthed;
 
-	float GetAttackRange() const override;
 	void UseSkill() override;
 	void EndSkill();
 };

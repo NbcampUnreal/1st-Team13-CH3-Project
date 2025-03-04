@@ -25,15 +25,25 @@ ABTankEnemy::ABTankEnemy()
 	ExplosionCollision->SetupAttachment(RootComponent);
 }
 
-float ABTankEnemy::GetAttackRange() const
+float ABTankEnemy::GetExplosionDamage()
 {
-	return AttackRange;
+	return ExplosionDamage;
+}
+
+float ABTankEnemy::GetExplosionDelay()
+{
+	return ExplosionDelay;
+}
+
+float ABTankEnemy::GetExplosionRadius()
+{
+	return ExplosionRadius;
 }
 
 void ABTankEnemy::UseSkill()
 {
-	// ÃÑ¾Ë ¹Ý»ç
-	// ÇÇ°ÝµÇ¸é µ¥¹ÌÁö¸¦ ºÒ·¯¿Í¼­ Ä³¸¯ÅÍ¿¡°Ô ÁÜ
+	// ï¿½Ñ¾ï¿½ ï¿½Ý»ï¿½
+	// ï¿½Ç°ÝµÇ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ò·ï¿½ï¿½Í¼ï¿½ Ä³ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ ï¿½ï¿½
 	bIsReflecting = true;
 
 
@@ -61,7 +71,7 @@ void ABTankEnemy::Explode()
 	{
 		if (Actor && Actor->ActorHasTag("Player"))
 		{
-			//µ¥¹ÌÁö ÁÖ´Â ·ÎÁ÷ ±¸Çö
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			UGameplayStatics::ApplyDamage(
 				Actor,
 				ExplosionDamage,
