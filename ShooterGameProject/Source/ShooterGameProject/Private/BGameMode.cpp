@@ -68,7 +68,7 @@ void ABGameMode::SpawnLevelKeyBox()
 	}
 
 
-	for (int32 i = 0; i < 5; i++)
+	for (int32 i = 0; i < 3; i++)
 	{
         int32 RandomIndex = FMath::RandRange(0, SpawnVolumes.Num() - 1);
         ABSpawnVolume* SpawnVolume = Cast<ABSpawnVolume>(SpawnVolumes[RandomIndex]);
@@ -84,7 +84,7 @@ void ABGameMode::StartGame()
 {
 	UE_LOG(LogTemp, Log, TEXT("StartGame! Eliminate all the enemies!"));
 	ABGameState* BGameState = GetGameState<ABGameState>();
-
+	/*
 	GetWorldTimerManager().SetTimer
 	(
 		LevelTimerHandle,
@@ -92,7 +92,7 @@ void ABGameMode::StartGame()
 		&ABGameMode::EndGame,
 		BGameState->TimeLimit,
 		false
-	);
+	);*/
 
 	if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
 	{
