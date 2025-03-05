@@ -9,14 +9,14 @@ ABPlayerState::ABPlayerState()
 {
 	DeathState = EDeathState::NotDead;
 	NomalSpeed = 100.f;
-	SprintSpeed= NomalSpeed * SprintMultiply;
+	SprintSpeed = NomalSpeed * SprintMultiply;
 	SprintMultiply = 6.f;
 	CurrentHealth = MaxHealth = 100;
 	AttackDamage = 0;
 	Level = 1;
 	MaxExperience = 0;
 	CurrentExperience = 0;
-	Coin = 0;	
+	Coin = 0;
 }
 
 void ABPlayerState::BeginPlay()
@@ -24,12 +24,20 @@ void ABPlayerState::BeginPlay()
 	for (uint32 i = 1; i <= 100; ++i)
 	{
 		LevelTable.Add(i, (uint32)pow(((i + 2 - 1) * 50 / 49.f), 2.5f));
-	}	
+	}
 }
 
 void ABPlayerState::AddCoin(const int32 _Coin)
 {
 	this->Coin += _Coin;
+
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UI = Instance->GetUIManagerInstance())
+		{
+			UI->DisplayNotification("Got Money!", FString::Printf(TEXT("Current Gold in possession: %d"), Coin));
+		}
+	}
 }
 
 int32 ABPlayerState::GetCoin() const
@@ -51,6 +59,23 @@ float ABPlayerState::GetHealthNormalized() const
 {
 	return (float)(CurrentHealth) / (float)(MaxHealth);
 }
+
+int32 ABPlayerState::GetPlayerLevel() const
+{
+	return Level;
+}
+
+int32 ABPlayerState::GetCurrentExp() const
+{
+	return CurrentExperience;
+}
+
+int32 ABPlayerState::GetMaxExp() const
+{
+	return MaxExperience;
+}
+
+
 
 bool ABPlayerState::IsDeadOrDying() const
 {
@@ -80,7 +105,7 @@ void ABPlayerState::FinishDeath()
 	}
 
 	DeathState = EDeathState::DeathFinished;
-	
+
 	check(Owner);
 
 	// TODO: ���� ���� �˷�����Ѵ�.
@@ -104,6 +129,14 @@ float ABPlayerState::TakeDamage(float DamageAmount, FDamageEvent const& DamageEv
 void ABPlayerState::AddCurrentHealth(int32 Health)
 {
 	CurrentHealth = FMath::Clamp(CurrentHealth + Health, 0, MaxHealth);
+
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UI = Instance->GetUIManagerInstance())
+		{
+			UI->UpdateHUDHealth(CurrentHealth, MaxHealth);
+		}
+	}
 }
 
 void ABPlayerState::AddExp(int32 Exp)
@@ -119,6 +152,14 @@ void ABPlayerState::AddExp(int32 Exp)
 		CurrentExperience -= MaxExperience;
 		LevelUP();
 	}
+
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UI = Instance->GetUIManagerInstance())
+		{
+			UI->UpdateHUDLevelAndExp(Level, CurrentExperience, MaxExperience);
+		}
+	}
 }
 
 void ABPlayerState::Attack(AActor* Actor)
@@ -131,7 +172,7 @@ void ABPlayerState::Attack(AActor* Actor)
 }
 
 TArray<FItemData> ABPlayerState::GetNearItemArray() const
-{	
+{
 	TArray<FItemData> Result;
 
 	if (ABCharacter* Chr = Cast<ABCharacter>(GetOwner()))
@@ -162,9 +203,12 @@ TArray<FItemData> ABPlayerState::GetInventoryTypeItem(const FName& ItemName) con
 {
 	TArray<FItemData> Items;
 
-	for (const auto& Item : Inventory[ItemName])
+	if (const TArray<FItemData>* InventoryItems = Inventory.Find(ItemName))
 	{
-		Items.Add(Item);
+		for (const auto& Item : *InventoryItems)
+		{
+			Items.Add(Item);
+		}
 	}
 
 	return Items;
@@ -184,6 +228,14 @@ void ABPlayerState::InventoryAddItem(const FItemData& Item)
 {
 	Inventory.FindOrAdd(Item.ItemName).Add(Item);
 	UpdateQuickSlot(Item.ItemName, Inventory[Item.ItemName].Num());
+
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UI = Instance->GetUIManagerInstance())
+		{
+			UI->DisplayItemNotification(Item.ItemName);
+		}
+	}
 }
 
 void ABPlayerState::UpdateQuickSlot(const FName& ItemName, int32 Count)
@@ -214,8 +266,8 @@ void ABPlayerState::UseItem(const FName& ItemName)
 	{
 		if (ABCharacter* Chr = Cast<ABCharacter>(Con->GetCharacter()))
 		{
-			
-			ABBaseItem* Base = GetWorld()->SpawnActor<ABBaseItem>(Inventory[ItemName].Last().ItemClass,FVector::ZeroVector,FRotator::ZeroRotator);
+
+			ABBaseItem* Base = GetWorld()->SpawnActor<ABBaseItem>(Inventory[ItemName].Last().ItemClass, FVector::ZeroVector, FRotator::ZeroRotator);
 			if (Base)
 			{
 				Base->UseItem(Chr);
@@ -237,4 +289,12 @@ void ABPlayerState::LevelUP()
 	CurrentHealth = MaxHealth;
 
 	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("레벨업"));
+
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UI = Instance->GetUIManagerInstance())
+		{
+			UI->DisplayNotification("Level Up!", FString::Printf(TEXT("Current Level is %d"), Level));
+		}
+	}
 }

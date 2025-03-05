@@ -53,6 +53,12 @@ public:
 	// 0 ~ 1�� ���� (ProgressBar����)
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	float GetHealthNormalized() const;
+	UFUNCTION(BlueprintCallable, Category = "Level")
+	int32 GetPlayerLevel() const;
+	UFUNCTION(BlueprintCallable, Category = "Level")
+	int32 GetCurrentExp() const;
+	UFUNCTION(BlueprintCallable, Category = "Level")
+	int32 GetMaxExp() const;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Health")
 	bool IsDeadOrDying() const;

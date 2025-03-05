@@ -105,18 +105,19 @@ protected:
 	void StopSprint(const struct FInputActionValue& Value);
 	UFUNCTION()
 	void Attack(const struct FInputActionValue& Value);
+	void UnequipGrenade();
 	UFUNCTION()
 	void Reload(const struct FInputActionValue& Value);
 	UFUNCTION()
 	void AimStart(const FInputActionValue& Value);
 	UFUNCTION()
 	void AimStop(const FInputActionValue& Value);
-	
+
 	UFUNCTION()
 	void ZoomStart(const FInputActionValue& Value);
 	UFUNCTION()
 	void ZoomStop(const FInputActionValue& Value);
-	
+
 	UFUNCTION()
 	void StartDragging(const FInputActionValue& Value);
 	UFUNCTION()
@@ -127,13 +128,15 @@ protected:
 	void CloseInventory();
 	virtual void BeginPlay() override;
 
+	void EquipGrenade();
+
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void StopFire();
-	
+
 	void EquipWeaponByType(EWeaponSlot Slot);
 	FTimerHandle FireTimerHandle;
 
-	
+
 private:
 	UPROPERTY()
 	FReplicatedAcceleration ReplicatedAcceleration;

@@ -160,7 +160,7 @@ void ABCharacter::SetDraggingItem(AActor* NewItem)
 void ABCharacter::StartDragging(const FInputActionValue& Value)
 {
 	bool Drag = Value.Get<bool>();
-	
+
 	if (Drag == true)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("DragStart"));
@@ -293,32 +293,24 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 
 	UE_LOG(LogTemp, Warning, TEXT("🔍 [FireOnce] 현재 무기 타입: %s"), *CurrentWeapon->WeaponType);
 
-	// 🔹 수류탄인데 개수가 0이면 장착 해제
-	if (CurrentWeapon->WeaponType == "Grenade" && GrenadeCount <= 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("💣 수류탄 개수 0 -> 장착 해제"));
-		UnequipGrenade();
-		return;
-	}
-
 	CurrentWeapon->Attack();
 }
 void ABCharacter::UnequipGrenade()
 {
 	if (EquippedWeapon && EquippedWeapon->WeaponType == "Grenade")
 	{
-			UE_LOG(LogTemp, Log, TEXT("Hiding previously equipped weapon: %s"), *EquippedWeapon->WeaponType);
-			EquippedWeapon->SetActorHiddenInGame(true);
-			EquippedWeapon->SetActorEnableCollision(false);
-			EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		UE_LOG(LogTemp, Log, TEXT("Hiding previously equipped weapon: %s"), *EquippedWeapon->WeaponType);
+		EquippedWeapon->SetActorHiddenInGame(true);
+		EquippedWeapon->SetActorEnableCollision(false);
+		EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
-			// 무기 보관 위치 설정
-			FName StorageSocketName = TEXT("WeaponStorageSocket");
-			if (GetMesh()->DoesSocketExist(StorageSocketName))
-			{
-				EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, StorageSocketName);
-			}
-		
+		// 무기 보관 위치 설정
+		FName StorageSocketName = TEXT("WeaponStorageSocket");
+		if (GetMesh()->DoesSocketExist(StorageSocketName))
+		{
+			EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, StorageSocketName);
+		}
+
 		UE_LOG(LogTemp, Log, TEXT("💣 수류탄 장착 해제 완료!"));
 	}
 }
@@ -421,12 +413,12 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	// 🔹 무기 메쉬 확인
 	UStaticMeshComponent* WeaponMesh = WeaponToEquip->FindComponentByClass<UStaticMeshComponent>();
 
-	// 🔹 수류탄인데 개수가 0이면 장착 안되게 설정
-	if (Slot == EWeaponSlot::Throwable && GrenadeCount <= 0)
-	{
-		UE_LOG(LogTemp, Error, TEXT("❌ GrenadeCount is 0"));
-		WeaponMesh = nullptr;
-	}
+	//// 🔹 수류탄인데 개수가 0이면 장착 안되게 설정
+	//if (Slot == EWeaponSlot::Throwable && GrenadeCount <= 0)
+	//{
+	//	UE_LOG(LogTemp, Error, TEXT("❌ GrenadeCount is 0"));
+	//	WeaponMesh = nullptr;
+	//}
 
 	// 🔹 WeaponMesh가 nullptr이면 기존 무기 해제
 	if (!WeaponMesh)
@@ -482,7 +474,7 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("✅ %s attached to %s successfully: %s"), *WeaponToEquip->GetName(), *TargetSocketName.ToString(), *WeaponToEquip -> GetActorLocation().ToString());
+		UE_LOG(LogTemp, Warning, TEXT("✅ %s attached to %s successfully: %s"), *WeaponToEquip->GetName(), *TargetSocketName.ToString(), *WeaponToEquip->GetActorLocation().ToString());
 	}
 
 	// 🔹 무기 메쉬 처리
@@ -513,7 +505,7 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	else if (WeaponToEquip->WeaponType == "Grenade")
 	{
 		WeaponToEquip->SetActorRelativeLocation(FVector::ZeroVector);
-		AdjustedRotation = FRotator(90.0f, -90.0f, 90.0f); 
+		AdjustedRotation = FRotator(90.0f, -90.0f, 90.0f);
 	}
 	WeaponToEquip->SetActorRelativeRotation(AdjustedRotation);
 
@@ -524,7 +516,6 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	UE_LOG(LogTemp, Warning, TEXT("📌 CurrentWeapon: %s"), *EquippedWeapon->GetName());
 }
 
-<<<<<<< HEAD
 void ABCharacter::InventorySwitch()
 {
 	static bool Switch = false;
@@ -544,8 +535,7 @@ void ABCharacter::UseItem(const FName& ItemName)
 {
 	State->UseItem(ItemName);
 }
-=======
->>>>>>> main
+
 
 void ABCharacter::EquipPistol()
 {
@@ -575,7 +565,6 @@ void ABCharacter::EquipMelee()
 	EquipWeaponByType(ActiveWeaponSlot);
 }
 
-<<<<<<< HEAD
 TArray<ABBaseItem*> ABCharacter::GetNearItemArray() const
 {
 	TArray<AActor*> ActivateItem;
@@ -620,14 +609,12 @@ void ABCharacter::CloseInventory()
 }
 
 
-=======
 void ABCharacter::EquipGrenade()
 {
 	UE_LOG(LogTemp, Warning, TEXT("EquipGrenade() called!"));
 	ActiveWeaponSlot = EWeaponSlot::Throwable;
 	EquipWeaponByType(ActiveWeaponSlot);
 }
->>>>>>> main
 
 void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -681,21 +668,21 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		this,
 		&ABCharacter::Attack
 	);
-	
+
 	EnhancedInput->BindAction(
 		PlayerController->ReloadAction,
 		ETriggerEvent::Completed,
 		this,
 		&ABCharacter::Reload);
 	EnhancedInput->BindAction(
-		PlayerController->DragAction,  
-		ETriggerEvent::Triggered, 
-		this, 
+		PlayerController->DragAction,
+		ETriggerEvent::Triggered,
+		this,
 		&ABCharacter::StartDragging);
 	EnhancedInput->BindAction(
-		PlayerController->DragAction, 
-		ETriggerEvent::Completed, 
-		this, 
+		PlayerController->DragAction,
+		ETriggerEvent::Completed,
+		this,
 		&ABCharacter::StopDragging);
 	EnhancedInput->BindAction(
 		PlayerController->AimAction,

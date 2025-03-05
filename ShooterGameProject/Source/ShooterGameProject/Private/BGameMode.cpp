@@ -5,11 +5,8 @@
 #include "BGameInstance.h"
 #include "BSpawnVolume.h"
 #include "Kismet/GameplayStatics.h"
-<<<<<<< HEAD
 #include "BPlayerState.h"
-=======
 #include "SkyManager.h"
->>>>>>> main
 #include "TimerManager.h"
 #include "BEnemySpawnVolume.h"
 
@@ -35,7 +32,7 @@ void ABGameMode::BeginPlay()
 	{
 		GameInstance->GetUIManagerInstance()->LevelStartTransition();
 		StartLevel();
-	}	
+	}
 }
 
 void ABGameMode::StartLevel()
@@ -74,13 +71,13 @@ void ABGameMode::SpawnLevelKeyBox()
 
 	for (int32 i = 0; i < 3; i++)
 	{
-        int32 RandomIndex = FMath::RandRange(0, SpawnVolumes.Num() - 1);
-        ABSpawnVolume* SpawnVolume = Cast<ABSpawnVolume>(SpawnVolumes[RandomIndex]);
+		int32 RandomIndex = FMath::RandRange(0, SpawnVolumes.Num() - 1);
+		ABSpawnVolume* SpawnVolume = Cast<ABSpawnVolume>(SpawnVolumes[RandomIndex]);
 
-        if (SpawnVolume)
-        {
-            SpawnVolume->SpawnKeyBox(KeyBoxClass);
-        }
+		if (SpawnVolume)
+		{
+			SpawnVolume->SpawnKeyBox(KeyBoxClass);
+		}
 	}
 }
 

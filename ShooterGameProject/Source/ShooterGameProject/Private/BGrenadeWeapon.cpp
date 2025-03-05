@@ -43,7 +43,6 @@ void ABGrenadeWeapon::ActivateItem(AActor* Activator)
         if (ActiveCharacter)
         {
             ActiveCharacter->PickupWeapon(this);
-            ActiveCharacter->GrenadeCount++;
             SetOwnerCharacter(ActiveCharacter);
             UE_LOG(LogTemp, Log, TEXT("Picked up %s and attached to %s"), *GetName(), *ActiveCharacter->GetName());
         }
@@ -59,14 +58,6 @@ void ABGrenadeWeapon::Attack()
         UE_LOG(LogTemp, Error, TEXT("❌ GrenadeClass is NULL or OwnerCharacter is NULL!"));
         return;
     }
-    if (OwnerCharacter->GrenadeCount <= 0)
-    {
-        UE_LOG(LogTemp, Error, TEXT("❌ GrenadeCount is 0"));
-        return;
-    }
-
-    // 🔹 수류탄 개수 감소
-    OwnerCharacter->GrenadeCount--;
 
     // ✅ 크로스헤어 방향 가져오기
     UBGameInstance* GameInstance = Cast<UBGameInstance>(GetWorld()->GetGameInstance());
@@ -147,7 +138,7 @@ void ABGrenadeWeapon::Attack()
     {
         UE_LOG(LogTemp, Warning, TEXT("✅ Predicted outVelocity: %s"), *OutVelocity.ToString());
 
-         // 수류탄의 프로젝타일 무브먼트에 속도 값을 설정
+        // 수류탄의 프로젝타일 무브먼트에 속도 값을 설정
         if (Grenade->ProjectileMovement)
         {
             Grenade->ProjectileMovement->bShouldBounce = true; // 바운스 활성화
