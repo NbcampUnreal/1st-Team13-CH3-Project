@@ -13,17 +13,15 @@ public:
 	FBShopItemRow();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName ItemName;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString DisplayName;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UTexture2D* ItemTexture;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Price;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Info;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<AActor> ItemClass;
 };

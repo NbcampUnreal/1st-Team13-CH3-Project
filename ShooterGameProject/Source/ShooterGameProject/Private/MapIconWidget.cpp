@@ -20,7 +20,7 @@ void UMapIconWidget::NativeConstruct()
 		}
 	}
 
-	MinimapWidget = nullptr;
+	/*MinimapWidget = nullptr;
 	if (UOverlay* MinimapOverlay = Cast<UOverlay>(GetParent()))
 	{
 		if (UWidgetTree* MinimapTree = Cast<UWidgetTree>(MinimapOverlay->GetOuter()))
@@ -28,11 +28,7 @@ void UMapIconWidget::NativeConstruct()
 			MinimapWidget = Cast<UMapWidget>(MinimapTree->GetOuter());
 
 		}
-	}
-	if (MinimapWidget == nullptr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("MapIconWidget Failed to get a reference to MapWidget"))
-	}
+	}*/
 }
 
 void UMapIconWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
