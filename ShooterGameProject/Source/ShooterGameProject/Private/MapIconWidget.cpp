@@ -39,7 +39,7 @@ void UMapIconWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
-	if (IsValid(MinimapWidget))
+	if (IsValid(MinimapWidget) && IsValid(IconOwner))
 	{
 		if (UMaterialParameterCollectionInstance* MPCInstance =
 			GetWorld()->GetParameterCollectionInstance(MinimapWidget->MPCMinimap))

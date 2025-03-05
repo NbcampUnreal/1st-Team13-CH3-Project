@@ -4,17 +4,6 @@
 #include "Components/ActorComponent.h"
 #include "MapIconComponent.generated.h"
 
-UENUM(BlueprintType)
-enum class EIconType : uint8
-{
-	E_None				UMETA(DisplayName = "NONE"),
-	E_Player			UMETA(DisplayName = "PLAYER"),
-	E_Enemy				UMETA(DisplayName = "ENEMY"),
-	E_ConsumableShop	UMETA(DisplayName = "CONSUMABLESHOP"),
-	E_WeaponShop		UMETA(DisplayName = "WEAPONSHOP"),
-	E_Door				UMETA(DisplayName = "DOOR")
-};
-
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable)
 class SHOOTERGAMEPROJECT_API UMapIconComponent : public UActorComponent
 {
@@ -25,8 +14,12 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
+
 	UFUNCTION()
 	void CreateIcon();
+	UFUNCTION()
+	void RemoveIcon();
 
 	FTimerHandle DelayTimerHandle;
 
@@ -34,5 +27,5 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Minimap")
 	UTexture2D* IconTexture;
 
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	//virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 };
