@@ -277,7 +277,6 @@ void UBUIManager::EnterWeaponWheel()
 			if (WeaponWheelInstance)
 			{
 				WeaponWheelInstance->AddToViewport();
-				//SetInputUIOnly(); // TODO: This won't respond to key released event, will it? Should I change IMC?
 
 				if (UWorld* World = GameInstance->GetWorld())
 				{
@@ -417,52 +416,51 @@ void UBUIManager::UpdateHUD()
 			if (ABPlayerState* PlayerState = PlayerController->GetPlayerState<ABPlayerState>())
 			{
 				UpdateHUDHealth(PlayerState->GetCurrentHealth(), PlayerState->GetMaxHealth());
-				// TODO: UpdateHUDLevelAndExp(PlayerState->GetCurrentLevel(), PlayerState->GetCurrentExp(), PlayerState->GetMaxExp()); 
-				UpdateHUDLevelAndExp(1, 0, 100);
-			}
-
-			if (ABCharacter* Character = Cast<ABCharacter>(PlayerController->GetCharacter()))
-			{
-				if (ABBaseWeapon* EquippedWeapon = Character->GetCurrentWeapon())
+				UpdateHUDLevelAndExp(PlayerState->GetPlayerLevel(), PlayerState->GetCurrentExp(), PlayerState->GetMaxExp());
+		
+				if (ABCharacter* Character = Cast<ABCharacter>(PlayerController->GetCharacter()))
 				{
-					UpdateHUDEquippedWeapon(EquippedWeapon->WeaponType);
-					if (EquippedWeapon->IsA<ABBaseGun>())
+					if (ABBaseWeapon* EquippedWeapon = Character->GetCurrentWeapon())
 					{
-						ABBaseGun* EquippedGun = Cast<ABBaseGun>(EquippedWeapon);
-						UpdateHUDLoadedAmmo(EquippedGun->AmmoCount);
-						
-						if (EquippedWeapon->IsA<ABPistol>())
+						UpdateHUDEquippedWeapon(EquippedWeapon->WeaponType);
+						if (EquippedWeapon->IsA<ABBaseGun>())
 						{
-							UpdateHUDInventoryAmmo();
+							ABBaseGun* EquippedGun = Cast<ABBaseGun>(EquippedWeapon);
+							UpdateHUDLoadedAmmo(EquippedGun->AmmoCount);
+						
+							if (EquippedWeapon->IsA<ABPistol>())
+							{
+								UpdateHUDInventoryAmmo();
+							}
+							else
+							{
+								// TODO: check Ammo ItemName 
+								TArray<FItemData> InventoryAmmo = PlayerState->GetInventoryTypeItem(FName(EquippedWeapon->WeaponType + "Ammo"));
+								UpdateHUDInventoryAmmo(InventoryAmmo.Num());
+							}
 						}
 						else
 						{
-							// TODO: UpdateHUDInventoryAmmo(); pass the amount of ammo in the inventory for the equipped gun type
-							UpdateHUDInventoryAmmo(123);
+							UpdateHUDLoadedAmmo();
+							UpdateHUDInventoryAmmo();
 						}
 					}
-					else
-					{
-						UpdateHUDLoadedAmmo();
-						UpdateHUDInventoryAmmo();
-					}
+					TArray<FItemData> InventoryFirstAidKit = PlayerState->GetInventoryTypeItem(FName("FirstAidKit"));
+					UpdateHUDQuickSlot("FirstAidKit", InventoryFirstAidKit.Num());
+					TArray<FItemData> InventoryGrenade = PlayerState->GetInventoryTypeItem(FName("Grenade"));
+					UpdateHUDQuickSlot("Grenade", InventoryFirstAidKit.Num());
 				}
-				// TODO: UpdateHUDQuickSlot("FirstAidKit", Inventory->GetCount("FirstAidKit"));
-				UpdateHUDQuickSlot("FirstAidKit", 11);
-				UpdateHUDQuickSlot("Grenade", 11);
 			}
 		}
 
 		if (GameInstance)
 		{
-			//UpdateCurrentScore(GameInstance->GetScore());
-			UpdateCurrentScore(0);
+			UpdateCurrentScore(GameInstance->GetScore());
 		}
 
 		if (ABGameState* GameState = GetWorld()->GetGameState<ABGameState>())
 		{
-			//UpdateKillCount(GameState->GetKilledEnemies());
-			UpdateKillCount(0);
+			UpdateKillCount(GameState->KilledEnemies);
 		}
 	}
 
