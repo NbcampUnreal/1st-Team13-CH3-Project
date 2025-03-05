@@ -290,7 +290,12 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 		UE_LOG(LogTemp, Warning, TEXT("No weapon equipped in slot: %d"), (int32)ActiveWeaponSlot);
 		return;
 	}
-
+	if (CurrentWeapon->WeaponType == "Grenade" && GrenadeCount <= 0) 
+	{
+		UE_LOG(LogTemp, Log, TEXT("💣 수류탄 장착 해제 완료!"));
+		UnequipGrenade();
+		return;
+	}
 	UE_LOG(LogTemp, Warning, TEXT("🔍 [FireOnce] 현재 무기 타입: %s"), *CurrentWeapon->WeaponType);
 
 	CurrentWeapon->Attack();
@@ -348,7 +353,9 @@ void ABCharacter::PickupWeapon(ABBaseWeapon* NewWeapon)
 	else if (NewWeapon->WeaponType.Equals("Grenade", ESearchCase::IgnoreCase))
 	{
 		EquippedWeapons[(int32)EWeaponSlot::Throwable] = NewWeapon;
+		GrenadeCount++;
 	}
+
 	else if (NewWeapon->WeaponType.Equals("Rifle", ESearchCase::IgnoreCase))
 	{
 		EquippedWeapons[(int32)EWeaponSlot::Rifle] = NewWeapon;
@@ -366,6 +373,13 @@ void ABCharacter::PickupWeapon(ABBaseWeapon* NewWeapon)
 	FName StorageSocketName = TEXT("WeaponStorageSocket");
 	if (GetMesh()->DoesSocketExist(StorageSocketName))
 	{
+		if (NewWeapon->WeaponType.Equals("Grenade", ESearchCase::IgnoreCase))
+		{
+			// 수류탄의 스케일을 줄여서 설정 (예: 0.5배)
+			NewWeapon->SetActorScale3D(FVector(0.05f, 0.05f, 0.05f));
+
+			UE_LOG(LogTemp, Log, TEXT("Grenade picked up. Scale set to 0.05."));
+		}
 		NewWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, StorageSocketName);
 		UE_LOG(LogTemp, Log, TEXT("✅ Weapon stored in %s"), *StorageSocketName.ToString());
 		NewWeapon->SetActorHiddenInGame(true);
@@ -413,12 +427,12 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	// 🔹 무기 메쉬 확인
 	UStaticMeshComponent* WeaponMesh = WeaponToEquip->FindComponentByClass<UStaticMeshComponent>();
 
-	//// 🔹 수류탄인데 개수가 0이면 장착 안되게 설정
-	//if (Slot == EWeaponSlot::Throwable && GrenadeCount <= 0)
-	//{
-	//	UE_LOG(LogTemp, Error, TEXT("❌ GrenadeCount is 0"));
-	//	WeaponMesh = nullptr;
-	//}
+	// 🔹 수류탄인데 개수가 0이면 장착 안되게 설정
+	if (Slot == EWeaponSlot::Throwable && GrenadeCount <= 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("❌ GrenadeCount is 0"));
+		WeaponMesh = nullptr;
+	}
 
 	// 🔹 WeaponMesh가 nullptr이면 기존 무기 해제
 	if (!WeaponMesh)
@@ -564,7 +578,12 @@ void ABCharacter::EquipMelee()
 	ActiveWeaponSlot = EWeaponSlot::Melee;
 	EquipWeaponByType(ActiveWeaponSlot);
 }
-
+void ABCharacter::EquipGrenade()
+{
+	UE_LOG(LogTemp, Warning, TEXT("EquipGrenade() called!"));
+	ActiveWeaponSlot = EWeaponSlot::Throwable;
+	EquipWeaponByType(ActiveWeaponSlot);
+}
 TArray<ABBaseItem*> ABCharacter::GetNearItemArray() const
 {
 	TArray<AActor*> ActivateItem;
@@ -609,12 +628,7 @@ void ABCharacter::CloseInventory()
 }
 
 
-void ABCharacter::EquipGrenade()
-{
-	UE_LOG(LogTemp, Warning, TEXT("EquipGrenade() called!"));
-	ActiveWeaponSlot = EWeaponSlot::Throwable;
-	EquipWeaponByType(ActiveWeaponSlot);
-}
+
 
 void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
