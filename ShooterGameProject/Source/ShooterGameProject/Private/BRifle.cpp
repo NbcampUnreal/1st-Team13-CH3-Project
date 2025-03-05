@@ -160,7 +160,7 @@ void ABRifle::Attack()
         FActorSpawnParameters SpawnParams;
         SpawnParams.Owner = this;
         SpawnParams.Instigator = OwnerCharacter;
-
+        // 개별 탄환 데미지 설정
         ABProjectileBase* Projectile = GetWorld()->SpawnActor<ABProjectileBase>(
             ProjectileClass, MuzzleLocation,
             FRotationMatrix::MakeFromX(AdjustedShootDirection).Rotator(),
@@ -170,6 +170,7 @@ void ABRifle::Attack()
         if (Projectile)
         {
             Projectile->FireInDirection(AdjustedShootDirection);
+            Projectile->SetDamage(Damage);
         }
     }
 
