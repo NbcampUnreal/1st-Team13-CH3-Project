@@ -6,12 +6,12 @@ ABAssassinEnemy::ABAssassinEnemy()
 {
 	MaxHP = 50.f;
 	CurrentHP = MaxHP;
-	Power = 30.f;
-	Speed = 400.f;
+	Power = 50.f;
+	Speed = 500.f;
 	AttackSpeed = 0.7f;
 	CoolTime = 5.f;
 	SkillDuration = 3.f;
-	AttackRange = 100.f;
+	AttackRange = 150.f;
 	bIsRanged = false;
 
 	bIsStealthed = false;

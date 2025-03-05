@@ -10,6 +10,8 @@ class SHOOTERGAMEPROJECT_API UBUIManager : public UObject
 	GENERATED_BODY()
 	
 public:	
+	UBUIManager();
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|TitleScreen")
 	TSubclassOf<UUserWidget> TitleWidgetClass;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|TitleScreen")
@@ -57,6 +59,10 @@ public:
 	class UWeaponAmmoWidget* WeaponAmmoWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
 	class UCrosshairWidget* CrosshairWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
+	class UKillLogWidget* KillLogWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
+	class UKillCountWidget* KillCountWidget;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|Inventory")
 	TSubclassOf<UUserWidget> InventoryWidget;
@@ -64,9 +70,7 @@ public:
 	class UBInventoryWidget* InventoryWidgetInstance;
 
 	FTimerHandle UpdateHUDTimerHandle;
-
-	UBUIManager();
-	virtual void PostInitProperties() override;
+	bool bIsWeaponWheelOpen;
 
 	/* Getter functions for UUserWidget instances */
 	UFUNCTION(BlueprintPure)
@@ -114,11 +118,12 @@ public:
 	void EnterWeaponWheel();
 	UFUNCTION(BlueprintCallable)
 	void ExitWeaponWheel();
+	UFUNCTION(BlueprintCallable)
+	void RemoveWeaponWheel();
 
 	/* HUD */
-	UFUNCTION(BlueprintCallable)
 	void DisplayHUD();
-	UFUNCTION(BlueprintCallable)
+	void UpdateHUD();
 	void CollapseHUD();
 	void RemoveHUD();
 	UFUNCTION(BlueprintCallable)
@@ -128,15 +133,19 @@ public:
 	void UpdateHUDHealth(const float& CurrentHP, const float& MaxHP);
 	void UpdateHUDLevelAndExp(const int32& PlayerLevel, const float& CurrentExp, const float& MaxExp);
 	void UpdateHUDQuickSlot(const FName& ItemName, const int32& Count);
-	void UpdateHUDLoadedAmmo(const int32& LoadedAmmo);
-	void UpdateHUDInventoryAmmo(const int32& InventoryAmmo);
-	void UpdateHUDEquippedWeapon(const FName& WeaponType);
+	void UpdateHUDLoadedAmmo(const int32& LoadedAmmo = -1);
+	void UpdateHUDInventoryAmmo(const int32& InventoryAmmo = -1);
+	void UpdateHUDEquippedWeapon(const FString& WeaponType);
 	void UpdateHUDTimed();
 	void UpdateHUDMap();
 	void UpdateHUDItemMission(const FName& ItemName, const int32& CurrentCount, const int32& TargetCount);
 	void UpdateHUDBonusMission(const int32& CurrentCount, const int32& TargetCount);
 	void RemoveAllMissions();
+	void UpdateKillLog(const FName& KilledName);
+	void UpdateKillCount(const int32& KillCount);
+	void UpdateCurrentScore(const int32& CurrentScore);
 	void OnFire(); // Crosshair animation when fired
+	void OnNormalHit(); // Hit Marker animation upon successful hit
 
 	/* Notification (Top Center) / Added Item Notification (Left Center) */
 	void DisplayNotification(const FString& Title, const FString& Message);

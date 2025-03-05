@@ -14,6 +14,7 @@ ABFirstAidKit::ABFirstAidKit()
 void ABFirstAidKit::ActivateItem(AActor* Activator)
 {
 	// 오버랩 됐을 때 드래그 & 드롭 되게
+
 }
 
 FName ABFirstAidKit::GetItemType() const
@@ -28,10 +29,28 @@ FName ABFirstAidKit::GetItemName() const
 
 void ABFirstAidKit::UseItem(AActor* Activator)
 {
-	if (Activator && Activator->ActorHasTag("Player")) 
+	if (Activator && Activator->ActorHasTag("Player"))
 	{
 		ABCharacter* OverlappingCharacter = Cast<ABCharacter>(Activator);
-		//체력회복하는 로직 추가예정
-		//OverlappingCharacter->Health등으로 하면 될 듯.
+		if (!OverlappingCharacter)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("❌ OverlappingCharacter is nullptr!"));
+			return;
+		}
+
+		// ✅ 캐릭터의 PlayerState 가져오기
+		ABPlayerState* PlayerState = Cast<ABPlayerState>(OverlappingCharacter->GetPlayerState());
+		if (!PlayerState)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("❌ PlayerState is nullptr!"));
+			return;
+		}
+
+		// ✅ 체력 회복 로직
+		PlayerState->AddCurrentHealth(RecoveryHealth); // PlayerState에서 체력 증가 함수 호출
+
+		// ✅ 디버그 로그 출력
+		UE_LOG(LogTemp, Log, TEXT("✅ Used FirstAidKit: Health +%.1f,CurrentHealth: %f, Remaining Kits: %d"),
+			RecoveryHealth, PlayerState->GetCurrentHealth(), OverlappingCharacter->FirstAidKitCount);
 	}
 }

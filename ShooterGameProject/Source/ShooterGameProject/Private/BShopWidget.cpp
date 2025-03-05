@@ -1,24 +1,24 @@
 #include "BShopWidget.h"
 #include "BShopRowWidget.h"
 #include "BShopItemRow.h"
-#include "BCharacter.h"
+#include "BPlayerState.h"
 #include "BBaseItem.h"
 #include "Components/TextBlock.h"
 #include "Components/ScrollBox.h"
 #include "Components/ScrollBoxSlot.h"
 #include "Engine/DataTable.h"
 
-void UBShopWidget::DisplayPlayerGold()
+void UBShopWidget::DisplayPlayerCoin()
 {
-	if (PlayerGoldText)
+	if (PlayerCoinText)
 	{
 		if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 		{
-			if (ABCharacter* BCharacter = Cast<ABCharacter>(PlayerController->GetCharacter()))
+			if (ABPlayerState* PlayerState = PlayerController->GetPlayerState<ABPlayerState>())
 			{
-				// int32 PlayerGold = BCharacter->GetGold(); 
-				int32 PlayerGold = 50; // TODO: DELETE
-				PlayerGoldText->SetText(FText::FromString(FString::Printf(TEXT("%d G"), PlayerGold)));
+				int32 PlayerCoin = PlayerState->GetCoin();
+				//int32 PlayerGold = 50; // TODO: DELETE
+				PlayerCoinText->SetText(FText::FromString(FString::Printf(TEXT("%d Coins"), PlayerCoin)));
 			}
 		}
 	}
