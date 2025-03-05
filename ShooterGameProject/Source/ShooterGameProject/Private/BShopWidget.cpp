@@ -41,7 +41,7 @@ void UBShopWidget::AddItemsToScrollBox()
 			{
 				if (UBShopRowWidget* ShopRowWidget = CreateWidget<UBShopRowWidget>(this, ShopRowWidgetClass))
 				{
-					ShopRowWidget->SetWidgetValues(*Row);
+					ShopRowWidget->SetWidgetValues(*Row, 1.f);
 					ShopRowWidget->ShopWidget = this;
 					ShopScrollBox->AddChild(ShopRowWidget);
 
@@ -70,6 +70,8 @@ void UBShopWidget::ConfirmPurchase(const FName& RowName)
 			MessageBorder->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
+
+	ShopScrollBox->SetVisibility(ESlateVisibility::HitTestInvisible);
 }
 
 // Execute purchase logic on a YES button click
@@ -110,46 +112,109 @@ void UBShopWidget::ExecutePurchase()
 		}
 	}
 
-	// Reset Purchase Item Row
-	PurchaseItemRow = nullptr;
+
 }
 
 // Collapse pop-up message on a NO / RETURN button click
-void UBShopWidget::ClosePurchase()
+void UBShopWidget::CloseMessage()
 {
+	// Reset Purchase/Sell related variables
+	PurchaseItemRow = nullptr;
+	SellItemName = FName();
+	SellItemRef = nullptr;
+	SellItemPrice = 0.f;
+
 	// Reset widgets that changed during purchase
 	YesButton->SetVisibility(ESlateVisibility::Visible);
 	NoButtonText->SetText(FText::FromString(TEXT("NO")));
 	MessageBorder->SetVisibility(ESlateVisibility::Collapsed);
+	SellScrollBox->SetVisibility(ESlateVisibility::Visible);
+	ShopScrollBox->SetVisibility(ESlateVisibility::Visible);
 }
 
 /********* SELL *********/
-// Display inventory to let player select the item to sell
-void UBShopWidget::ShowInventory()
+// Display inventory items to let player select the item to sell
+void UBShopWidget::AddInventoryItemsToScrollBox()
 {
-	
+	if (ShopDataTable && SellScrollBox)
+	{
+		if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+		{
+			if (ABPlayerState* PlayerState = PlayerController->GetPlayerState<ABPlayerState>())
+			{
+				TArray<FItemData> InventoryItems = PlayerState->GetAllInventoryItem();
+				for (const FItemData& Item : InventoryItems)
+				{
+					if (FBShopItemRow* Row = ShopDataTable->FindRow<FBShopItemRow>(Item.ItemName, TEXT("ShopContext")))
+					{
+						if (UBShopRowWidget* ShopRowWidget = CreateWidget<UBShopRowWidget>(this, ShopRowWidgetClass))
+						{
+							ShopRowWidget->SetWidgetValues(*Row, SellPriceMultiplier);
+							ShopRowWidget->ShopWidget = this;
+							ShopRowWidget->InventoryItemName = Item.ItemName;
+							ShopRowWidget->InventoryItemRef = Item.ItemRef;
+							SellScrollBox->AddChild(ShopRowWidget);
+
+							if (UScrollBoxSlot* ShopRowWidgetSlot = Cast<UScrollBoxSlot>(ShopRowWidget->Slot))
+							{
+								ShopRowWidgetSlot->SetPadding(FMargin(0.f, 0.f, 0.f, 20.f));
+							}
+						}
+					}
+					else
+					{
+						GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, TEXT("Sell, FindRow failed"));
+					}
+				}
+			}
+		}
+	}
 }
 
 // To be called when an item is clicked in the inventory
 // Need to get a reference to the item that's clicked
 // Display a pop-up message confirming sell
-void UBShopWidget::ConfirmSell()
+void UBShopWidget::ConfirmSell(const FName& ItemName, ABBaseItem* ItemRef, int32 SellPrice)
 {
-	// Name
+	SellItemName = FName(ItemName);
+	SellItemRef = ItemRef;
+	SellItemPrice = SellPrice;
 
-	// Price
+	FString StringToSet = TEXT("Sell ") + ItemName.ToString() + FString::Printf(TEXT(" for %d Gold?"), SellPrice);
+	if (MessageText)
+	{
+		MessageText->SetText(FText::FromString(StringToSet));
+	}
 	
-	// Upgrade info if it's a weapon??
+	if (MessageBorder)
+	{
+		MessageBorder->SetVisibility(ESlateVisibility::Visible);
+	}
+
+	SellScrollBox->SetVisibility(ESlateVisibility::HitTestInvisible);
 }
 
 // Execute sell logic on a YES button click
 void UBShopWidget::ExecuteSell()
 {
 	// Remove the item from the inventory
-}
-
-// Collapse pop-up message on a NO button click
-void UBShopWidget::CancelSell()
-{
-
+	if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+	{
+		if (ABPlayerState* PlayerState = PlayerController->GetPlayerState<ABPlayerState>())
+		{
+			TArray<FItemData> InventoryItems = PlayerState->GetInventoryTypeItem(SellItemName);
+			for (const FItemData& Item : InventoryItems)
+			{
+				if (SellItemRef == Item.ItemRef)
+				{
+					PlayerState->AddCoin(SellItemPrice);
+					PlayerState->InventoryRemoveItem(Item);
+					MessageText->SetText(FText::FromString(TEXT("Sale was successful!")));
+					break;
+				}
+			}
+			YesButton->SetVisibility(ESlateVisibility::Collapsed);
+			NoButtonText->SetText(FText::FromString(TEXT("RETURN")));
+		}
+	}
 }

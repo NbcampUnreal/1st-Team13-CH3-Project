@@ -2,9 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "ItemStruct.h"
 #include "BShopRowWidget.generated.h"
-
-struct FBShopItemRow;
 
 UCLASS()
 class SHOOTERGAMEPROJECT_API UBShopRowWidget : public UUserWidget
@@ -25,9 +24,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName RowName;
 
+	UPROPERTY()
+	class ABBaseItem* InventoryItemRef;
+	FName InventoryItemName;
+	int32 SellPrice;
 
 	UFUNCTION(BlueprintCallable)
-	void SetWidgetValues(const FBShopItemRow& ItemRow);
+	void SetWidgetValues(const FBShopItemRow& ItemRow, float PriceMultiplier = 1.f);
 	UFUNCTION(BlueprintCallable)
 	void NotifyClicked();
 };
