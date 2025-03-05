@@ -4,11 +4,12 @@
 #include "GameFramework/GameMode.h"
 #include "BGameMode.generated.h"
 
+class ABEnemySpawnVolume;
+
 UCLASS()
 class SHOOTERGAMEPROJECT_API ABGameMode : public AGameMode
 {
 	GENERATED_BODY()
-
 
 public:
 	ABGameMode();
@@ -33,4 +34,6 @@ public:
 	void SpawnLevelKeyBox();
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawning")
 	TSubclassOf<AActor> KeyBoxClass;
+
+	void StartEnemySpawning();
 };
