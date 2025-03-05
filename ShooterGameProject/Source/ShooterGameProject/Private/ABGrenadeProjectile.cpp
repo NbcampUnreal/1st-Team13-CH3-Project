@@ -23,7 +23,7 @@ AABGrenadeProjectile::AABGrenadeProjectile()
     CollisionComponent->SetCollisionResponseToAllChannels(ECR_Block);  // 모든 오브젝트와 충돌
     // 루트 컴포넌트 설정
     CollisionComponent->SetupAttachment(MeshComponent);
-    // MeshComponent->SetupAttachment(RootComponent);
+    
     // 🔹 캐릭터(Pawn)와 충돌 무시
     CollisionComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 
@@ -82,13 +82,12 @@ void AABGrenadeProjectile::BeginPlay()
     {
         UE_LOG(LogTemp, Error, TEXT("❌ MeshComponent is NULL in BeginPlay!"));
     }
+    // 충돌 후 3초 뒤에 폭발 함수 호출
+    GetWorld()->GetTimerManager().SetTimer(ExplosionTimerHandle, this, &AABGrenadeProjectile::Explode, 3.0f, false);
 }
 void AABGrenadeProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
     UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-    // 충돌 후 3초 뒤에 폭발 함수 호출
-    GetWorld()->GetTimerManager().SetTimer(ExplosionTimerHandle, this, &AABGrenadeProjectile::Explode, 3.0f, false);
-
     // 충돌 시 로그 출력
     UE_LOG(LogTemp, Warning, TEXT("⚡ Grenade Hit: %s"), *Hit.GetActor()->GetName());
 }
