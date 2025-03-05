@@ -20,6 +20,16 @@ public:
 	class UScrollBox* ShopScrollBox;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	class UTextBlock* PlayerCoinText;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UBorder* MessageBorder;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UTextBlock* MessageText;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UButton* YesButton;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UTextBlock* NoButtonText;
+
+	struct FBShopItemRow* PurchaseItemRow;
 
 	class ABBaseItem* ItemToSell = nullptr;
 	
@@ -29,11 +39,11 @@ public:
 	void AddItemsToScrollBox();
 
 	UFUNCTION(BlueprintCallable)
-	void ConfirmPurchase();
+	void ConfirmPurchase(const FName& RowName);
 	UFUNCTION(BlueprintCallable)
 	void ExecutePurchase();
 	UFUNCTION(BlueprintCallable)
-	void CancelPurchase();
+	void ClosePurchase();
 
 	UFUNCTION(BlueprintCallable)
 	void ShowInventory();

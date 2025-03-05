@@ -88,9 +88,9 @@ void ABShopManagerPawn::OpenShopWidget()
 
 			if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 			{
-				// Show mouse cursor and set input mode to Game and UI
+				// Show mouse cursor and set input mode to UI
 				PlayerController->bShowMouseCursor = true;
-				PlayerController->SetInputMode(FInputModeGameAndUI());
+				PlayerController->SetInputMode(FInputModeUIOnly());
 
 				// Hide character in case it's in the way
 				PlayerController->GetCharacter()->SetActorHiddenInGame(true);
@@ -170,6 +170,7 @@ void ABShopManagerPawn::OnCollisionBeginOverlap(UPrimitiveComponent* OverlappedC
 		{
 			if (UInputComponent* PlayerInputComponent = PlayerController->InputComponent)
 			{
+				PlayerInputComponent->RemoveActionBinding("Interact", IE_Pressed);
 				PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ABShopManagerPawn::OnInteractKeyPressed);
 			}
 		}
@@ -197,11 +198,7 @@ void ABShopManagerPawn::OnCollisionEndOverlap(UPrimitiveComponent* OverlappedCom
 
 void ABShopManagerPawn::OnInteractKeyPressed()
 {
-	if (bIsShopWidgetOpen)
-	{
-		CloseShopWidget();
-	}
-	else
+	if (!bIsShopWidgetOpen)
 	{
 		OpenShopWidget();
 	}

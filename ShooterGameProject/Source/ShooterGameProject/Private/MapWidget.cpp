@@ -62,7 +62,7 @@ void UMapWidget::CreateIconForMinimap(AActor* OwningActor)
 		if (UMapIconWidget* MapIconWidget = CreateWidget<UMapIconWidget>(this, MapIconWidgetClass))
 		{
 			MapIconWidget->IconOwner = OwningActor;
-			
+			MapIconWidget->MinimapWidget = this;
 			MapOverlay->AddChildToOverlay(MapIconWidget);
 			if (UOverlaySlot* MapIconSlot = Cast<UOverlaySlot>(MapIconWidget->Slot))
 			{
