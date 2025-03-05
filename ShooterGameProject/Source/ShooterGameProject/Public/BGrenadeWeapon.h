@@ -21,7 +21,6 @@ public:
     virtual void ActivateItem(AActor* Activator) override;
     // 공격 (수류탄 투척)
     virtual void Attack() override;
-
 protected:
     // 수류탄 투척 프로젝타일 클래스 (BP에서 설정 가능)
     UPROPERTY(EditDefaultsOnly, Category = "Grenade")

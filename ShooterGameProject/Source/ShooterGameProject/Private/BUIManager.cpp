@@ -17,6 +17,7 @@
 #include "KillLogWidget.h"
 #include "KillCountWidget.h"
 #include "BUIWeaponWheel.h"
+#include "BInventoryWidget.h"
 
 UBUIManager::UBUIManager()
 {
@@ -64,14 +65,18 @@ UBUIManager::UBUIManager()
 	{
 		WeaponWheelClass = WeaponWheelClassFinder.Class;
 	}
-
+	ConstructorHelpers::FClassFinder<UUserWidget> Inventory(TEXT("/Game/UI/WBP/WBP_InventoryWidget"));
+	if (Inventory.Succeeded())
+	{
+		InventoryWidget = Inventory.Class;
+	}
 	TitleWidgetInstance = nullptr;
 	LevelTransitionWidgetInstance = nullptr;
 	InGameMenuWidgetInstance = nullptr;
 	GameOverWidgetInstance = nullptr;
 	WeaponWheelInstance = nullptr;
+	InventoryWidgetInstance = nullptr;
 	HUDWidgetInstance = nullptr;
-
 	NotificationWidget = nullptr;
 	ItemNotificationWidget = nullptr;
 	HealthAndLevelWidget = nullptr;
@@ -95,6 +100,11 @@ UUserWidget* UBUIManager::GetInGameMenuWidgetInstance() { return InGameMenuWidge
 UUserWidget* UBUIManager::GetGameOverWidgetInstance() { return GameOverWidgetInstance; }
 UUserWidget* UBUIManager::GetHUDWidgetInstance() { return HUDWidgetInstance; }
 UUserWidget* UBUIManager::GetWeaponWheelInstance() { return WeaponWheelInstance; }
+
+UUserWidget* UBUIManager::GetInventoryInstance()
+{
+	return InventoryWidgetInstance;
+}
 
 /****************** TITLE SCREEN ******************/
 // Create Title widget instance
@@ -340,6 +350,21 @@ void UBUIManager::SetInputGameOnly()
 	}
 }
 
+void UBUIManager::SetInputUIAndGame()
+{
+	if (GameInstance)
+	{
+		if (UWorld* World = GameInstance->GetWorld())
+		{
+			if (APlayerController* PlayerController = World->GetFirstPlayerController())
+			{
+				PlayerController->bShowMouseCursor = true;
+				PlayerController->SetInputMode(FInputModeGameAndUI());
+			}
+		}
+	}
+}
+
 /****************** HUD ******************/
 void UBUIManager::DisplayHUD()
 {
@@ -458,6 +483,55 @@ void UBUIManager::RemoveHUD()
 	{
 		HUDWidgetInstance->RemoveFromParent();
 		HUDWidgetInstance = nullptr;
+	}
+}
+
+void UBUIManager::ShowInventory()
+{
+	if (InventoryWidgetInstance == nullptr)
+	{
+		if (InventoryWidget && GameInstance)
+		{
+			UUserWidget* UserWidget = CreateWidget<UUserWidget>(GameInstance, InventoryWidget);
+			InventoryWidgetInstance = Cast<UBInventoryWidget>(UserWidget);
+			if (InventoryWidgetInstance)
+			{
+				InventoryWidgetInstance->AddToViewport();
+			}
+		}
+	}
+	if (GameInstance)
+	{
+		if (UWorld* World = GameInstance->GetWorld())
+		{
+			if (APlayerController* PlayerController = World->GetFirstPlayerController())
+			{
+				PlayerController->SetPause(false);
+				PlayerController->bShowMouseCursor = true;
+				PlayerController->SetInputMode(FInputModeGameAndUI());
+			}
+		}
+	}
+}
+
+void UBUIManager::CloseInventory()
+{
+	if (InventoryWidgetInstance)
+	{
+		InventoryWidgetInstance->RemoveFromParent();
+		InventoryWidgetInstance = nullptr;
+	}
+	if (GameInstance)
+	{
+		if (UWorld* World = GameInstance->GetWorld())
+		{
+			if (APlayerController* PlayerController = World->GetFirstPlayerController())
+			{
+				PlayerController->SetPause(false);
+				PlayerController->bShowMouseCursor = false;		
+				PlayerController->SetInputMode(FInputModeGameOnly());
+			}
+		}
 	}
 }
 

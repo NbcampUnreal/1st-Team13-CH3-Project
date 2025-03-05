@@ -3,6 +3,7 @@
 
 #include "BFirstAidKit.h"
 #include "BCharacter.h"
+#include "BPlayerState.h"
 #include "Components/SphereComponent.h"
 ABFirstAidKit::ABFirstAidKit()
 {
@@ -14,6 +15,7 @@ ABFirstAidKit::ABFirstAidKit()
 void ABFirstAidKit::ActivateItem(AActor* Activator)
 {
 	// 오버랩 됐을 때 드래그 & 드롭 되게
+
 }
 
 FName ABFirstAidKit::GetItemType() const
@@ -48,11 +50,8 @@ void ABFirstAidKit::UseItem(AActor* Activator)
 		// ✅ 체력 회복 로직
 		PlayerState->AddCurrentHealth(RecoveryHealth); // PlayerState에서 체력 증가 함수 호출
 
-		// ✅ 구급상자 개수 감소
-		OverlappingCharacter->FirstAidKitCount--;
-
 		// ✅ 디버그 로그 출력
-		UE_LOG(LogTemp, Log, TEXT("✅ Used FirstAidKit: Health +%.1f,CurrentHealth: %f, Remaining Kits: %d"),
-			RecoveryHealth, PlayerState->GetCurrentHealth(), OverlappingCharacter->FirstAidKitCount);
+		UE_LOG(LogTemp, Log, TEXT("✅ Used FirstAidKit: Health +%.1f,CurrentHealth: %f"),
+			RecoveryHealth, PlayerState->GetCurrentHealth());
 	}
 }

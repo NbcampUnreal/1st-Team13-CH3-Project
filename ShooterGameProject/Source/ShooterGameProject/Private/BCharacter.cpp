@@ -8,6 +8,12 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "BMovementComponent.h"
+#include "Components/SphereComponent.h"
+#include "BBaseItem.h"
+#include "BPlayerState.h"
+#include "BUIManager.h"
+#include "BGameInstance.h"
+#include "BInventoryWidget.h"
 #include <BShotGun.h>
 
 ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
@@ -46,7 +52,9 @@ ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 	MoveComp->bCanWalkOffLedgesWhenCrouching = true;
 	MoveComp->SetCrouchedHalfHeight(65.0f);
 
-	
+	CollectNearItem = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+	CollectNearItem->SetupAttachment(GetRootComponent());
+	CollectNearItem->SetSphereRadius(400.f);
 }
 
 ABPlayerState* ABCharacter::GetBPlayerState() const
@@ -256,6 +264,8 @@ void ABCharacter::ZoomStop(const FInputActionValue& Value)
 void ABCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	State = Cast<ABPlayerState>(GetPlayerState());
 }
 void ABCharacter::Attack(const struct FInputActionValue& Value)
 {
@@ -283,23 +293,25 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 
 	UE_LOG(LogTemp, Warning, TEXT("🔍 [FireOnce] 현재 무기 타입: %s"), *CurrentWeapon->WeaponType);
 
-	// 🔹 수류탄인데 개수가 0이면 장착 해제
-	if (CurrentWeapon->WeaponType == "Grenade" && GrenadeCount <= 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("💣 수류탄 개수 0 -> 장착 해제"));
-		UnequipGrenade();
-		return;
-	}
-
 	CurrentWeapon->Attack();
 }
 void ABCharacter::UnequipGrenade()
 {
 	if (EquippedWeapon && EquippedWeapon->WeaponType == "Grenade")
 	{
-		EquippedWeapon = nullptr;
+			UE_LOG(LogTemp, Log, TEXT("Hiding previously equipped weapon: %s"), *EquippedWeapon->WeaponType);
+			EquippedWeapon->SetActorHiddenInGame(true);
+			EquippedWeapon->SetActorEnableCollision(false);
+			EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+
+			// 무기 보관 위치 설정
+			FName StorageSocketName = TEXT("WeaponStorageSocket");
+			if (GetMesh()->DoesSocketExist(StorageSocketName))
+			{
+				EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, StorageSocketName);
+			}
+		
 		UE_LOG(LogTemp, Log, TEXT("💣 수류탄 장착 해제 완료!"));
-		EquipWeaponByType(EWeaponSlot::Throwable);
 	}
 }
 
@@ -401,12 +413,12 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	// 🔹 무기 메쉬 확인
 	UStaticMeshComponent* WeaponMesh = WeaponToEquip->FindComponentByClass<UStaticMeshComponent>();
 
-	// 🔹 수류탄인데 개수가 0이면 장착 안되게 설정
-	if (Slot == EWeaponSlot::Throwable && GrenadeCount <= 0)
-	{
-		UE_LOG(LogTemp, Error, TEXT("❌ GrenadeCount is 0"));
-		WeaponMesh = nullptr;
-	}
+	//// 🔹 수류탄인데 개수가 0이면 장착 안되게 설정
+	//if (Slot == EWeaponSlot::Throwable && GrenadeCount <= 0)
+	//{
+	//	UE_LOG(LogTemp, Error, TEXT("❌ GrenadeCount is 0"));
+	//	WeaponMesh = nullptr;
+	//}
 
 	// 🔹 WeaponMesh가 nullptr이면 기존 무기 해제
 	if (!WeaponMesh)
@@ -440,50 +452,88 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 
 	// 🔹 새로운 무기 장착
 	FName TargetSocketName = TEXT("WeaponSocket");
-	if (GetMesh()->DoesSocketExist(TargetSocketName))
+	if (!GetMesh()->DoesSocketExist(TargetSocketName))
 	{
-		// 🔹 먼저 무기를 숨김 해제
-		WeaponToEquip->SetActorHiddenInGame(false);
-		WeaponToEquip->SetActorEnableCollision(true);
-		WeaponToEquip->ForceNetUpdate(); // 네트워크 동기화
+		UE_LOG(LogTemp, Error, TEXT("❌ Target Socket %s does not exist!"), *TargetSocketName.ToString());
+		return;
+	}
 
-		// 🔹 무기 부착
-		WeaponToEquip->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TargetSocketName);
+	// 🔹 먼저 무기를 숨김 해제
+	WeaponToEquip->SetActorHiddenInGame(false);
+	WeaponToEquip->SetActorEnableCollision(true);
+	WeaponToEquip->ForceNetUpdate(); // 네트워크 동기화
 
-		// 🔹 무기 메쉬 처리
-		if (WeaponMesh)
-		{
-			WeaponMesh->SetHiddenInGame(false);
-			WeaponMesh->SetVisibility(true);
-			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		}
+	// 🔹 AttachToComponent 시도 및 성공 여부 확인
+	bool bAttachSuccess = WeaponToEquip->AttachToComponent(GetMesh(),
+		FAttachmentTransformRules::SnapToTargetNotIncludingScale, TargetSocketName);
 
-		// 🔹 무기 회전값 조정 (무기 타입별)
-		FRotator AdjustedRotation(0.0f, 0.0f, 0.0f);
-		if (WeaponToEquip->WeaponType == "Rifle" || WeaponToEquip->WeaponType == "Shotgun")
-		{
-			AdjustedRotation = FRotator(0.0f, -180.0f, 0.0f);
-		}
-		else if (WeaponToEquip->WeaponType == "Pistol")
-		{
-			AdjustedRotation = FRotator(0.0f, 90.0f, 90.0f);
-		}
-		else if (WeaponToEquip->WeaponType == "Melee")
-		{
-			AdjustedRotation = FRotator(90.0f, -90.0f, 90.0f);
-		}
-		WeaponToEquip->SetActorRelativeRotation(AdjustedRotation);
-
-		// 🔹 장착된 무기 업데이트
-		EquippedWeapon = WeaponToEquip;
-
-		UE_LOG(LogTemp, Warning, TEXT("✅ Equipped %s on %s"), *EquippedWeapon->WeaponType, *TargetSocketName.ToString());
-		UE_LOG(LogTemp, Warning, TEXT("📌 CurrentWeapon: %s"), *EquippedWeapon->GetName());
+	if (!bAttachSuccess)
+	{
+		UE_LOG(LogTemp, Error, TEXT("❌ AttachToComponent FAILED for %s!"), *WeaponToEquip->GetName());
+		return;
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Weapon socket %s does not exist!"), *TargetSocketName.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("✅ %s attached to %s successfully: %s"), *WeaponToEquip->GetName(), *TargetSocketName.ToString(), *WeaponToEquip -> GetActorLocation().ToString());
 	}
+
+	// 🔹 무기 메쉬 처리
+	if (WeaponMesh)
+	{
+		WeaponMesh->SetHiddenInGame(false);
+		WeaponMesh->SetVisibility(true);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
+	// 🔹 물리(Physics) 영향 방지
+	WeaponMesh->SetSimulatePhysics(false);
+
+	// 🔹 무기 회전값 조정 (무기 타입별)
+	FRotator AdjustedRotation(0.0f, 0.0f, 0.0f);
+	if (WeaponToEquip->WeaponType == "Rifle" || WeaponToEquip->WeaponType == "Shotgun")
+	{
+		AdjustedRotation = FRotator(0.0f, -180.0f, 0.0f);
+	}
+	else if (WeaponToEquip->WeaponType == "Pistol")
+	{
+		AdjustedRotation = FRotator(0.0f, 90.0f, 90.0f);
+	}
+	else if (WeaponToEquip->WeaponType == "Melee")
+	{
+		AdjustedRotation = FRotator(90.0f, -90.0f, 90.0f);
+	}
+	else if (WeaponToEquip->WeaponType == "Grenade")
+	{
+		WeaponToEquip->SetActorRelativeLocation(FVector::ZeroVector);
+		AdjustedRotation = FRotator(90.0f, -90.0f, 90.0f); 
+	}
+	WeaponToEquip->SetActorRelativeRotation(AdjustedRotation);
+
+	// 🔹 장착된 무기 업데이트
+	EquippedWeapon = WeaponToEquip;
+
+	UE_LOG(LogTemp, Warning, TEXT("✅ Equipped %s on %s"), *EquippedWeapon->WeaponType, *TargetSocketName.ToString());
+	UE_LOG(LogTemp, Warning, TEXT("📌 CurrentWeapon: %s"), *EquippedWeapon->GetName());
+}
+
+void ABCharacter::InventorySwitch()
+{
+	static bool Switch = false;
+
+	if (!Switch)
+	{
+		ShowInventory();
+	}
+	else
+	{
+		CloseInventory();
+	}
+	Switch = !Switch;
+}
+
+void ABCharacter::UseItem(const FName& ItemName)
+{
+	State->UseItem(ItemName);
 }
 
 
@@ -514,6 +564,50 @@ void ABCharacter::EquipMelee()
 	ActiveWeaponSlot = EWeaponSlot::Melee;
 	EquipWeaponByType(ActiveWeaponSlot);
 }
+
+TArray<ABBaseItem*> ABCharacter::GetNearItemArray() const
+{
+	TArray<AActor*> ActivateItem;
+	TArray<ABBaseItem*> BaseItem;
+
+	CollectNearItem->GetOverlappingActors(ActivateItem);
+
+	for (AActor* Actor : ActivateItem)
+	{
+		if (ABBaseItem* Base = Cast<ABBaseItem>(Actor))
+		{
+			BaseItem.Add(Base);
+		}
+	}
+	return BaseItem;
+}
+
+void ABCharacter::ShowInventory()
+{
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
+		{
+			UIManager->ShowInventory();
+			if (UBInventoryWidget* Inventory = Cast<UBInventoryWidget>(UIManager->GetInventoryInstance()))
+			{
+				Inventory->SendItemData(GetNearItemArray(), Cast<ABPlayerState>(GetPlayerState()));
+			}
+		}
+	}
+}
+
+void ABCharacter::CloseInventory()
+{
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
+		{
+			UIManager->CloseInventory();
+		}
+	}
+}
+
 
 void ABCharacter::EquipGrenade()
 {

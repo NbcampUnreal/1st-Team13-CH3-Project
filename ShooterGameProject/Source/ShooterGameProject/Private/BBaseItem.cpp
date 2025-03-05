@@ -28,14 +28,18 @@ ABBaseItem::ABBaseItem()
     // Overlap 이벤트 바인딩
     Collision->OnComponentBeginOverlap.AddDynamic(this, &ABBaseItem::OnItemOverlap);
     Collision->OnComponentEndOverlap.AddDynamic(this, &ABBaseItem::OnItemEndOverlap);
-
 }
 
 // Called when the game starts or when spawned
 void ABBaseItem::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+    if (ItemName.IsValid())
+    {
+        ItemData.ItemName = ItemName;
+    }
+    ItemData.ItemRef = this;
 }
 
 void ABBaseItem::OnItemOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -73,6 +77,11 @@ FName ABBaseItem::GetItemType() const
 	return ItemType;
 }
 
+void ABBaseItem::SetItemData(const FItemData& Data)
+{
+    ItemData = Data;
+}
+
 FName ABBaseItem::GetItemName() const
 {
 	return ItemName;
@@ -87,6 +96,11 @@ void ABBaseItem::DestroyItem()
 {
 	// AActor에서 제공하는 Destroy() 함수로 객체 제거
 	Destroy();
+}
+
+FItemData ABBaseItem::GetItemData() const
+{
+    return ItemData;
 }
 
 
