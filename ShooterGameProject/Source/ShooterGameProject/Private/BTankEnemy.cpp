@@ -6,12 +6,12 @@ ABTankEnemy::ABTankEnemy()
 {
 	MaxHP = 500.f;
 	CurrentHP = MaxHP;
-	Power = 10.f;
-	Speed = 150.f;
+	Power = 30.f;
+	Speed = 350.f;
 	AttackSpeed = 3.f;
 	CoolTime = 5.f;
 	SkillDuration = 2.f;
-	AttackRange = 100.f;
+	AttackRange = 150.f;
 	bIsRanged = false;
 	bIsReflecting = false;
 
@@ -25,9 +25,19 @@ ABTankEnemy::ABTankEnemy()
 	ExplosionCollision->SetupAttachment(RootComponent);
 }
 
-float ABTankEnemy::GetAttackRange() const
+float ABTankEnemy::GetExplosionDamage()
 {
-	return AttackRange;
+	return ExplosionDamage;
+}
+
+float ABTankEnemy::GetExplosionDelay()
+{
+	return ExplosionDelay;
+}
+
+float ABTankEnemy::GetExplosionRadius()
+{
+	return ExplosionRadius;
 }
 
 void ABTankEnemy::UseSkill()

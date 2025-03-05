@@ -1,13 +1,23 @@
 #include "BUIManager.h"
-#include "Blueprint/UserWidget.h"
-#include "Components/TextBlock.h"
-#include "Components/ProgressBar.h"
-#include "Components/Image.h"
 #include "BGameInstance.h"
-#include "BPlayerController.h"
+#include "BPlayerState.h"
+#include "BGameState.h"
 #include "BCharacter.h"
+#include "BBaseWeapon.h"
+#include "BBaseGun.h"
+#include "BPistol.h"
 #include "NotificationWidget.h"
 #include "ItemNotificationWidget.h"
+#include "HealthAndLevelWidget.h"
+#include "MapWidget.h"
+#include "QuickslotWidget.h"
+#include "MissionWidget.h"
+#include "WeaponAmmoWidget.h"
+#include "CrosshairWidget.h"
+#include "KillLogWidget.h"
+#include "KillCountWidget.h"
+#include "BUIWeaponWheel.h"
+#include "BInventoryWidget.h"
 
 UBUIManager::UBUIManager()
 {
@@ -15,66 +25,70 @@ UBUIManager::UBUIManager()
 
 	/**** Assign WBPs to TSubclassOf variables using FClassFinder ****/
 	// Title Screen
-	ConstructorHelpers::FClassFinder<UUserWidget> TitleWidgetClassFinder(TEXT("/Game/UI/WBP_TitleScreen"));
+	ConstructorHelpers::FClassFinder<UUserWidget> TitleWidgetClassFinder(TEXT("/Game/UI/WBP/WBP_TitleScreen"));
 	if (TitleWidgetClassFinder.Succeeded())
 	{
 		TitleWidgetClass = TitleWidgetClassFinder.Class;
 	}
 
 	// Level Transition
-	ConstructorHelpers::FClassFinder<UUserWidget> LevelTransitionWidgetClassFinder(TEXT("/Game/UI/WBP_LevelTransition"));
+	ConstructorHelpers::FClassFinder<UUserWidget> LevelTransitionWidgetClassFinder(TEXT("/Game/UI/WBP/WBP_LevelTransition"));
 	if (LevelTransitionWidgetClassFinder.Succeeded())
 	{
 		LevelTransitionWidgetClass = LevelTransitionWidgetClassFinder.Class;
 	}
 
 	// In-Game Menu
-	ConstructorHelpers::FClassFinder<UUserWidget> InGameMenuWidgetClassFinder(TEXT("/Game/UI/WBP_InGameMenu"));
+	ConstructorHelpers::FClassFinder<UUserWidget> InGameMenuWidgetClassFinder(TEXT("/Game/UI/WBP/WBP_InGameMenu"));
 	if (InGameMenuWidgetClassFinder.Succeeded())
 	{
 		InGameMenuWidgetClass = InGameMenuWidgetClassFinder.Class;
 	}
 
 	// Game Over
-	ConstructorHelpers::FClassFinder<UUserWidget> GameOverWidgetClassFinder(TEXT("/Game/UI/WBP_GameOverMenu"));
+	ConstructorHelpers::FClassFinder<UUserWidget> GameOverWidgetClassFinder(TEXT("/Game/UI/WBP/WBP_GameOverMenu"));
 	if (GameOverWidgetClassFinder.Succeeded())
 	{
 		GameOverWidgetClass = GameOverWidgetClassFinder.Class;
 	}
 
 	// HUD
-	ConstructorHelpers::FClassFinder<UUserWidget> HUDWidgetClassFinder(TEXT("/Game/UI/WBP_HUD"));
+	ConstructorHelpers::FClassFinder<UUserWidget> HUDWidgetClassFinder(TEXT("/Game/UI/WBP/WBP_HUD"));
 	if (HUDWidgetClassFinder.Succeeded())
 	{
 		HUDWidgetClass = HUDWidgetClassFinder.Class;
 	}
-	
-	/**** Get and assign textures ****/
-	ConstructorHelpers::FObjectFinder<UTexture2D> PistolIconFinder(TEXT("/Game/UI/Textures/T_Pistol_Icon.T_Pistol_Icon"));
-	if (PistolIconFinder.Succeeded())
-	{
-		PistolIconTexture = PistolIconFinder.Object;
-	}
 
-	ConstructorHelpers::FObjectFinder<UTexture2D> RifleIconFinder(TEXT("/Game/UI/Textures/T_Rifle_Icon.T_Rifle_Icon"));
-	if (RifleIconFinder.Succeeded())
+	// WeaponWheel
+	ConstructorHelpers::FClassFinder<UUserWidget> WeaponWheelClassFinder(TEXT("/Game/UI/WBP/WBP_BUIWeaponWheel"));
+	if (WeaponWheelClassFinder.Succeeded())
 	{
-		RifleIconTexture  = RifleIconFinder.Object;
+		WeaponWheelClass = WeaponWheelClassFinder.Class;
 	}
-
+	ConstructorHelpers::FClassFinder<UUserWidget> Inventory(TEXT("/Game/UI/WBP/WBP_InventoryWidget"));
+	if (Inventory.Succeeded())
+	{
+		InventoryWidget = Inventory.Class;
+	}
 	TitleWidgetInstance = nullptr;
 	LevelTransitionWidgetInstance = nullptr;
 	InGameMenuWidgetInstance = nullptr;
 	GameOverWidgetInstance = nullptr;
+	WeaponWheelInstance = nullptr;
+	InventoryWidgetInstance = nullptr;
 	HUDWidgetInstance = nullptr;
 	NotificationWidget = nullptr;
+	ItemNotificationWidget = nullptr;
+	HealthAndLevelWidget = nullptr;
+	MapWidget = nullptr;
+	MissionWidget = nullptr;
+	QuickslotWidget = nullptr;
+	WeaponAmmoWidget = nullptr;
+	CrosshairWidget = nullptr;
+	KillLogWidget = nullptr;
+	KillCountWidget = nullptr;
 
-}
-
-// Create HUD widget when properties are initialized
-void UBUIManager::PostInitProperties()
-{
-	Super::PostInitProperties();
+	bIsWeaponWheelOpen = false;
 
 	GameInstance = Cast<UBGameInstance>(GetOuter());
 }
@@ -85,6 +99,12 @@ UUserWidget* UBUIManager::GetLevelTransitionWidgetInstance() { return LevelTrans
 UUserWidget* UBUIManager::GetInGameMenuWidgetInstance() { return InGameMenuWidgetInstance; }
 UUserWidget* UBUIManager::GetGameOverWidgetInstance() { return GameOverWidgetInstance; }
 UUserWidget* UBUIManager::GetHUDWidgetInstance() { return HUDWidgetInstance; }
+UUserWidget* UBUIManager::GetWeaponWheelInstance() { return WeaponWheelInstance; }
+
+UUserWidget* UBUIManager::GetInventoryInstance()
+{
+	return InventoryWidgetInstance;
+}
 
 /****************** TITLE SCREEN ******************/
 // Create Title widget instance
@@ -141,7 +161,7 @@ void UBUIManager::LevelStartTransition()
 		}
 	}
 
-	SetInputUIOnly();
+	//SetInputUIOnly();
 }
 
 // Plays a fade-in animation and is removed from parent (WBP Graph Function)
@@ -159,7 +179,7 @@ void UBUIManager::LevelEndTransition()
 		}
 	}
 
-	// Call WBP Event that plays widget animation and removes the widget upon animation finished event
+	// Call WBP Event that plays widget animation and calls NextLevel upon finished event
 	if (LevelTransitionWidgetInstance)
 	{
 		if (UFunction* OnLevelEnd = LevelTransitionWidgetInstance->FindFunction("OnLevelEnd"))
@@ -230,7 +250,7 @@ void UBUIManager::EnterGameOverScreen()
 	}
 }
 
-// Plays a fade-out animation and is removed from parent (WBP Graph Function)
+// Remove Instance (WBP Graph Function)
 void UBUIManager::ExitGameOverScreen()
 {
 	if (GameOverWidgetInstance)
@@ -241,7 +261,65 @@ void UBUIManager::ExitGameOverScreen()
 	}
 }
 
-/****************** Input Mode & Mouse Cursor ******************/
+/****************** WEAPON WHEEL ******************/
+
+
+// Create weapon wheel widget instance --> animation in WBP
+void UBUIManager::EnterWeaponWheel()
+{
+	if (bIsWeaponWheelOpen) return;
+
+	if (WeaponWheelClass && WeaponWheelInstance == nullptr)
+	{
+		if (GameInstance)
+		{
+			WeaponWheelInstance = CreateWidget<UUserWidget>(GameInstance, WeaponWheelClass);
+			if (WeaponWheelInstance)
+			{
+				WeaponWheelInstance->AddToViewport();
+				//SetInputUIOnly(); // TODO: This won't respond to key released event, will it? Should I change IMC?
+
+				if (UWorld* World = GameInstance->GetWorld())
+				{
+					if (APlayerController* PlayerController = World->GetFirstPlayerController())
+					{
+						PlayerController->bShowMouseCursor = true;
+						PlayerController->SetInputMode(FInputModeGameAndUI());
+					}
+				}
+
+				bIsWeaponWheelOpen = true;
+			}
+		}
+	}
+}
+
+// Remove instance (To be called when fade out animation is finished)
+void UBUIManager::ExitWeaponWheel()
+{
+	if (!bIsWeaponWheelOpen) return;
+
+	if (WeaponWheelInstance)
+	{
+		if (UBUIWeaponWheel* WeaponWheelWidget = Cast<UBUIWeaponWheel>(WeaponWheelInstance))
+		{
+			WeaponWheelWidget->ExitWeaponWheel();
+		}
+	}
+}
+
+void UBUIManager::RemoveWeaponWheel()
+{
+	if (WeaponWheelInstance)
+	{
+		WeaponWheelInstance->RemoveFromParent();
+		WeaponWheelInstance = nullptr;
+		SetInputGameOnly();
+		bIsWeaponWheelOpen = false;
+	}
+}
+
+/****************** Switch Input Mode & Mouse Cursor ******************/
 void UBUIManager::SetInputUIOnly()
 {
 	if (GameInstance)
@@ -272,19 +350,22 @@ void UBUIManager::SetInputGameOnly()
 	}
 }
 
-/****************** HUD ******************/
-// Crosshair animation when fired
-void UBUIManager::OnFire()
+void UBUIManager::SetInputUIAndGame()
 {
-	if (HUDWidgetInstance)
+	if (GameInstance)
 	{
-		if (UFunction* OnFireFunc = HUDWidgetInstance->FindFunction(TEXT("OnFire")))
+		if (UWorld* World = GameInstance->GetWorld())
 		{
-			HUDWidgetInstance->ProcessEvent(OnFireFunc, nullptr);
+			if (APlayerController* PlayerController = World->GetFirstPlayerController())
+			{
+				PlayerController->bShowMouseCursor = true;
+				PlayerController->SetInputMode(FInputModeGameAndUI());
+			}
 		}
 	}
 }
 
+/****************** HUD ******************/
 void UBUIManager::DisplayHUD()
 {
 	/**** Create and display HUD widget instance ****/
@@ -304,7 +385,88 @@ void UBUIManager::DisplayHUD()
 	{
 		HUDWidgetInstance->SetVisibility(ESlateVisibility::HitTestInvisible);
 		// TODO: 페이드 인
+
+		// GetWidgetFromName
+		CrosshairWidget = Cast<UCrosshairWidget>(HUDWidgetInstance->GetWidgetFromName(TEXT("CrosshairWidget")));
+		HealthAndLevelWidget = Cast<UHealthAndLevelWidget>(HUDWidgetInstance->GetWidgetFromName(TEXT("HealthAndLevelWidget")));
+		MapWidget = Cast<UMapWidget>(HUDWidgetInstance->GetWidgetFromName(TEXT("MapWidget")));
+		QuickslotWidget = Cast<UQuickslotWidget>(HUDWidgetInstance->GetWidgetFromName(TEXT("QuickslotWidget")));
+		WeaponAmmoWidget = Cast<UWeaponAmmoWidget>(HUDWidgetInstance->GetWidgetFromName(TEXT("WeaponAmmoWidget")));
+		NotificationWidget = Cast<UNotificationWidget>(HUDWidgetInstance->GetWidgetFromName(TEXT("NotificationWidget")));
+		ItemNotificationWidget = Cast<UItemNotificationWidget>(HUDWidgetInstance->GetWidgetFromName(TEXT("ItemNotificationWidget")));
+		MissionWidget = Cast<UMissionWidget>(HUDWidgetInstance->GetWidgetFromName(TEXT("MissionWidget")));
+		KillLogWidget = Cast<UKillLogWidget>(HUDWidgetInstance->GetWidgetFromName(TEXT("KillLogWidget")));
+		KillCountWidget = Cast<UKillCountWidget>(HUDWidgetInstance->GetWidgetFromName(TEXT("KillCountWidget")));
+
+		UpdateHUD();
 	}
+}
+
+void UBUIManager::UpdateHUD()
+{
+	if (GetWorld())
+	{
+		if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+		{
+			if (UInputComponent* PlayerInputComponent = PlayerController->InputComponent)
+			{
+				PlayerInputComponent->BindAction("WeaponWheel", IE_Pressed, this, &UBUIManager::EnterWeaponWheel);
+				PlayerInputComponent->BindAction("WeaponWheel", IE_Released, this, &UBUIManager::ExitWeaponWheel);
+			}
+
+			if (ABPlayerState* PlayerState = PlayerController->GetPlayerState<ABPlayerState>())
+			{
+				UpdateHUDHealth(PlayerState->GetCurrentHealth(), PlayerState->GetMaxHealth());
+				// TODO: UpdateHUDLevelAndExp(PlayerState->GetCurrentLevel(), PlayerState->GetCurrentExp(), PlayerState->GetMaxExp()); 
+				UpdateHUDLevelAndExp(1, 0, 100);
+			}
+
+			if (ABCharacter* Character = Cast<ABCharacter>(PlayerController->GetCharacter()))
+			{
+				if (ABBaseWeapon* EquippedWeapon = Character->GetCurrentWeapon())
+				{
+					UpdateHUDEquippedWeapon(EquippedWeapon->WeaponType);
+					if (EquippedWeapon->IsA<ABBaseGun>())
+					{
+						ABBaseGun* EquippedGun = Cast<ABBaseGun>(EquippedWeapon);
+						UpdateHUDLoadedAmmo(EquippedGun->AmmoCount);
+						
+						if (EquippedWeapon->IsA<ABPistol>())
+						{
+							UpdateHUDInventoryAmmo();
+						}
+						else
+						{
+							// TODO: UpdateHUDInventoryAmmo(); pass the amount of ammo in the inventory for the equipped gun type
+							UpdateHUDInventoryAmmo(123);
+						}
+					}
+					else
+					{
+						UpdateHUDLoadedAmmo();
+						UpdateHUDInventoryAmmo();
+					}
+				}
+				// TODO: UpdateHUDQuickSlot("FirstAidKit", Inventory->GetCount("FirstAidKit"));
+				UpdateHUDQuickSlot("FirstAidKit", 11);
+				UpdateHUDQuickSlot("Grenade", 11);
+			}
+		}
+
+		if (GameInstance)
+		{
+			//UpdateCurrentScore(GameInstance->GetScore());
+			UpdateCurrentScore(0);
+		}
+
+		if (ABGameState* GameState = GetWorld()->GetGameState<ABGameState>())
+		{
+			//UpdateKillCount(GameState->GetKilledEnemies());
+			UpdateKillCount(0);
+		}
+	}
+
+	UpdateHUDTimed();
 }
 
 void UBUIManager::CollapseHUD()
@@ -324,155 +486,215 @@ void UBUIManager::RemoveHUD()
 	}
 }
 
-// Update timed elements in HUD (repeated by UpdateHUDTimerHandle)
-void UBUIManager::UpdateHUDTimed()
+void UBUIManager::ShowInventory()
 {
-	// UpdateHUDMap(); 호출??
-}
-
-void UBUIManager::UpdateHUDHealth(float CurrentHP, float MaxHP)
-{
-	if (MaxHP == 0)
+	if (InventoryWidgetInstance == nullptr)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("!UpdateHUDHealth received 0 as MaxHP!"));
-		return;
-	}
-
-	if (HUDWidgetInstance)
-	{
-		// HP Numbers
-		if (UTextBlock* CurrentHPText = Cast<UTextBlock>(HUDWidgetInstance->GetWidgetFromName(TEXT("CurrentHPText"))))
+		if (InventoryWidget && GameInstance)
 		{
-			CurrentHPText->SetText(FText::FromString(FString::Printf(TEXT("%.0f"), CurrentHP)));
-		}
-		if (UTextBlock* MaxHPText = Cast<UTextBlock>(HUDWidgetInstance->GetWidgetFromName(TEXT("MaxHPText"))))
-		{
-			MaxHPText->SetText(FText::FromString(FString::Printf(TEXT("%.0f"), MaxHP)));
-		}
-
-		// HP Bar
-		if (UProgressBar* HPBar = Cast<UProgressBar>(HUDWidgetInstance->GetWidgetFromName(TEXT("HPBar"))))
-		{
-			float HPPercent = CurrentHP / MaxHP;
-			HPBar->SetPercent(HPPercent);
-		}
-	}
-}
-
-void UBUIManager::UpdateHUDQuickSlot(FName ItemName, int32 Count)
-{
-	// TODO: Based on ItemType, change the count of that item in quick slot
-	FName WidgetName = "";
-	if (ItemName == "FirstAidKit")
-	{
-		WidgetName = "QuickSlotCountText_0";
-	}
-
-	if (HUDWidgetInstance)
-	{
-		if (UTextBlock* QuickSlotText = Cast<UTextBlock>(HUDWidgetInstance->GetWidgetFromName(WidgetName)))
-		{
-			QuickSlotText->SetText(FText::FromString(FString::Printf(TEXT("%d"), Count)));
-		}
-	}
-}
-
-void UBUIManager::UpdateHUDAmmo(int32 LoadedCount, int32 InventoryCount)
-{
-	if (HUDWidgetInstance)
-	{
-		// Count of ammo loaded into current weapon
-		if (UTextBlock* LoadedAmmoText = Cast<UTextBlock>(HUDWidgetInstance->GetWidgetFromName(TEXT("LoadedAmmoText"))))
-		{
-			LoadedAmmoText->SetText(FText::FromString(FString::Printf(TEXT("%d"), LoadedCount)));
-		}
-		if (UTextBlock* InventoryAmmoText = Cast<UTextBlock>(HUDWidgetInstance->GetWidgetFromName(TEXT("InventoryAmmoText"))))
-		{
-			InventoryAmmoText->SetText(FText::FromString(FString::Printf(TEXT("%d"), InventoryCount)));
-		}
-	}
-}
-
-void UBUIManager::UpdateHUDEquippedWeapon(FName WeaponType)
-{
-	UTexture2D* WeaponTexture = nullptr;
-	if (WeaponType == "Pistol" && IsValid(PistolIconTexture))
-	{
-		WeaponTexture = PistolIconTexture;
-	}
-	else if (WeaponType == "Rifle" && IsValid(RifleIconTexture))
-	{
-		WeaponTexture = RifleIconTexture;
-	}
-
-	if (HUDWidgetInstance)
-	{
-		if (UImage* WeaponImage = Cast<UImage>(HUDWidgetInstance->GetWidgetFromName(TEXT("WeaponImage"))))
-		{
-			if (WeaponTexture)
+			UUserWidget* UserWidget = CreateWidget<UUserWidget>(GameInstance, InventoryWidget);
+			InventoryWidgetInstance = Cast<UBInventoryWidget>(UserWidget);
+			if (InventoryWidgetInstance)
 			{
-				WeaponImage->SetBrushFromTexture(WeaponTexture);
+				InventoryWidgetInstance->AddToViewport();
+			}
+		}
+	}
+	if (GameInstance)
+	{
+		if (UWorld* World = GameInstance->GetWorld())
+		{
+			if (APlayerController* PlayerController = World->GetFirstPlayerController())
+			{
+				PlayerController->SetPause(false);
+				PlayerController->bShowMouseCursor = true;
+				PlayerController->SetInputMode(FInputModeGameAndUI());
 			}
 		}
 	}
 }
 
-void UBUIManager::DisplayNotification(FString Title, FString Message)
+void UBUIManager::CloseInventory()
 {
-	if (HUDWidgetInstance)
+	if (InventoryWidgetInstance)
 	{
-		NotificationWidget = Cast<UNotificationWidget>(HUDWidgetInstance->GetWidgetFromName(TEXT("NotificationWidget")));
-		//if (NotificationWidgetClass && NotificationWidget == nullptr)
+		InventoryWidgetInstance->RemoveFromParent();
+		InventoryWidgetInstance = nullptr;
+	}
+	if (GameInstance)
+	{
+		if (UWorld* World = GameInstance->GetWorld())
+		{
+			if (APlayerController* PlayerController = World->GetFirstPlayerController())
+			{
+				PlayerController->SetPause(false);
+				PlayerController->bShowMouseCursor = false;		
+				PlayerController->SetInputMode(FInputModeGameOnly());
+			}
+		}
+	}
+}
+
+// Update timed elements in HUD (repeated by UpdateHUDTimerHandle)
+void UBUIManager::UpdateHUDTimed()
+{
+	if (GetWorld() && !GetWorld()->bIsTearingDown)
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+			UpdateHUDTimerHandle,
+			this,
+			&UBUIManager::UpdateHUDMap,
+			0.1f,
+			true
+		);
+	}
+}
+
+void UBUIManager::UpdateHUDMap()
+{
+	if (GetWorld() == nullptr || GetWorld()->bIsTearingDown) return;
+
+	if (HUDWidgetInstance && MapWidget)
+	{
+		MapWidget->UpdateMap();
+	}
+}
+
+void UBUIManager::UpdateHUDItemMission(const FName& ItemName, const int32& CurrentCount, const int32& TargetCount)
+{
+	if (HUDWidgetInstance && MissionWidget)
+	{
+		MissionWidget->UpdateItemMission(ItemName, CurrentCount, TargetCount);
+	}
+}
+
+void UBUIManager::UpdateHUDBonusMission(const int32& CurrentCount, const int32& TargetCount)
+{
+	if (HUDWidgetInstance && MissionWidget)
+	{
+		MissionWidget->UpdateBonusMission(CurrentCount, TargetCount);
+	}
+}
+
+void UBUIManager::RemoveAllMissions()
+{
+	if (HUDWidgetInstance && MissionWidget)
+	{
+		MissionWidget->RemoveAllMissions();
+	}
+}
+
+void UBUIManager::UpdateKillLog(const FName& KilledName)
+{
+	if (HUDWidgetInstance && KillLogWidget)
+	{
+		//if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 		//{
-		//	if (UWidget* HUDPanel = HUDWidgetInstance->GetWidgetFromName(TEXT("HUDPanel")))
+		//	if (ABCharacter* Character = Cast<ABCharacter>(PlayerController->GetCharacter()))
 		//	{
-		//		NotificationWidget = CreateWidget<UNotificationWidget>(HUDPanel, NotificationWidgetClass, "NotificationWidget");
-		//		if (NotificationWidget)
+		//		if (ABBaseWeapon* EquippedWeapon = Character->GetCurrentWeapon())
 		//		{
-		//			NotificationWidget->SetAnchorsInViewport(FAnchors(0.5f, 0.f));
-		//			NotificationWidget->SetPositionInViewport(FVector2D(0.f, 50.f));
-		//			NotificationWidget->SetDesiredSizeInViewport(FVector2D(500.f, 150.f));
-		//			NotificationWidget->SetAlignmentInViewport(FVector2D(0.5f, 0.f));
-		//			NotificationWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
-		//			UE_LOG(LogTemp, Warning, TEXT("NotificationWidget Created"))
-		//		}
-		//	}
+					KillLogWidget->UpdateKillLog(KilledName);
+				//}
+			//}
 		//}
-		if (NotificationWidget)
-		{
-			NotificationWidget->DisplayNotification(Title, Message);
-		}
 	}
 }
 
-void UBUIManager::RemoveNotification()
+void UBUIManager::UpdateKillCount(const int32& KillCount)
 {
-	if (NotificationWidget)
+	if (HUDWidgetInstance && KillCountWidget)
 	{
-		NotificationWidget->RemoveNotification();
-		//NotificationWidget->RemoveFromParent();
-		//NotificationWidget = nullptr;
-		UE_LOG(LogTemp, Warning, TEXT("Things inside NotificationWidget Removed"))
+		KillCountWidget->UpdateKillCount(KillCount);
 	}
 }
 
-void UBUIManager::DisplayItemNotification(FName ItemName)
+void UBUIManager::UpdateCurrentScore(const int32& CurrentScore)
 {
-	if (HUDWidgetInstance)
+	if (HUDWidgetInstance && KillCountWidget)
 	{
-		ItemNotificationWidget = Cast<UItemNotificationWidget>(
-			HUDWidgetInstance->GetWidgetFromName("ItemNotificationWidget"));
-		{
-			ItemNotificationWidget->DisplayNotification(ItemName);
-		}
+		KillCountWidget->UpdateCurrentScore(CurrentScore);
 	}
 }
 
-void UBUIManager::RemoveItemNotification()
+void UBUIManager::UpdateHUDHealth(const float& CurrentHP, const float& MaxHP)
 {
-	if (ItemNotificationWidget)
+	if (HUDWidgetInstance && HealthAndLevelWidget)
 	{
-		ItemNotificationWidget->RemoveNotification();
+		HealthAndLevelWidget->UpdateHealth(CurrentHP, MaxHP);
+	}
+}
+
+void UBUIManager::UpdateHUDLevelAndExp(const int32& PlayerLevel, const float& CurrentExp, const float& MaxExp)
+{
+	if (HUDWidgetInstance && HealthAndLevelWidget)
+	{
+		HealthAndLevelWidget->UpdateLevelAndExp(PlayerLevel, CurrentExp, MaxExp);
+	}
+}
+
+void UBUIManager::UpdateHUDQuickSlot(const FName& ItemName, const int32& Count)
+{
+	if (HUDWidgetInstance && QuickslotWidget)
+	{
+		QuickslotWidget->UpdateQuickslot(ItemName, Count);
+	}	
+}
+
+void UBUIManager::UpdateHUDLoadedAmmo(const int32& LoadedAmmo)
+{
+	if (HUDWidgetInstance && WeaponAmmoWidget)
+	{
+		WeaponAmmoWidget->UpdateLoadedAmmo(LoadedAmmo);
+	}	
+}
+
+void UBUIManager::UpdateHUDInventoryAmmo(const int32& InventoryAmmo)
+{
+	if (HUDWidgetInstance && WeaponAmmoWidget)
+	{
+		WeaponAmmoWidget->UpdateInventoryAmmo(InventoryAmmo);
+	}
+}
+
+
+void UBUIManager::UpdateHUDEquippedWeapon(const FString& WeaponType)
+{
+	if (HUDWidgetInstance && WeaponAmmoWidget)
+	{
+		WeaponAmmoWidget->UpdateWeapon(WeaponType);	
+	}
+}
+
+void UBUIManager::DisplayNotification(const FString& Title, const FString& Message)
+{
+	if (HUDWidgetInstance && NotificationWidget)
+	{
+		NotificationWidget->DisplayNotification(Title, Message);
+	}
+}
+
+void UBUIManager::DisplayItemNotification(const FName& ItemName)
+{
+	if (HUDWidgetInstance && ItemNotificationWidget)
+	{
+		ItemNotificationWidget->DisplayNotification(ItemName);
+	}
+}
+
+void UBUIManager::OnFire()
+{
+	if (HUDWidgetInstance && CrosshairWidget)
+	{
+		CrosshairWidget->OnFire();
+	}
+}
+
+void UBUIManager::OnNormalHit()
+{
+	if (HUDWidgetInstance && CrosshairWidget)
+	{
+		CrosshairWidget->OnNormalHit();
 	}
 }
 

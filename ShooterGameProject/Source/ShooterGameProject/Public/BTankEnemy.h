@@ -13,21 +13,22 @@ class SHOOTERGAMEPROJECT_API ABTankEnemy : public ABEnemyBase
 	
 public:
 	ABTankEnemy();
-
 	USphereComponent* ExplosionCollision;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties|Tank")
 	float ExplosionDamage;
+	float GetExplosionDamage();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties|Tank")
 	float ExplosionDelay;
+	float GetExplosionDelay();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties|Tank")
 	float ExplosionRadius;
+	float GetExplosionRadius();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties|Tank")
 	bool bIsReflecting;
 
 	FTimerHandle ExplosionTimerHandle;
 
-	float GetAttackRange() const override;
 	void UseSkill() override;
 	void OnDeath() override;
 	virtual void Explode();

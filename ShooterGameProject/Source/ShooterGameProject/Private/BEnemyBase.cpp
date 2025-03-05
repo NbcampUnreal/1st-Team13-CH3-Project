@@ -22,9 +22,7 @@ ABEnemyBase::ABEnemyBase()
 	AttackRange = 0.f;
 	Accuracy = 0.7f;
 	bIsRanged = false;   // false = 근거리
-	// bIsInBattle는 이제 AIController에서 관리합니다.
-	bIsMeleeAttacking = false;
-	MeleeAttackMontage = nullptr;
+	bIsDead = false;
 
 	// AIControllerClass 지정 → AIController가 감지 로직을 담당
 	AIControllerClass = ABEnemyAIController::StaticClass();
@@ -36,17 +34,47 @@ void ABEnemyBase::BeginPlay()
 	Super::BeginPlay();
 }
 
+float ABEnemyBase::GetMaxHP() const
+{
+	return MaxHP;
+}
+
+float ABEnemyBase::GetCurrentHP() const
+{
+	return CurrentHP;
+}
+
+float ABEnemyBase::GetPower() const
+{
+	return Power;
+}
+
+float ABEnemyBase::GetSpeed() const
+{
+	return Speed;
+}
+
+float ABEnemyBase::GetAttackSpeed() const
+{
+	return AttackSpeed;
+}
+
+float ABEnemyBase::GetCoolTime() const
+{
+	return CoolTime;
+}
+
+float ABEnemyBase::GetSkillDuration() const
+{
+	return SkillDuration;
+}
+
 float ABEnemyBase::GetAttackRange() const
 {
 	return AttackRange;
 }
 
-float ABEnemyBase::GetHP() const
-{
-	return CurrentHP;
-}
-
-void ABEnemyBase::Attack()
+void ABEnemyBase::AttackPlayer()
 {
 	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
 	if (PlayerPawn)
@@ -79,12 +107,27 @@ float ABEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 	CurrentHP = FMath::Clamp(CurrentHP - DamageAmount, 0.f, MaxHP);
 	if (CurrentHP <= 0.f)
 	{
-		OnDeath();
+		bIsDead = true;
 	}
 	return ActualDamage;
 }
 
 void ABEnemyBase::OnDeath()
+{
+	if (GetMesh())
+	{
+		GetMesh()->SetSimulatePhysics(true);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+	if (GetWorld())
+	{
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABEnemyBase::DelayedDropAndDestroy, 1.f, false);
+	}
+
+}
+
+void ABEnemyBase::DelayedDropAndDestroy()
 {
 	DropItem();
 	Destroy();
@@ -98,30 +141,6 @@ void ABEnemyBase::DropItem()
 void ABEnemyBase::GainHP(float HP)
 {
 	CurrentHP = FMath::Clamp(CurrentHP + HP, 0.f, MaxHP);
-}
-
-void ABEnemyBase::PlayMeleeAttackMontage()
-{
-	if (!MeleeAttackMontage)
-		return;
-
-	UAnimInstance* AnimInstance = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
-	if (AnimInstance)
-	{
-		AnimInstance->Montage_Play(MeleeAttackMontage);
-		FOnMontageEnded EndDelegate;
-		EndDelegate.BindUObject(this, &ABEnemyBase::OnMeleeAttackMontageEnded);
-		AnimInstance->Montage_SetEndDelegate(EndDelegate, MeleeAttackMontage);
-		bIsMeleeAttacking = true;
-	}
-}
-
-void ABEnemyBase::OnMeleeAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
-{
-	if (Montage == MeleeAttackMontage)
-	{
-		bIsMeleeAttacking = false;
-	}
 }
 
 void ABEnemyBase::SpawnProjectile()

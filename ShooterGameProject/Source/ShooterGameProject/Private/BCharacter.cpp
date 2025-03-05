@@ -8,6 +8,12 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "BMovementComponent.h"
+#include "Components/SphereComponent.h"
+#include "BBaseItem.h"
+#include "BPlayerState.h"
+#include "BUIManager.h"
+#include "BGameInstance.h"
+#include "BInventoryWidget.h"
 #include <BShotGun.h>
 
 ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
@@ -46,7 +52,9 @@ ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 	MoveComp->bCanWalkOffLedgesWhenCrouching = true;
 	MoveComp->SetCrouchedHalfHeight(65.0f);
 
-	
+	CollectNearItem = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+	CollectNearItem->SetupAttachment(GetRootComponent());
+	CollectNearItem->SetSphereRadius(400.f);
 }
 
 ABPlayerState* ABCharacter::GetBPlayerState() const
@@ -134,15 +142,6 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 	}
 }
 
-void ABCharacter::AimStart(const FInputActionValue& Value)
-{
-	if (Value.Get<bool>())
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("AimStart"));
-	}
-}
-
-
 void ABCharacter::SetDraggingItem(AActor* NewItem)
 {
 	ABBaseItem* Item = Cast<ABBaseItem>(NewItem);
@@ -178,25 +177,7 @@ void ABCharacter::StopDragging(const FInputActionValue& Value)
 	}
 }
 
-void ABCharacter::AimStop(const FInputActionValue& Value)
-{
-	if (DraggingItem)
-	{
-		bIsDragging = true;
-		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Blue, TEXT("Drag Start"));
 
-		bool bIsValid = GetWorldTimerManager().TimerExists(DragUpdateTimer);
-		if (bIsValid)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("Timer Already Exists!"));
-		}
-		else
-		{
-			GetWorldTimerManager().SetTimer(DragUpdateTimer, this, &ABCharacter::UpdateDragging, 0.01f, true);
-			GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green, TEXT("Timer Set Successfully!"));
-		}
-	}
-}
 
 
 void ABCharacter::UpdateDragging()
@@ -236,21 +217,65 @@ void ABCharacter::UpdateDragging()
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("UpdateDragging Failed: DraggingItem is NULL!"));
 	}
 }
+void ABCharacter::AimStart(const FInputActionValue& Value)
+{
+	if (Value.Get<bool>())
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("AimStart"));
+	}
+}
 
+void ABCharacter::AimStop(const FInputActionValue& Value)
+{
+	if (DraggingItem)
+	{
+		bIsDragging = true;
+		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Blue, TEXT("Drag Start"));
+
+		bool bIsValid = GetWorldTimerManager().TimerExists(DragUpdateTimer);
+		if (bIsValid)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("Timer Already Exists!"));
+		}
+		else
+		{
+			GetWorldTimerManager().SetTimer(DragUpdateTimer, this, &ABCharacter::UpdateDragging, 0.01f, true);
+			GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green, TEXT("Timer Set Successfully!"));
+		}
+	}
+}
+
+void ABCharacter::ZoomStart(const FInputActionValue& Value)
+{
+	if (CameraComp)
+	{
+		CameraComp->SetFieldOfView(ZoomedFOV); // 줌 상태 (예: 45.0f)
+	}
+}
+
+void ABCharacter::ZoomStop(const FInputActionValue& Value)
+{
+	if (CameraComp)
+	{
+		CameraComp->SetFieldOfView(DefaultFOV); // 원래 상태 (예: 90.0f)
+	}
+}
 
 void ABCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	State = Cast<ABPlayerState>(GetPlayerState());
 }
 void ABCharacter::Attack(const struct FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Log, TEXT("Attack() called"));
-	if (EquippedWeapon == nullptr) 
+	if (EquippedWeapon == nullptr)
 	{
 		return;
 	}
 	UE_LOG(LogTemp, Warning, TEXT("⚔️ 공격 시작: %s"), *EquippedWeapon->GetName());
-	
+
 	// 🔹 유효한 슬롯인지 확인
 	if (!EquippedWeapons.IsValidIndex((int32)ActiveWeaponSlot))
 	{
@@ -265,10 +290,29 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 		UE_LOG(LogTemp, Warning, TEXT("No weapon equipped in slot: %d"), (int32)ActiveWeaponSlot);
 		return;
 	}
+
 	UE_LOG(LogTemp, Warning, TEXT("🔍 [FireOnce] 현재 무기 타입: %s"), *CurrentWeapon->WeaponType);
 
-	
 	CurrentWeapon->Attack();
+}
+void ABCharacter::UnequipGrenade()
+{
+	if (EquippedWeapon && EquippedWeapon->WeaponType == "Grenade")
+	{
+			UE_LOG(LogTemp, Log, TEXT("Hiding previously equipped weapon: %s"), *EquippedWeapon->WeaponType);
+			EquippedWeapon->SetActorHiddenInGame(true);
+			EquippedWeapon->SetActorEnableCollision(false);
+			EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+
+			// 무기 보관 위치 설정
+			FName StorageSocketName = TEXT("WeaponStorageSocket");
+			if (GetMesh()->DoesSocketExist(StorageSocketName))
+			{
+				EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, StorageSocketName);
+			}
+		
+		UE_LOG(LogTemp, Log, TEXT("💣 수류탄 장착 해제 완료!"));
+	}
 }
 
 
@@ -368,9 +412,25 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 
 	// 🔹 무기 메쉬 확인
 	UStaticMeshComponent* WeaponMesh = WeaponToEquip->FindComponentByClass<UStaticMeshComponent>();
+
+	//// 🔹 수류탄인데 개수가 0이면 장착 안되게 설정
+	//if (Slot == EWeaponSlot::Throwable && GrenadeCount <= 0)
+	//{
+	//	UE_LOG(LogTemp, Error, TEXT("❌ GrenadeCount is 0"));
+	//	WeaponMesh = nullptr;
+	//}
+
+	// 🔹 WeaponMesh가 nullptr이면 기존 무기 해제
 	if (!WeaponMesh)
 	{
-		UE_LOG(LogTemp, Error, TEXT("❌ WeaponMesh is nullptr for %s"), *WeaponToEquip->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("❌ WeaponMesh is nullptr, unequipping current weapon"));
+		if (EquippedWeapon)
+		{
+			EquippedWeapon->SetActorHiddenInGame(true);
+			EquippedWeapon->SetActorEnableCollision(false);
+			EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			EquippedWeapon = nullptr;
+		}
 		return;
 	}
 
@@ -380,26 +440,10 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 		UE_LOG(LogTemp, Log, TEXT("Hiding previously equipped weapon: %s"), *EquippedWeapon->WeaponType);
 		EquippedWeapon->SetActorHiddenInGame(true);
 		EquippedWeapon->SetActorEnableCollision(false);
-		EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);  // ✅ 맵에 남아있는 문제 해결
+		EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
 		// 무기 보관 위치 설정
-		FName StorageSocketName = TEXT("WeaponBackSocket");
-		if (EquippedWeapon->WeaponType == "Pistol")
-		{
-			StorageSocketName = TEXT("PistolHolsterSocket");
-		}
-		else if (EquippedWeapon->WeaponType == "Shotgun")
-		{
-			StorageSocketName = TEXT("ShotgunBackSocket");
-		}
-		else if (EquippedWeapon->WeaponType == "Rifle")
-		{
-			StorageSocketName = TEXT("RifleBackSocket");
-		}
-		else if (EquippedWeapon->WeaponType == "Melee")
-		{
-			StorageSocketName = TEXT("MeleeSocket");
-		}
+		FName StorageSocketName = TEXT("WeaponStorageSocket");
 		if (GetMesh()->DoesSocketExist(StorageSocketName))
 		{
 			EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, StorageSocketName);
@@ -408,47 +452,90 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 
 	// 🔹 새로운 무기 장착
 	FName TargetSocketName = TEXT("WeaponSocket");
-	if (GetMesh()->DoesSocketExist(TargetSocketName))
+	if (!GetMesh()->DoesSocketExist(TargetSocketName))
 	{
-		// 🔹 먼저 무기를 숨김 해제
-		WeaponToEquip->SetActorHiddenInGame(false);
-		WeaponToEquip->SetActorEnableCollision(true);
-		WeaponToEquip->ForceNetUpdate(); // 네트워크 동기화
+		UE_LOG(LogTemp, Error, TEXT("❌ Target Socket %s does not exist!"), *TargetSocketName.ToString());
+		return;
+	}
 
-		// 🔹 무기 부착
-		WeaponToEquip->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TargetSocketName);
+	// 🔹 먼저 무기를 숨김 해제
+	WeaponToEquip->SetActorHiddenInGame(false);
+	WeaponToEquip->SetActorEnableCollision(true);
+	WeaponToEquip->ForceNetUpdate(); // 네트워크 동기화
 
-		// 🔹 무기 메쉬 처리
-		if (WeaponMesh)
-		{
-			WeaponMesh->SetHiddenInGame(false);
-			WeaponMesh->SetVisibility(true);
-			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);  // ✅ 무기 충돌 제거
-		}
+	// 🔹 AttachToComponent 시도 및 성공 여부 확인
+	bool bAttachSuccess = WeaponToEquip->AttachToComponent(GetMesh(),
+		FAttachmentTransformRules::SnapToTargetNotIncludingScale, TargetSocketName);
 
-		// 🔹 무기 회전값 조정 (무기 타입별)
-		FRotator AdjustedRotation(0.0f, 0.0f, 0.0f);
-		if (WeaponToEquip->WeaponType == "Rifle" || WeaponToEquip->WeaponType == "Shotgun")
-		{
-			AdjustedRotation = FRotator(0.0f, -180.0f, 0.0f);
-		}
-		else if (WeaponToEquip->WeaponType == "Pistol")
-		{
-			AdjustedRotation = FRotator(0.0f, 90.0f, 90.0f);
-		}
-		WeaponToEquip->SetActorRelativeRotation(AdjustedRotation);
-
-		// 🔹 장착된 무기 업데이트
-		EquippedWeapon = WeaponToEquip;
-
-		UE_LOG(LogTemp, Warning, TEXT("✅ Equipped %s on %s"), *EquippedWeapon->WeaponType, *TargetSocketName.ToString());
-		UE_LOG(LogTemp, Warning, TEXT("📌 CurrentWeapon: %s"), *EquippedWeapon->GetName());
+	if (!bAttachSuccess)
+	{
+		UE_LOG(LogTemp, Error, TEXT("❌ AttachToComponent FAILED for %s!"), *WeaponToEquip->GetName());
+		return;
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Weapon socket %s does not exist!"), *TargetSocketName.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("✅ %s attached to %s successfully: %s"), *WeaponToEquip->GetName(), *TargetSocketName.ToString(), *WeaponToEquip -> GetActorLocation().ToString());
 	}
+
+	// 🔹 무기 메쉬 처리
+	if (WeaponMesh)
+	{
+		WeaponMesh->SetHiddenInGame(false);
+		WeaponMesh->SetVisibility(true);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
+	// 🔹 물리(Physics) 영향 방지
+	WeaponMesh->SetSimulatePhysics(false);
+
+	// 🔹 무기 회전값 조정 (무기 타입별)
+	FRotator AdjustedRotation(0.0f, 0.0f, 0.0f);
+	if (WeaponToEquip->WeaponType == "Rifle" || WeaponToEquip->WeaponType == "Shotgun")
+	{
+		AdjustedRotation = FRotator(0.0f, -180.0f, 0.0f);
+	}
+	else if (WeaponToEquip->WeaponType == "Pistol")
+	{
+		AdjustedRotation = FRotator(0.0f, 90.0f, 90.0f);
+	}
+	else if (WeaponToEquip->WeaponType == "Melee")
+	{
+		AdjustedRotation = FRotator(90.0f, -90.0f, 90.0f);
+	}
+	else if (WeaponToEquip->WeaponType == "Grenade")
+	{
+		WeaponToEquip->SetActorRelativeLocation(FVector::ZeroVector);
+		AdjustedRotation = FRotator(90.0f, -90.0f, 90.0f); 
+	}
+	WeaponToEquip->SetActorRelativeRotation(AdjustedRotation);
+
+	// 🔹 장착된 무기 업데이트
+	EquippedWeapon = WeaponToEquip;
+
+	UE_LOG(LogTemp, Warning, TEXT("✅ Equipped %s on %s"), *EquippedWeapon->WeaponType, *TargetSocketName.ToString());
+	UE_LOG(LogTemp, Warning, TEXT("📌 CurrentWeapon: %s"), *EquippedWeapon->GetName());
 }
+
+void ABCharacter::InventorySwitch()
+{
+	static bool Switch = false;
+
+	if (!Switch)
+	{
+		ShowInventory();
+	}
+	else
+	{
+		CloseInventory();
+	}
+	Switch = !Switch;
+}
+
+void ABCharacter::UseItem(const FName& ItemName)
+{
+	State->UseItem(ItemName);
+}
+
 
 void ABCharacter::EquipPistol()
 {
@@ -478,7 +565,56 @@ void ABCharacter::EquipMelee()
 	EquipWeaponByType(ActiveWeaponSlot);
 }
 
+TArray<ABBaseItem*> ABCharacter::GetNearItemArray() const
+{
+	TArray<AActor*> ActivateItem;
+	TArray<ABBaseItem*> BaseItem;
 
+	CollectNearItem->GetOverlappingActors(ActivateItem);
+
+	for (AActor* Actor : ActivateItem)
+	{
+		if (ABBaseItem* Base = Cast<ABBaseItem>(Actor))
+		{
+			BaseItem.Add(Base);
+		}
+	}
+	return BaseItem;
+}
+
+void ABCharacter::ShowInventory()
+{
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
+		{
+			UIManager->ShowInventory();
+			if (UBInventoryWidget* Inventory = Cast<UBInventoryWidget>(UIManager->GetInventoryInstance()))
+			{
+				Inventory->SendItemData(GetNearItemArray(), Cast<ABPlayerState>(GetPlayerState()));
+			}
+		}
+	}
+}
+
+void ABCharacter::CloseInventory()
+{
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
+		{
+			UIManager->CloseInventory();
+		}
+	}
+}
+
+
+void ABCharacter::EquipGrenade()
+{
+	UE_LOG(LogTemp, Warning, TEXT("EquipGrenade() called!"));
+	ActiveWeaponSlot = EWeaponSlot::Throwable;
+	EquipWeaponByType(ActiveWeaponSlot);
+}
 
 void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -578,5 +714,19 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		ETriggerEvent::Completed,  // 🔹 키를 누르는 순간 실행
 		this,
 		&ABCharacter::EquipMelee);
-	
+	EnhancedInput->BindAction(
+		PlayerController->EquipGrenadeAction,
+		ETriggerEvent::Completed,  // 🔹 키를 누르는 순간 실행
+		this,
+		&ABCharacter::EquipGrenade);
+	EnhancedInput->BindAction(
+		PlayerController->ZoomAction,
+		ETriggerEvent::Triggered,
+		this,
+		&ABCharacter::ZoomStart);
+	EnhancedInput->BindAction(
+		PlayerController->ZoomAction,
+		ETriggerEvent::Completed,
+		this,
+		&ABCharacter::ZoomStop);
 }

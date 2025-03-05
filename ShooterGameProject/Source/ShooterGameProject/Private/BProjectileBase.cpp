@@ -24,9 +24,9 @@ ABProjectileBase::ABProjectileBase()
     ProjectileMovement->UpdatedComponent = CollisionComponent;
     ProjectileMovement->InitialSpeed = 3000.0f;  // 초기 속도 (충분히 커야 함)
     ProjectileMovement->MaxSpeed = 5000.0f;
-    ProjectileMovement->bRotationFollowsVelocity = true;
-    ProjectileMovement->bShouldBounce = false;
-
+    ProjectileMovement->bShouldBounce = true;
+    ProjectileMovement->bSimulationEnabled = true;
+    ProjectileMovement->bSweepCollision = true;  // ✅ 충돌 감지 활성화
     // 🔹 발사체끼리 충돌하지 않도록 설정
     if (CollisionComponent)
     {
@@ -50,10 +50,11 @@ ABProjectileBase::ABProjectileBase()
 void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
     UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-    UE_LOG(LogTemp, Warning, TEXT("ABProjectileBase::OnHit Called!"));
+    UE_LOG(LogTemp, Warning, TEXT("ABProjectileBase::OnHit Called! Actors: %s"), *OtherActor->GetName());
     if (OtherActor && OtherActor != this && OtherComp)
     {
         UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *OtherActor->GetName());
+        UE_LOG(LogTemp, Warning, TEXT("Hit Location: %s"), *GetActorLocation().ToString());
     }
     if (OtherActor && OtherActor != this && OtherComp)
     {
@@ -79,8 +80,8 @@ void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
         }
         // ✅ 충돌한 표면의 Physical Material 가져오기
         UPhysicalMaterial* PhysMaterial = Hit.PhysMaterial.IsValid() ? Hit.PhysMaterial.Get() : nullptr;
-
         float SurfaceValue = 0.0f;  // 기본값
+        
         if (PhysMaterial)
         {
             // ✅ Surface Type 확인
@@ -117,15 +118,51 @@ void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
             UE_LOG(LogTemp, Error, TEXT("PhysMaterial is NULL!"));
         }
 
-        // ✅ PlaySoundAtLocation 사용하여 즉시 재생 (파라미터 필요 없음)
+        // ✅ 오디오 컴포넌트를 생성하여 사운드 재생 및 파라미터 적용
         if (HitSoundCue)
         {
-            UE_LOG(LogTemp, Warning, TEXT("Playing Sound at Impact Point!"));
-            UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSoundCue, Hit.ImpactPoint, 1.0f, 1.0f);
+            UAudioComponent* AudioComponent = UGameplayStatics::SpawnSoundAtLocation(
+                GetWorld(),
+                HitSoundCue,
+                Hit.ImpactPoint
+            );
+
+            if (AudioComponent)
+            {
+                UE_LOG(LogTemp, Warning, TEXT("✅ AudioComponent Created Successfully!"));
+
+                // ✅ 사운드 큐의 파라미터 적용 (Int & Float 모두 설정)
+                AudioComponent->SetIntParameter(TEXT("SurfaceValue"), (int32)SurfaceValue);
+                AudioComponent->SetFloatParameter(TEXT("SurfaceValue"), SurfaceValue);
+
+                UE_LOG(LogTemp, Warning, TEXT("🔹 Sound Parameter Applied: SurfaceValue = %i (Int) | %f (Float)"),
+                    (int32)SurfaceValue, SurfaceValue);
+
+                // ✅ 사운드 재생 시작
+                AudioComponent->Play();
+
+                // ✅ 0.1초 후 사운드가 실제로 재생되고 있는지 확인 (비동기 딜레이 사용)
+                FTimerHandle TimerHandle;
+                GetWorld()->GetTimerManager().SetTimer(TimerHandle, [AudioComponent]()
+                    {
+                        if (AudioComponent && AudioComponent->IsPlaying())
+                        {
+                            UE_LOG(LogTemp, Warning, TEXT("✅ Sound is Playing Successfully!"));
+                        }
+                        else
+                        {
+                            UE_LOG(LogTemp, Error, TEXT("⚠️ Sound did NOT play! Check SoundCue settings!"));
+                        }
+                    }, 0.1f, false);
+            }
+            else
+            {
+                UE_LOG(LogTemp, Error, TEXT("❌ Failed to create Audio Component!"));
+            }
         }
         else
         {
-            UE_LOG(LogTemp, Error, TEXT("HitSoundCue is NULL!"));
+            UE_LOG(LogTemp, Error, TEXT("❌ HitSoundCue is NULL! Sound cannot be played!"));
         }
 
         // ✅ 총알 제거

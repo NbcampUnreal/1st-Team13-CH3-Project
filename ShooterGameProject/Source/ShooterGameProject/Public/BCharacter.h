@@ -3,7 +3,6 @@
 #include "CoreMinimal.h"
 #include "Gameframework/Character.h"
 #include "BPlayerController.h"
-#include "BPlayerState.h"
 #include "BBaseWeapon.h"  // 旮半掣 氍搓赴 韥措灅鞀� 韽暔
 #include "BCharacter.generated.h"
 struct FInputActionValue;
@@ -58,9 +57,29 @@ public:
 	void SetDraggingItem(AActor* NewItem);
 	void PickupWeapon(ABBaseWeapon* NewWeapon);
 	ABBaseWeapon* GetCurrentWeapon() const;
-	
-	
+	void EquipPistol();
+	void EquipRifle();
+	void EquipShotgun();
+	void EquipMelee();
+	UFUNCTION(BlueprintCallable, Category = "Collect")
+	TArray<class ABBaseItem*> GetNearItemArray() const;
+
+	UFUNCTION(BlueprintCallable)
+	void InventorySwitch();
+	UFUNCTION(BlueprintCallable)
+	void UseItem(const FName& ItemName);
 protected:
+	/** 카메라 줌 관련 변수 */
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	float DefaultFOV = 90.0f;  // 기본 FOV 값
+
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	float ZoomedFOV = 60.0f;   // 줌 시 FOV 값
+
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	float ZoomInterpSpeed = 10.0f;  // FOV 변화 속도
+
+	bool bIsAiming = false;  // 줌 상태 여부
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UCameraComponent> CameraComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
@@ -68,6 +87,8 @@ protected:
 	TObjectPtr<class UCapsuleComponent> Collision;
 	TObjectPtr<class USkeletalMeshComponent> Skeletal;
 	TObjectPtr<class UBMovementComponent> MoveComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<class USphereComponent> CollectNearItem;
 	//UFUNCTION(NetMulticast, unreliable)
 	//void FastSharedReplication(const FSharedRepMovement& SharedRepMovement);
 	UFUNCTION()
@@ -84,33 +105,48 @@ protected:
 	void StopSprint(const struct FInputActionValue& Value);
 	UFUNCTION()
 	void Attack(const struct FInputActionValue& Value);
+	void UnequipGrenade();
 	UFUNCTION()
 	void Reload(const struct FInputActionValue& Value);
 	UFUNCTION()
 	void AimStart(const FInputActionValue& Value);
 	UFUNCTION()
+	void AimStop(const FInputActionValue& Value);
+	
+	UFUNCTION()
+	void ZoomStart(const FInputActionValue& Value);
+	UFUNCTION()
+	void ZoomStop(const FInputActionValue& Value);
+	
+	UFUNCTION()
 	void StartDragging(const FInputActionValue& Value);
 	UFUNCTION()
 	void StopDragging(const FInputActionValue& Value);
-	UFUNCTION()
-	void AimStop(const FInputActionValue& Value);
+	UFUNCTION(BlueprintCallable)
+	void ShowInventory();
+	UFUNCTION(BlueprintCallable)
+	void CloseInventory();
 	virtual void BeginPlay() override;
+
+	void EquipGrenade();
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void StopFire();
-	void EquipPistol();
-	void EquipRifle();
-	void EquipShotgun();
-	void EquipMelee();
+	
 	void EquipWeaponByType(EWeaponSlot Slot);
 	FTimerHandle FireTimerHandle;
+
+	
 private:
 	UPROPERTY()
 	FReplicatedAcceleration ReplicatedAcceleration;
 
 	FTimerHandle DragUpdateTimer; // 霌滊灅攴� 韮�鞚措ǜ
+	/** 줌 상태 변경 시만 보간을 실행하기 위한 타이머 */
+	FTimerHandle ZoomTimerHandle;
 	bool bIsDragging = false;
 	ABBaseItem* DraggingItem = nullptr;
 
 	void UpdateDragging(); // 霌滊灅攴� 鞙勳箻 鞐呺嵃鞚错姼
+	class ABPlayerState* State;
 };

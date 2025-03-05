@@ -24,5 +24,15 @@ public:
 	UFUNCTION(BlueprintPure)
 	UBUIManager* GetUIManagerInstance();
 
+	int32 GetCurrentStage() const { return CurrentStage; }
+	void SetCurrentStage(int32 Stage) { CurrentStage = Stage; }
 
+	UFUNCTION(BlueprintCallable, Category = "Score")
+	void AddScore(int32 Points);
+	UFUNCTION(BlueprintCallable, Category = "Score")
+	int32 GetScore() const;
+
+private:
+	int32 CurrentStage = 0;
+	int32 TotalScore = 0;
 };
