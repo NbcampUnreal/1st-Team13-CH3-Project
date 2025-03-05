@@ -17,19 +17,12 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	// OnMeleeAttackMontageEnded 함수 선언 추가
-	UFUNCTION(BlueprintCallable, Category = "Animation")
-	void OnMeleeAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
-
 public:
 	// 타이머 핸들 (AIController에서 접근할 수 있도록 public으로 선언)
 	FTimerHandle AttackTimerHandle;
 	FTimerHandle SkillTimerHandle;
 
 public:
-	// 애니메이션 관련
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation", meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* MeleeAttackMontage;
 
 	// 순찰 포인트
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "AI|Components")
@@ -64,8 +57,6 @@ public:
 	bool bIsRanged;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	bool bIsDead;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Battle")
-	bool bIsMeleeAttacking;
 
 	// 투사체 관련
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
@@ -91,6 +82,6 @@ public:
 	virtual void DropItem();
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	virtual void GainHP(float HP);
-	void PlayMeleeAttackMontage();
-	bool IsMeleeAttacking() const { return bIsMeleeAttacking; }
+	UFUNCTION()
+	void DelayedDropAndDestroy();
 };
