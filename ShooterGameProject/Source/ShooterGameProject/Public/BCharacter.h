@@ -66,6 +66,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void InventorySwitch();
+	UFUNCTION(BlueprintCallable)
+	void UseItem(const FName& ItemName);
 protected:
 	/** 카메라 줌 관련 변수 */
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
@@ -131,6 +133,7 @@ protected:
 	void EquipWeaponByType(EWeaponSlot Slot);
 	FTimerHandle FireTimerHandle;
 
+	
 private:
 	UPROPERTY()
 	FReplicatedAcceleration ReplicatedAcceleration;
@@ -142,4 +145,5 @@ private:
 	ABBaseItem* DraggingItem = nullptr;
 
 	void UpdateDragging(); // 霌滊灅攴� 鞙勳箻 鞐呺嵃鞚错姼
+	class ABPlayerState* State;
 };

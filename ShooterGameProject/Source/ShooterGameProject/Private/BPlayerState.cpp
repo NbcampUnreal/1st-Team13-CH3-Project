@@ -176,7 +176,7 @@ void ABPlayerState::InventoryRemoveItem(const FItemData& Item)
 	{
 		int32 LastIdx = Inventory[Item.ItemName].Num() - 1;
 		Inventory[Item.ItemName].RemoveAt(LastIdx);
-		UpdateQuickSlot(Item.ItemName, Inventory[Item.ItemName].Num());
+		UpdateQuickSlot(Item.ItemName, LastIdx);
 	}
 }
 
@@ -193,6 +193,35 @@ void ABPlayerState::UpdateQuickSlot(const FName& ItemName, int32 Count)
 		if (UBUIManager* UI = Instance->GetUIManagerInstance())
 		{
 			UI->UpdateHUDQuickSlot(ItemName, Count);
+		}
+	}
+}
+
+void ABPlayerState::UseItem(const FName& ItemName)
+{
+	if (Inventory.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("아이템이 없다."));
+		return;
+	}
+	if (Inventory[ItemName].IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("아이템이 없다."));
+		return;
+	}
+
+	if (ABPlayerController* Con = Cast<ABPlayerController>(GetOwner()))
+	{
+		if (ABCharacter* Chr = Cast<ABCharacter>(Con->GetCharacter()))
+		{
+			
+			ABBaseItem* Base = GetWorld()->SpawnActor<ABBaseItem>(Inventory[ItemName].Last().ItemClass,FVector::ZeroVector,FRotator::ZeroRotator);
+			if (Base)
+			{
+				Base->UseItem(Chr);
+				Base->DestroyItem();
+				InventoryRemoveItem(Inventory[ItemName].Last());
+			}
 		}
 	}
 }

@@ -264,6 +264,8 @@ void ABCharacter::ZoomStop(const FInputActionValue& Value)
 void ABCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	State = Cast<ABPlayerState>(GetPlayerState());
 }
 void ABCharacter::Attack(const struct FInputActionValue& Value)
 {
@@ -486,6 +488,11 @@ void ABCharacter::InventorySwitch()
 		CloseInventory();
 	}
 	Switch = !Switch;
+}
+
+void ABCharacter::UseItem(const FName& ItemName)
+{
+	State->UseItem(ItemName);
 }
 
 void ABCharacter::EquipPistol()

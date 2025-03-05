@@ -80,6 +80,8 @@ public:
 	void InventoryAddItem(const FItemData& Item);
 	UFUNCTION(BlueprintCallable)
 	void UpdateQuickSlot(const FName& ItemName, int32 Count);
+	UFUNCTION(BlueprintCallable)
+	void UseItem(const FName& ItemName);
 private:
 	void LevelUP();
 	//	�ɸ��� �������� ���� ���̺�
