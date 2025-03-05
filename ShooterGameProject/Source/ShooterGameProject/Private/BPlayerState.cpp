@@ -1,6 +1,8 @@
 #include "BPlayerState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h" 
+#include "BGameInstance.h"
+#include "BUIManager.h"
 #include "BBaseItem.h"
 
 ABPlayerState::ABPlayerState()
@@ -174,14 +176,25 @@ void ABPlayerState::InventoryRemoveItem(const FItemData& Item)
 	{
 		int32 LastIdx = Inventory[Item.ItemName].Num() - 1;
 		Inventory[Item.ItemName].RemoveAt(LastIdx);
-		UE_LOG(LogTemp, Warning, TEXT("Inventory RemoveItem"));
+		UpdateQuickSlot(Item.ItemName, Inventory[Item.ItemName].Num());
 	}
 }
 
 void ABPlayerState::InventoryAddItem(const FItemData& Item)
 {
 	Inventory.FindOrAdd(Item.ItemName).Add(Item);
-	UE_LOG(LogTemp, Warning, TEXT("Inventory AddItem"));
+	UpdateQuickSlot(Item.ItemName, Inventory[Item.ItemName].Num());
+}
+
+void ABPlayerState::UpdateQuickSlot(const FName& ItemName, int32 Count)
+{
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UI = Instance->GetUIManagerInstance())
+		{
+			UI->UpdateHUDQuickSlot(ItemName, Count);
+		}
+	}
 }
 
 void ABPlayerState::LevelUP()

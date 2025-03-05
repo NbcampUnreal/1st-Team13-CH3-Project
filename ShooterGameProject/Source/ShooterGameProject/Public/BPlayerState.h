@@ -78,6 +78,8 @@ public:
 	void InventoryRemoveItem(const FItemData& Item);
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void InventoryAddItem(const FItemData& Item);
+	UFUNCTION(BlueprintCallable)
+	void UpdateQuickSlot(const FName& ItemName, int32 Count);
 private:
 	void LevelUP();
 	//	�ɸ��� �������� ���� ���̺�
