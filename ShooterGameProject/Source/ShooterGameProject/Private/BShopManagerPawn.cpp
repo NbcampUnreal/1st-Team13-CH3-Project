@@ -84,20 +84,20 @@ void ABShopManagerPawn::OpenShopWidget()
 
 			bIsShopWidgetOpen = true;
 
+			PlayAnim("Dance");
+
 			if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 			{
 				// Show mouse cursor and set input mode to Game and UI
 				PlayerController->bShowMouseCursor = true;
 				PlayerController->SetInputMode(FInputModeGameAndUI());
 
-				// Set view target to the shop pawn's camera component
-				PlayerController->SetViewTargetWithBlend(this, 0.5f);
-				
 				// Hide character in case it's in the way
 				PlayerController->GetCharacter()->SetActorHiddenInGame(true);
-			}
 
-			PlayAnim("Dance");
+				// Set view target to the shop pawn's camera component
+				PlayerController->SetViewTargetWithBlend(this, 0.5f);
+			}
 		}
 	}
 }
@@ -123,11 +123,14 @@ void ABShopManagerPawn::CloseShopWidget()
 				PlayerController->bShowMouseCursor = false;
 				PlayerController->SetInputMode(FInputModeGameOnly());
 
-				// Set view target to the character's camera component
-				PlayerController->SetViewTargetWithBlend(PlayerController->GetCharacter(), 0.5f);
+				if (PlayerController->GetCharacter())
+				{
+					// Display character
+					PlayerController->GetCharacter()->SetActorHiddenInGame(false);
 
-				// Display character
-				PlayerController->GetCharacter()->SetActorHiddenInGame(false);
+					// Set view target to the character's camera component
+					PlayerController->SetViewTargetWithBlend(PlayerController->GetCharacter(), 0.5f);					
+				}
 			}
 		}
 	}
