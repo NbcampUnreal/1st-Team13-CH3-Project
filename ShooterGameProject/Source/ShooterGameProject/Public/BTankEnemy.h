@@ -33,4 +33,6 @@ public:
 	void OnDeath() override;
 	virtual void Explode();
 	void EndSkill();
+	virtual FName GetMonsterType() const override;
+	void DelayedDropAndDestroy() override;
 };

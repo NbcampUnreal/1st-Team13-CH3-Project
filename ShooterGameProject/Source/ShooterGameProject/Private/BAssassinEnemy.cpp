@@ -36,3 +36,8 @@ void ABAssassinEnemy::EndSkill()
 		GetMesh()->SetVisibility(true, true);
 	}
 }
+
+FName ABAssassinEnemy::GetMonsterType() const
+{
+	return FName(TEXT("Assassin"));
+}

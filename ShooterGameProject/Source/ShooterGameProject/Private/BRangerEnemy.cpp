@@ -36,3 +36,8 @@ void ABRangerEnemy::EndSkill()
 	bIsFastAttack = false;
 	AttackSpeed = AttackSpeed / AttackSpeedIncreaseValue;
 }
+
+FName ABRangerEnemy::GetMonsterType() const
+{
+	return FName(TEXT("Ranger"));
+}

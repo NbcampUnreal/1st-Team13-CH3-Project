@@ -1,6 +1,8 @@
 #include "BTankEnemy.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "BGameInstance.h"
+#include "BUIManager.h"
 
 ABTankEnemy::ABTankEnemy()
 {
@@ -58,6 +60,29 @@ void ABTankEnemy::EndSkill()
 
 void ABTankEnemy::OnDeath()
 {
+	if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
+	{
+		if (UBUIManager* UIManagerInstance = Cast<UBUIManager>(GameInstance->GetUIManagerInstance()))
+		{
+			UIManagerInstance->UpdateKillLog(GetMonsterType());
+		}
+	}
+
+	if (GetMesh())
+	{
+		GetMesh()->SetSimulatePhysics(true);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+	if (GetWorld())
+	{
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABEnemyBase::DelayedDropAndDestroy, 3.f, false);
+	}
+
+}
+
+void ABTankEnemy::DelayedDropAndDestroy()
+{
 	Explode();
 	DropItem();
 	Destroy();
@@ -71,7 +96,6 @@ void ABTankEnemy::Explode()
 	{
 		if (Actor && Actor->ActorHasTag("Player"))
 		{
-			//������ �ִ� ���� ����
 			UGameplayStatics::ApplyDamage(
 				Actor,
 				ExplosionDamage,
@@ -81,4 +105,9 @@ void ABTankEnemy::Explode()
 			);
 		}
 	}
+}
+
+FName ABTankEnemy::GetMonsterType() const
+{
+	return FName(TEXT("Tank"));
 }

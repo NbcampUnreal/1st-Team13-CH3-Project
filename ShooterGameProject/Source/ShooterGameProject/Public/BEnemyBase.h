@@ -83,5 +83,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	virtual void GainHP(float HP);
 	UFUNCTION()
-	void DelayedDropAndDestroy();
+	virtual void DelayedDropAndDestroy();
+	virtual FName GetMonsterType() const;
 };

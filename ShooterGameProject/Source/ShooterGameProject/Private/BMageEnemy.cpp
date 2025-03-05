@@ -47,3 +47,8 @@ void ABMageEnemy::UseSkill()
 		}
 	}
 }
+
+FName ABMageEnemy::GetMonsterType() const
+{
+	return FName(TEXT("Mage"));
+}

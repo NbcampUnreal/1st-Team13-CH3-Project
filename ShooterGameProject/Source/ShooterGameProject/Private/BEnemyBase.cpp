@@ -7,6 +7,8 @@
 #include "BCharacter.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BProjectileBase.h"
+#include "BGameInstance.h"
+#include "BUIManager.h"
 
 class ABCharacter;
 
@@ -74,6 +76,11 @@ float ABEnemyBase::GetAttackRange() const
 	return AttackRange;
 }
 
+FName ABEnemyBase::GetMonsterType() const
+{
+	return FName(TEXT("Basic"));
+}
+
 void ABEnemyBase::AttackPlayer()
 {
 	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
@@ -114,6 +121,14 @@ float ABEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 
 void ABEnemyBase::OnDeath()
 {
+	if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
+	{
+		if (UBUIManager* UIManagerInstance = Cast<UBUIManager>(GameInstance->GetUIManagerInstance()))
+		{
+			UIManagerInstance->UpdateKillLog(GetMonsterType());
+		}
+	}
+
 	if (GetMesh())
 	{
 		GetMesh()->SetSimulatePhysics(true);
@@ -122,7 +137,7 @@ void ABEnemyBase::OnDeath()
 	if (GetWorld())
 	{
 		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABEnemyBase::DelayedDropAndDestroy, 1.f, false);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABEnemyBase::DelayedDropAndDestroy, 3.f, false);
 	}
 
 }
