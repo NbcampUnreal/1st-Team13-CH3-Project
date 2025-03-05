@@ -24,9 +24,9 @@ ABProjectileBase::ABProjectileBase()
     ProjectileMovement->UpdatedComponent = CollisionComponent;
     ProjectileMovement->InitialSpeed = 3000.0f;  // 초기 속도 (충분히 커야 함)
     ProjectileMovement->MaxSpeed = 5000.0f;
-    ProjectileMovement->bRotationFollowsVelocity = true;
-    ProjectileMovement->bShouldBounce = false;
-
+    ProjectileMovement->bShouldBounce = true;
+    ProjectileMovement->bSimulationEnabled = true;
+    ProjectileMovement->bSweepCollision = true;  // ✅ 충돌 감지 활성화
     // 🔹 발사체끼리 충돌하지 않도록 설정
     if (CollisionComponent)
     {
@@ -50,10 +50,11 @@ ABProjectileBase::ABProjectileBase()
 void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
     UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-    UE_LOG(LogTemp, Warning, TEXT("ABProjectileBase::OnHit Called!"));
+    UE_LOG(LogTemp, Warning, TEXT("ABProjectileBase::OnHit Called! Actors: %s"), *OtherActor->GetName());
     if (OtherActor && OtherActor != this && OtherComp)
     {
         UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *OtherActor->GetName());
+        UE_LOG(LogTemp, Warning, TEXT("Hit Location: %s"), *GetActorLocation().ToString());
     }
     if (OtherActor && OtherActor != this && OtherComp)
     {

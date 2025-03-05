@@ -7,7 +7,6 @@
 
 ABGameState::ABGameState()
 {
-	UE_LOG(LogTemp, Warning, TEXT("ABGameState::ABGameState()"));
 	CurrentScore = 0;
 	KilledEnemies = 0;
 	SpawnedEnemies = 0;
@@ -18,18 +17,16 @@ ABGameState::ABGameState()
 }
 void ABGameState::BeginPlay()
 {
-	UE_LOG(LogTemp, Warning, TEXT("ABGameState::BeginPlay()"));
 	Super::BeginPlay();
 }
 
 void ABGameState::InitializeGameState()
 {
-	UE_LOG(LogTemp, Warning, TEXT("InitializeGameState! Door closed"));
 	SpawnedEnemies = 10; //ex
 	KilledEnemies = 0;
 	CollectedKeys = 0;
 	bIsDoorOpen = false;
-	TimeLimit = 20.0f;
+	TimeLimit = 30.0f;
 	RequiredKeyCount = 1;
 }
 
@@ -41,8 +38,6 @@ void ABGameState::EnemyDefeated()
 
 void ABGameState::ItemCollected()
 {
-	CollectedKeys++;
-	UE_LOG(LogTemp, Warning, TEXT("CollectedKey! Key : %d"), CollectedKeys);
 	CheckGameStatus();
 }
 
@@ -51,9 +46,9 @@ void ABGameState::CheckGameStatus()
 	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
 	if (GameInstance->GetCurrentStage() == 3)
 	{
-		if (SpawnedEnemies <= KilledEnemies)
+		if (SpawnedEnemies <= KilledEnemies || CollectedKeys >= RequiredKeyCount)//test 끝나고 || CollectedKeys >= RequiredKeyCount 삭제
 		{
-			UE_LOG(LogTemp, Warning, TEXT("OpenDoor!"));
+			UE_LOG(LogTemp, Warning, TEXT("The door has opened."));
 			OpenDoor();
 		}
 	}
@@ -61,7 +56,7 @@ void ABGameState::CheckGameStatus()
 	{
 		if (CollectedKeys >= RequiredKeyCount || SpawnedEnemies <= KilledEnemies)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("OpenDoor!"));
+			UE_LOG(LogTemp, Warning, TEXT("The door has opened."));
 			OpenDoor();
 		}
 	}
@@ -76,9 +71,12 @@ void ABGameState::OpenDoor()
 
 	if (!ShopManagerPawns.IsEmpty())
 	{
-		if (ABShopManagerPawn* ShopManagerPawn = Cast<ABShopManagerPawn>(ShopManagerPawns[0]))
+		for (int i = 0; i < ShopManagerPawns.Num(); i++)
 		{
-			ShopManagerPawn->EnableShop();
+			if (ABShopManagerPawn* ShopManagerPawn = Cast<ABShopManagerPawn>(ShopManagerPawns[i]))
+			{
+				ShopManagerPawn->EnableShop();
+			}
 		}
 	}
 }

@@ -18,7 +18,7 @@ void UBShopRowWidget::SetWidgetValues(const FBShopItemRow& ItemRow)
 
 	if (Price)
 	{
-		Price->SetText(FText::FromString(FString::Printf(TEXT("%d G"),ItemRow.Price)));
+		Price->SetText(FText::FromString(FString::Printf(TEXT("%d Coins"),ItemRow.Price)));
 	}
 
 	if (Info)
