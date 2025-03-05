@@ -26,6 +26,10 @@ public:
 	float CaptureOffsetX;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Minimap")
 	float CaptureOffsetY;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Minimap")
+	float MinimapSize;
 
 	void UpdateMap();
+	UFUNCTION(BlueprintCallable)
+	void CreateIconForMinimap(AActor* OwningActor);
 };

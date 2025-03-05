@@ -25,6 +25,10 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	UFUNCTION()
+	void CreateIcon();
+
+	FTimerHandle DelayTimerHandle;
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Minimap")

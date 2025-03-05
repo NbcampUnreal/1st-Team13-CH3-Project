@@ -1,6 +1,8 @@
 #include "MapWidget.h"
+#include "MapIconWidget.h"
 #include "Components/Image.h"
 #include "Components/Overlay.h"
+#include "Components/OverlaySlot.h"
 #include "Materials/MaterialParameterCollection.h"
 #include "Materials/MaterialParameterCollectionInstance.h"
 #include "BCharacter.h"
@@ -21,6 +23,7 @@ UMapWidget::UMapWidget(const FObjectInitializer& ObjectInitializer)
 	// Scene capture component offset
 	CaptureOffsetX = 280.f;
 	CaptureOffsetY = 2403.f;
+	MinimapSize = 250.f;
 }
 
 void UMapWidget::UpdateMap()
@@ -47,6 +50,25 @@ void UMapWidget::UpdateMap()
 						PlayerMarker->SetRenderTransformAngle(CharacterYaw);
 					}
 				}
+			}
+		}
+	}
+}
+
+void UMapWidget::CreateIconForMinimap(AActor* OwningActor)
+{
+	if (MapIconWidgetClass)
+	{
+		if (UMapIconWidget* MapIconWidget = CreateWidget<UMapIconWidget>(this, MapIconWidgetClass))
+		{
+			MapIconWidget->IconOwner = OwningActor;
+
+			MapOverlay->AddChildToOverlay(MapIconWidget);
+
+			if (UOverlaySlot* MapIconSlot = Cast<UOverlaySlot>(MapIconWidget->Slot))
+			{
+				MapIconSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Center);
+				MapIconSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Center);
 			}
 		}
 	}
