@@ -105,6 +105,7 @@ protected:
 	void StopSprint(const struct FInputActionValue& Value);
 	UFUNCTION()
 	void Attack(const struct FInputActionValue& Value);
+	void UnequipGrenade();
 	UFUNCTION()
 	void Reload(const struct FInputActionValue& Value);
 	UFUNCTION()
@@ -126,6 +127,8 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void CloseInventory();
 	virtual void BeginPlay() override;
+
+	void EquipGrenade();
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void StopFire();

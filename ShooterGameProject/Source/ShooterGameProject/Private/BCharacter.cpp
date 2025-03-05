@@ -293,14 +293,6 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 
 	UE_LOG(LogTemp, Warning, TEXT("🔍 [FireOnce] 현재 무기 타입: %s"), *CurrentWeapon->WeaponType);
 
-	// 🔹 수류탄인데 개수가 0이면 장착 해제
-	if (CurrentWeapon->WeaponType == "Grenade" && GrenadeCount <= 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("💣 수류탄 개수 0 -> 장착 해제"));
-		UnequipGrenade();
-		return;
-	}
-
 	CurrentWeapon->Attack();
 }
 void ABCharacter::UnequipGrenade()
@@ -421,12 +413,12 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	// 🔹 무기 메쉬 확인
 	UStaticMeshComponent* WeaponMesh = WeaponToEquip->FindComponentByClass<UStaticMeshComponent>();
 
-	// 🔹 수류탄인데 개수가 0이면 장착 안되게 설정
-	if (Slot == EWeaponSlot::Throwable && GrenadeCount <= 0)
-	{
-		UE_LOG(LogTemp, Error, TEXT("❌ GrenadeCount is 0"));
-		WeaponMesh = nullptr;
-	}
+	//// 🔹 수류탄인데 개수가 0이면 장착 안되게 설정
+	//if (Slot == EWeaponSlot::Throwable && GrenadeCount <= 0)
+	//{
+	//	UE_LOG(LogTemp, Error, TEXT("❌ GrenadeCount is 0"));
+	//	WeaponMesh = nullptr;
+	//}
 
 	// 🔹 WeaponMesh가 nullptr이면 기존 무기 해제
 	if (!WeaponMesh)
@@ -524,7 +516,6 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	UE_LOG(LogTemp, Warning, TEXT("📌 CurrentWeapon: %s"), *EquippedWeapon->GetName());
 }
 
-<<<<<<< HEAD
 void ABCharacter::InventorySwitch()
 {
 	static bool Switch = false;
@@ -544,8 +535,7 @@ void ABCharacter::UseItem(const FName& ItemName)
 {
 	State->UseItem(ItemName);
 }
-=======
->>>>>>> main
+
 
 void ABCharacter::EquipPistol()
 {
@@ -575,7 +565,6 @@ void ABCharacter::EquipMelee()
 	EquipWeaponByType(ActiveWeaponSlot);
 }
 
-<<<<<<< HEAD
 TArray<ABBaseItem*> ABCharacter::GetNearItemArray() const
 {
 	TArray<AActor*> ActivateItem;
@@ -620,14 +609,12 @@ void ABCharacter::CloseInventory()
 }
 
 
-=======
 void ABCharacter::EquipGrenade()
 {
 	UE_LOG(LogTemp, Warning, TEXT("EquipGrenade() called!"));
 	ActiveWeaponSlot = EWeaponSlot::Throwable;
 	EquipWeaponByType(ActiveWeaponSlot);
 }
->>>>>>> main
 
 void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {

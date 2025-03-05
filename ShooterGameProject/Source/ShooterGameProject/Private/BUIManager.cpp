@@ -75,12 +75,8 @@ UBUIManager::UBUIManager()
 	InGameMenuWidgetInstance = nullptr;
 	GameOverWidgetInstance = nullptr;
 	WeaponWheelInstance = nullptr;
-<<<<<<< HEAD
 	InventoryWidgetInstance = nullptr;
-=======
 	HUDWidgetInstance = nullptr;
->>>>>>> main
-
 	NotificationWidget = nullptr;
 	ItemNotificationWidget = nullptr;
 	HealthAndLevelWidget = nullptr;
