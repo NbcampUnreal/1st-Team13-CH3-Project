@@ -62,7 +62,9 @@ public:
 	void EquipRifle();
 	void EquipShotgun();
 	void EquipMelee();
-	
+	void EquipGrenade();
+	int32 GrenadeCount;
+	int32 FirstAidKitCount;
 protected:
 	/** 카메라 줌 관련 변수 */
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
@@ -82,6 +84,7 @@ protected:
 	TObjectPtr<class UCapsuleComponent> Collision;
 	TObjectPtr<class USkeletalMeshComponent> Skeletal;
 	TObjectPtr<class UBMovementComponent> MoveComp;
+	
 	//UFUNCTION(NetMulticast, unreliable)
 	//void FastSharedReplication(const FSharedRepMovement& SharedRepMovement);
 	UFUNCTION()
@@ -98,6 +101,7 @@ protected:
 	void StopSprint(const struct FInputActionValue& Value);
 	UFUNCTION()
 	void Attack(const struct FInputActionValue& Value);
+	
 	UFUNCTION()
 	void Reload(const struct FInputActionValue& Value);
 	UFUNCTION()
@@ -121,6 +125,7 @@ protected:
 	void StopFire();
 	
 	void EquipWeaponByType(EWeaponSlot Slot);
+	void UnequipGrenade();
 	FTimerHandle FireTimerHandle;
 private:
 	UPROPERTY()
