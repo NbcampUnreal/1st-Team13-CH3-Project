@@ -135,8 +135,8 @@ void ABPistol::Attack()
 
         if (Projectile)
         {
-            UE_LOG(LogTemp, Log, TEXT("총알 스폰 성공: %s"), *Projectile->GetName());
             Projectile->FireInDirection(AdjustedShootDirection);  // 🔹 조정된 방향으로 발사
+            Projectile->SetDamage(Damage);
         }
     }
     else
