@@ -9,6 +9,7 @@
 #include "BProjectileBase.h"
 #include "BGameInstance.h"
 #include "BUIManager.h"
+#include "DrawDebugHelpers.h"
 
 class ABCharacter;
 
@@ -187,6 +188,21 @@ void ABEnemyBase::SpawnProjectile()
 	FinalRotation.Yaw += RandomYaw;
 
 	FVector FinalDirection = FinalRotation.Vector();
+
+	// 테스트용 디버그 라인
+	DrawDebugLine(
+		GetWorld(),
+		SpawnLocation,
+		SpawnLocation + FinalDirection * 3000.f,
+		FColor::Green,
+		false,    // 지속 표시 여부(false면 일정 시간 후 사라짐)
+		2.0f,     // 표시 시간(초)
+		0,        // 우선순위(0이면 기본값)
+		2.0f      // 선 두께
+	);
+
+
+
 	UWorld* World = GetWorld();
 	if (World)
 	{
