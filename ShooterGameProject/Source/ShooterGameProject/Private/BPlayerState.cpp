@@ -1,6 +1,9 @@
 #include "BPlayerState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h" 
+#include "BGameInstance.h"
+#include "BUIManager.h"
+#include "BBaseItem.h"
 
 ABPlayerState::ABPlayerState()
 {
@@ -21,7 +24,7 @@ void ABPlayerState::BeginPlay()
 	for (uint32 i = 1; i <= 100; ++i)
 	{
 		LevelTable.Add(i, (uint32)pow(((i + 2 - 1) * 50 / 49.f), 2.5f));
-	}
+	}	
 }
 
 void ABPlayerState::AddCoin(const int32 _Coin)
@@ -127,6 +130,102 @@ void ABPlayerState::Attack(AActor* Actor)
 		UDamageType::StaticClass());
 }
 
+TArray<FItemData> ABPlayerState::GetNearItemArray() const
+{	
+	TArray<FItemData> Result;
+
+	if (ABCharacter* Chr = Cast<ABCharacter>(GetOwner()))
+	{
+		for (const auto& Item : Chr->GetNearItemArray())
+		{
+			Result.Add(Item->GetItemData());
+		}
+	}
+	return Result;
+}
+
+TArray<FItemData> ABPlayerState::GetAllInventoryItem() const
+{
+	TArray<FItemData> Items;
+
+	for (const auto& Arr : Inventory)
+	{
+		for (const auto& Item : Arr.Value)
+		{
+			Items.Add(Item);
+		}
+	}
+	return Items;
+}
+
+TArray<FItemData> ABPlayerState::GetInventoryTypeItem(const FName& ItemName) const
+{
+	TArray<FItemData> Items;
+
+	for (const auto& Item : Inventory[ItemName])
+	{
+		Items.Add(Item);
+	}
+
+	return Items;
+}
+
+void ABPlayerState::InventoryRemoveItem(const FItemData& Item)
+{
+	if (!Inventory[Item.ItemName].IsEmpty())
+	{
+		int32 LastIdx = Inventory[Item.ItemName].Num() - 1;
+		Inventory[Item.ItemName].RemoveAt(LastIdx);
+		UpdateQuickSlot(Item.ItemName, LastIdx);
+	}
+}
+
+void ABPlayerState::InventoryAddItem(const FItemData& Item)
+{
+	Inventory.FindOrAdd(Item.ItemName).Add(Item);
+	UpdateQuickSlot(Item.ItemName, Inventory[Item.ItemName].Num());
+}
+
+void ABPlayerState::UpdateQuickSlot(const FName& ItemName, int32 Count)
+{
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UI = Instance->GetUIManagerInstance())
+		{
+			UI->UpdateHUDQuickSlot(ItemName, Count);
+		}
+	}
+}
+
+void ABPlayerState::UseItem(const FName& ItemName)
+{
+	if (Inventory.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("아이템이 없다."));
+		return;
+	}
+	if (Inventory[ItemName].IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("아이템이 없다."));
+		return;
+	}
+
+	if (ABPlayerController* Con = Cast<ABPlayerController>(GetOwner()))
+	{
+		if (ABCharacter* Chr = Cast<ABCharacter>(Con->GetCharacter()))
+		{
+			
+			ABBaseItem* Base = GetWorld()->SpawnActor<ABBaseItem>(Inventory[ItemName].Last().ItemClass,FVector::ZeroVector,FRotator::ZeroRotator);
+			if (Base)
+			{
+				Base->UseItem(Chr);
+				Base->DestroyItem();
+				InventoryRemoveItem(Inventory[ItemName].Last());
+			}
+		}
+	}
+}
+
 void ABPlayerState::LevelUP()
 {
 	++Level;
@@ -136,4 +235,6 @@ void ABPlayerState::LevelUP()
 
 	MaxHealth = Level * 20;
 	CurrentHealth = MaxHealth;
+
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("레벨업"));
 }

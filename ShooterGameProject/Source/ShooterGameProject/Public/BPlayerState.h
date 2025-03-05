@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "ItemStruct.h"
+#include "BCharacter.h"
 #include "BPlayerState.generated.h"
 //DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(Health_DeathEvent, AActor*, OwningActor);
 //DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(Health_AttributeChanged, ULyraHealthComponent*, HealthComponent, float, OldValue, float, NewValue, AActor*, Instigator);
@@ -35,6 +37,8 @@ protected:
 	int32 CurrentExperience;
 	int32 Coin;
 	EDeathState DeathState;
+	TMap<FName, TArray<FItemData>> Inventory;
+	TObjectPtr<ABCharacter> Player;
 protected:
 	virtual void BeginPlay() override;
 public:
@@ -64,6 +68,20 @@ public:
 	void AddExp(int32 Exp);
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Health")
 	void Attack(AActor* Actor);
+	UFUNCTION(BlueprintCallable, Category = "Collect")
+	TArray<FItemData> GetNearItemArray() const;
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	TArray<FItemData> GetAllInventoryItem() const;
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	TArray<FItemData> GetInventoryTypeItem(const FName& ItemName) const;
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void InventoryRemoveItem(const FItemData& Item);
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void InventoryAddItem(const FItemData& Item);
+	UFUNCTION(BlueprintCallable)
+	void UpdateQuickSlot(const FName& ItemName, int32 Count);
+	UFUNCTION(BlueprintCallable)
+	void UseItem(const FName& ItemName);
 private:
 	void LevelUP();
 	//	�ɸ��� �������� ���� ���̺�
