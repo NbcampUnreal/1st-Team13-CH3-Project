@@ -64,8 +64,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Collect")
 	TArray<class ABBaseItem*> GetNearItemArray() const;
 
-	void ShowInventory();
-	void CloseInventory();
+	UFUNCTION(BlueprintCallable)
+	void InventorySwitch();
 protected:
 	/** 카메라 줌 관련 변수 */
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
@@ -119,7 +119,10 @@ protected:
 	void StartDragging(const FInputActionValue& Value);
 	UFUNCTION()
 	void StopDragging(const FInputActionValue& Value);
-	
+	UFUNCTION(BlueprintCallable)
+	void ShowInventory();
+	UFUNCTION(BlueprintCallable)
+	void CloseInventory();
 	virtual void BeginPlay() override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -127,6 +130,7 @@ protected:
 	
 	void EquipWeaponByType(EWeaponSlot Slot);
 	FTimerHandle FireTimerHandle;
+
 private:
 	UPROPERTY()
 	FReplicatedAcceleration ReplicatedAcceleration;

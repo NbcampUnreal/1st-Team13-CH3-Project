@@ -15,10 +15,7 @@ void UTreeItem::NativeConstruct()
 
 void UTreeItem::SetItemData(const FItemData& Data)
 {
-	ItemData.ItemClass = Data.ItemClass;
-	ItemData.ItemCount = Data.ItemCount;
-	ItemData.ItemIcon = Data.ItemIcon;
-	ItemData.ItemName = Data.ItemName;
+	ItemData = Data;
 }
 
 void UTreeItem::SetItemName(const FName& Name)
@@ -59,6 +56,10 @@ void UTreeItem::SetItemReference(ABBaseItem* Item)
 ABBaseItem* UTreeItem::GetItemReference() const
 {
 	return ItemRef;
+}
+FItemData& UTreeItem::GetItemData()
+{
+	return ItemData;
 }
 void UTreeItem::RefreshData()
 {

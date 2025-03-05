@@ -20,6 +20,14 @@ void UBInventoryWidget::NativeConstruct()
 
 void UBInventoryWidget::SendItemData(const TArray<class ABBaseItem*>& ActicvatedItem, class ABPlayerState* PlayerState)
 {
+	if (NearList)
+	{
+		NearList->SetPlayerState(PlayerState);
+	}
+	if (InventoryList)
+	{
+		InventoryList->SetPlayerState(PlayerState);
+	}
 	if (!ActicvatedItem.IsEmpty())
 	{
 		AddNearList(ActicvatedItem);
@@ -72,25 +80,21 @@ void UBInventoryWidget::AddNearList(const TArray<class ABBaseItem*>& NearItemLis
 
 void UBInventoryWidget::AddInventoryList(class ABPlayerState* PlayerState)
 {
-	// TODO :Player의 인벤토리를 가져와야함
-}
-
-void UBInventoryWidget::AddNearTestList()
-{
-	if (UItemListViewr* Near = GetNearListTreeView())
+	if (UItemListViewr* InventoryTree = GetInventoryListTreeView())
 	{
 		if (TreeItemWidgetClass.IsValid())
 		{
 			if (UClass* LoadedClass = TreeItemWidgetClass.Get())
 			{
-				for (int i = 0; i < 5; ++i)
+				for (const auto& ItemRef : PlayerState->GetAllInventoryItem())
 				{
 					if (TreeItemWidgetClass)
 					{
-						UTreeItem* Item = CreateWidget<UTreeItem>(Near->GetTreeView(), LoadedClass);
-						Item->SetOwnerTreeView(Near->GetTreeView());
-						Item->SetItemName(TEXT("Test"));
-						Near->AddItem(Near->GetTreeView(), Item);
+						UTreeItem* Item = CreateWidget<UTreeItem>(InventoryTree->GetTreeView(), LoadedClass);
+						Item->SetItemData(ItemRef);
+						Item->SetOwnerTreeView(InventoryTree->GetTreeView());
+						Item->RefreshData();
+						InventoryTree->AddItem(InventoryTree->GetTreeView(), Item);
 					}
 				}
 			}

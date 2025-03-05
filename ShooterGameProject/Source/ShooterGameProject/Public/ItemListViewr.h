@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "ItemStruct.h"
 #include "ItemListViewr.generated.h"
 
 UENUM()
@@ -28,10 +29,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
 	TSoftClassPtr<UUserWidget> TreeItemWidgetClass;
 	ETreeViewType TreeType;
-
+	class ABPlayerState* PlayerState;
 public:
 	UFUNCTION(BlueprintCallable)
 	class UTreeView* GetTreeView() const { return ItemListView; }
+	void SetPlayerState(ABPlayerState* State);
+	class ABPlayerState* GetPlayerState() const;
 protected:
 	virtual bool NativeOnDrop(const FGeometry& MyGeometry, const FDragDropEvent& DragDropEvent, UDragDropOperation* Operation) override;
 private:
@@ -40,6 +43,8 @@ public:
 	void AddItem(class UTreeView* TreeView, class UTreeItem* TreeItem);
 	void RemoveItem(class UTreeView* TreeView, class UTreeItem* TreeItem);
 	void DestroyItem(class ABBaseItem* Item);
-	void DropItem(UClass* Class);
-	//void InputInventory()	
+	ABBaseItem* SpawnItem(const FItemData& ItemInfo);
+	void DropItem(class UTreeItem* TreeItem);
+	void InputInventory(const FItemData& ItemInfo);
+	void RemoveInventory(const FItemData& ItemInfo);
 };

@@ -37,15 +37,11 @@ protected:
 	int32 CurrentExperience;
 	int32 Coin;
 	EDeathState DeathState;
-	TMap<FName, TArray<class ABBaseItem*>> Inventory;
+	TMap<FName, TArray<FItemData>> Inventory;
 	TObjectPtr<ABCharacter> Player;
 protected:
 	virtual void BeginPlay() override;
 public:
-	UFUNCTION(BlueprintCallable)
-	void SetPlayer(ABCharacter* PlayerPtr);
-	UFUNCTION(BlueprintCallable)
-	ABCharacter* GetPlayer() const;
 	UFUNCTION(BlueprintCallable, Category = "Coin")
 	void AddCoin(const int32 Coin);
 	UFUNCTION(BlueprintCallable, Category = "Coin")
@@ -73,15 +69,15 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Health")
 	void Attack(AActor* Actor);
 	UFUNCTION(BlueprintCallable, Category = "Collect")
-	TArray<class ABBaseItem*> GetNearItemArray() const;
+	TArray<FItemData> GetNearItemArray() const;
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	TArray<class ABBaseItem*> GetAllInventoryItem() const;
+	TArray<FItemData> GetAllInventoryItem() const;
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	TArray<class ABBaseItem*> GetInventoryTypeItem(const FName& ItemType) const;
+	TArray<FItemData> GetInventoryTypeItem(const FName& ItemName) const;
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void InventoryRemoveItem(class ABBaseItem* Item);
+	void InventoryRemoveItem(const FItemData& Item);
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void InventoryAddItem(class ABBaseItem* Item);
+	void InventoryAddItem(const FItemData& Item);
 private:
 	void LevelUP();
 	//	�ɸ��� �������� ���� ���̺�

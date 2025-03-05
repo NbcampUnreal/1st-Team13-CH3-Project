@@ -33,6 +33,8 @@ public:
 	void SetItemReference(class ABBaseItem* Item);
 	UFUNCTION(BlueprintCallable)
 	class ABBaseItem* GetItemReference() const;
+	UFUNCTION(BlueprintCallable)
+	FItemData& GetItemData();
 	void RefreshData();
 public:
 	void SetOwnerTreeView(class UTreeView* View);

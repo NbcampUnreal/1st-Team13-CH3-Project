@@ -12,8 +12,7 @@ class USphereComponent;
 UCLASS()
 class SHOOTERGAMEPROJECT_API ABBaseItem : public AActor, public IBItemInterface
 {
-	GENERATED_BODY()
-	
+	GENERATED_BODY()	
 public:	
 	// Sets default values for this actor's properties
 	ABBaseItem();
@@ -21,6 +20,7 @@ public:
 	virtual void DestroyItem();
 	FItemData GetItemData() const;
 	virtual FName GetItemType() const override;
+	void SetItemData(const FItemData& Data);
 protected:
 	// 아이템 유형(타입)을 편집 가능하게 지정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
@@ -60,8 +60,7 @@ protected:
 		int32 OtherBodyIndex) override;
 	virtual void ActivateItem(AActor* Activator) override;
 
+public:
 	virtual FName GetItemName() const override;
 	virtual void UseItem(AActor* Activator) override;
-
-
 };

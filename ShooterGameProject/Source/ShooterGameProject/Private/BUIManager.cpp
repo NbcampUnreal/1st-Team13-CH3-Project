@@ -397,8 +397,6 @@ void UBUIManager::ShowInventory()
 			if (InventoryWidgetInstance)
 			{
 				InventoryWidgetInstance->AddToViewport();
-				InventoryWidgetInstance->AddNearTestList();
-				SetInputUIOnly();
 			}
 		}
 	}
@@ -408,9 +406,9 @@ void UBUIManager::ShowInventory()
 		{
 			if (APlayerController* PlayerController = World->GetFirstPlayerController())
 			{
-				PlayerController->SetPause(true);
+				PlayerController->SetPause(false);
 				PlayerController->bShowMouseCursor = true;
-				PlayerController->SetInputMode(FInputModeUIOnly());
+				PlayerController->SetInputMode(FInputModeGameAndUI());
 			}
 		}
 	}
@@ -430,7 +428,7 @@ void UBUIManager::CloseInventory()
 			if (APlayerController* PlayerController = World->GetFirstPlayerController())
 			{
 				PlayerController->SetPause(false);
-				PlayerController->bShowMouseCursor = true;		
+				PlayerController->bShowMouseCursor = false;		
 				PlayerController->SetInputMode(FInputModeGameOnly());
 			}
 		}

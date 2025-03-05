@@ -53,6 +53,7 @@ ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 	MoveComp->SetCrouchedHalfHeight(65.0f);
 
 	CollectNearItem = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+	CollectNearItem->SetupAttachment(GetRootComponent());
 	CollectNearItem->SetSphereRadius(400.f);
 }
 
@@ -472,6 +473,21 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	}
 }
 
+void ABCharacter::InventorySwitch()
+{
+	static bool Switch = false;
+
+	if (!Switch)
+	{
+		ShowInventory();
+	}
+	else
+	{
+		CloseInventory();
+	}
+	Switch = !Switch;
+}
+
 void ABCharacter::EquipPistol()
 {
 	UE_LOG(LogTemp, Warning, TEXT("EquipPistol() called!"));
@@ -534,6 +550,13 @@ void ABCharacter::ShowInventory()
 
 void ABCharacter::CloseInventory()
 {
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
+		{
+			UIManager->CloseInventory();
+		}
+	}
 }
 
 

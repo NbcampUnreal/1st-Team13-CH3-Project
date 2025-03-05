@@ -34,5 +34,4 @@ public:
 	void AddNearList(const TArray<class ABBaseItem*>& NearItemList);
 	UFUNCTION(BlueprintCallable)
 	void AddInventoryList(class ABPlayerState* PlayerState);
-	void AddNearTestList();
 };

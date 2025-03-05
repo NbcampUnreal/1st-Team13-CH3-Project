@@ -22,17 +22,7 @@ void ABPlayerState::BeginPlay()
 	for (uint32 i = 1; i <= 100; ++i)
 	{
 		LevelTable.Add(i, (uint32)pow(((i + 2 - 1) * 50 / 49.f), 2.5f));
-	}
-}
-
-void ABPlayerState::SetPlayer(ABCharacter* PlayerPtr)
-{
-	Player = PlayerPtr;
-}
-
-ABCharacter* ABPlayerState::GetPlayer() const
-{
-	return Player;
+	}	
 }
 
 void ABPlayerState::AddCoin(const int32 _Coin)
@@ -138,14 +128,23 @@ void ABPlayerState::Attack(AActor* Actor)
 		UDamageType::StaticClass());
 }
 
-TArray<class ABBaseItem*> ABPlayerState::GetNearItemArray() const
+TArray<FItemData> ABPlayerState::GetNearItemArray() const
 {	
-	return TArray<class ABBaseItem*>();
+	TArray<FItemData> Result;
+
+	if (ABCharacter* Chr = Cast<ABCharacter>(GetOwner()))
+	{
+		for (const auto& Item : Chr->GetNearItemArray())
+		{
+			Result.Add(Item->GetItemData());
+		}
+	}
+	return Result;
 }
 
-TArray<class ABBaseItem*> ABPlayerState::GetAllInventoryItem() const
+TArray<FItemData> ABPlayerState::GetAllInventoryItem() const
 {
-	TArray<class ABBaseItem*> Items;
+	TArray<FItemData> Items;
 
 	for (const auto& Arr : Inventory)
 	{
@@ -157,11 +156,11 @@ TArray<class ABBaseItem*> ABPlayerState::GetAllInventoryItem() const
 	return Items;
 }
 
-TArray<class ABBaseItem*> ABPlayerState::GetInventoryTypeItem(const FName& ItemType) const
+TArray<FItemData> ABPlayerState::GetInventoryTypeItem(const FName& ItemName) const
 {
-	TArray<class ABBaseItem*> Items;
+	TArray<FItemData> Items;
 
-	for (const auto& Item : Inventory[ItemType])
+	for (const auto& Item : Inventory[ItemName])
 	{
 		Items.Add(Item);
 	}
@@ -169,14 +168,20 @@ TArray<class ABBaseItem*> ABPlayerState::GetInventoryTypeItem(const FName& ItemT
 	return Items;
 }
 
-void ABPlayerState::InventoryRemoveItem(ABBaseItem* Item)
+void ABPlayerState::InventoryRemoveItem(const FItemData& Item)
 {
-	Inventory[Item->GetItemType()].Remove(Item);
+	if (!Inventory[Item.ItemName].IsEmpty())
+	{
+		int32 LastIdx = Inventory[Item.ItemName].Num() - 1;
+		Inventory[Item.ItemName].RemoveAt(LastIdx);
+		UE_LOG(LogTemp, Warning, TEXT("Inventory RemoveItem"));
+	}
 }
 
-void ABPlayerState::InventoryAddItem(ABBaseItem* Item)
+void ABPlayerState::InventoryAddItem(const FItemData& Item)
 {
-	Inventory[Item->GetItemType()].Add(Item);
+	Inventory.FindOrAdd(Item.ItemName).Add(Item);
+	UE_LOG(LogTemp, Warning, TEXT("Inventory AddItem"));
 }
 
 void ABPlayerState::LevelUP()
@@ -188,4 +193,6 @@ void ABPlayerState::LevelUP()
 
 	MaxHealth = Level * 20;
 	CurrentHealth = MaxHealth;
+
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("레벨업"));
 }
