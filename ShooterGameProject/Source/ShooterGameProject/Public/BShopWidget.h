@@ -15,14 +15,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop")
 	class UDataTable* ShopDataTable;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UTextBlock* ShopTitle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	class UScrollBox* ShopScrollBox;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
-	class UTextBlock* PlayerGoldText;
+	class UTextBlock* PlayerCoinText;
 
 	class ABBaseItem* ItemToSell = nullptr;
 	
 	UFUNCTION(BlueprintCallable)
-	void DisplayPlayerGold();
+	void DisplayPlayerCoin();
 	UFUNCTION(BlueprintCallable)
 	void AddItemsToScrollBox();
 
