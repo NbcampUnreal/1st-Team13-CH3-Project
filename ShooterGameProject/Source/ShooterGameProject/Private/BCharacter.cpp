@@ -8,6 +8,12 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "BMovementComponent.h"
+#include "Components/SphereComponent.h"
+#include "BBaseItem.h"
+#include "BPlayerState.h"
+#include "BUIManager.h"
+#include "BGameInstance.h"
+#include "BInventoryWidget.h"
 #include <BShotGun.h>
 
 ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
@@ -46,7 +52,9 @@ ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 	MoveComp->bCanWalkOffLedgesWhenCrouching = true;
 	MoveComp->SetCrouchedHalfHeight(65.0f);
 
-	
+	CollectNearItem = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+	CollectNearItem->SetupAttachment(GetRootComponent());
+	CollectNearItem->SetSphereRadius(400.f);
 }
 
 ABPlayerState* ABCharacter::GetBPlayerState() const
@@ -256,6 +264,8 @@ void ABCharacter::ZoomStop(const FInputActionValue& Value)
 void ABCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	State = Cast<ABPlayerState>(GetPlayerState());
 }
 void ABCharacter::Attack(const struct FInputActionValue& Value)
 {
@@ -514,6 +524,28 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	UE_LOG(LogTemp, Warning, TEXT("📌 CurrentWeapon: %s"), *EquippedWeapon->GetName());
 }
 
+<<<<<<< HEAD
+void ABCharacter::InventorySwitch()
+{
+	static bool Switch = false;
+
+	if (!Switch)
+	{
+		ShowInventory();
+	}
+	else
+	{
+		CloseInventory();
+	}
+	Switch = !Switch;
+}
+
+void ABCharacter::UseItem(const FName& ItemName)
+{
+	State->UseItem(ItemName);
+}
+=======
+>>>>>>> main
 
 void ABCharacter::EquipPistol()
 {
@@ -543,12 +575,59 @@ void ABCharacter::EquipMelee()
 	EquipWeaponByType(ActiveWeaponSlot);
 }
 
+<<<<<<< HEAD
+TArray<ABBaseItem*> ABCharacter::GetNearItemArray() const
+{
+	TArray<AActor*> ActivateItem;
+	TArray<ABBaseItem*> BaseItem;
+
+	CollectNearItem->GetOverlappingActors(ActivateItem);
+
+	for (AActor* Actor : ActivateItem)
+	{
+		if (ABBaseItem* Base = Cast<ABBaseItem>(Actor))
+		{
+			BaseItem.Add(Base);
+		}
+	}
+	return BaseItem;
+}
+
+void ABCharacter::ShowInventory()
+{
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
+		{
+			UIManager->ShowInventory();
+			if (UBInventoryWidget* Inventory = Cast<UBInventoryWidget>(UIManager->GetInventoryInstance()))
+			{
+				Inventory->SendItemData(GetNearItemArray(), Cast<ABPlayerState>(GetPlayerState()));
+			}
+		}
+	}
+}
+
+void ABCharacter::CloseInventory()
+{
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
+		{
+			UIManager->CloseInventory();
+		}
+	}
+}
+
+
+=======
 void ABCharacter::EquipGrenade()
 {
 	UE_LOG(LogTemp, Warning, TEXT("EquipGrenade() called!"));
 	ActiveWeaponSlot = EWeaponSlot::Throwable;
 	EquipWeaponByType(ActiveWeaponSlot);
 }
+>>>>>>> main
 
 void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
