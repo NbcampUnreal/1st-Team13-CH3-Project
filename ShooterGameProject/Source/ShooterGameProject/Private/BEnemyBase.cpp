@@ -22,8 +22,6 @@ ABEnemyBase::ABEnemyBase()
 	AttackRange = 0.f;
 	Accuracy = 0.7f;
 	bIsRanged = false;   // false = 근거리
-	bIsMeleeAttacking = false;
-	MeleeAttackMontage = nullptr;
 	bIsDead = false;
 
 	// AIControllerClass 지정 → AIController가 감지 로직을 담당
@@ -109,12 +107,27 @@ float ABEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 	CurrentHP = FMath::Clamp(CurrentHP - DamageAmount, 0.f, MaxHP);
 	if (CurrentHP <= 0.f)
 	{
-		OnDeath();
+		bIsDead = true;
 	}
 	return ActualDamage;
 }
 
 void ABEnemyBase::OnDeath()
+{
+	if (GetMesh())
+	{
+		GetMesh()->SetSimulatePhysics(true);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+	if (GetWorld())
+	{
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABEnemyBase::DelayedDropAndDestroy, 1.f, false);
+	}
+
+}
+
+void ABEnemyBase::DelayedDropAndDestroy()
 {
 	DropItem();
 	Destroy();
@@ -128,30 +141,6 @@ void ABEnemyBase::DropItem()
 void ABEnemyBase::GainHP(float HP)
 {
 	CurrentHP = FMath::Clamp(CurrentHP + HP, 0.f, MaxHP);
-}
-
-void ABEnemyBase::PlayMeleeAttackMontage()
-{
-	if (!MeleeAttackMontage)
-		return;
-
-	UAnimInstance* AnimInstance = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
-	if (AnimInstance)
-	{
-		AnimInstance->Montage_Play(MeleeAttackMontage);
-		FOnMontageEnded EndDelegate;
-		EndDelegate.BindUObject(this, &ABEnemyBase::OnMeleeAttackMontageEnded);
-		AnimInstance->Montage_SetEndDelegate(EndDelegate, MeleeAttackMontage);
-		bIsMeleeAttacking = true;
-	}
-}
-
-void ABEnemyBase::OnMeleeAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
-{
-	if (Montage == MeleeAttackMontage)
-	{
-		bIsMeleeAttacking = false;
-	}
 }
 
 void ABEnemyBase::SpawnProjectile()
