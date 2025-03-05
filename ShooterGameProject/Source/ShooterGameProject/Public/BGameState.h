@@ -39,4 +39,7 @@ public:
     void OpenDoor();
     UFUNCTION(BlueprintCallable)
     void TriggerGameOver();
+
+
+    int32  GetCurrentScore() const { return CurrentScore; }
 };

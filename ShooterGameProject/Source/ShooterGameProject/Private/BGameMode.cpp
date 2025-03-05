@@ -5,12 +5,12 @@
 #include "BGameInstance.h"
 #include "BSpawnVolume.h"
 #include "Kismet/GameplayStatics.h"
+#include "SkyManager.h"
 #include "TimerManager.h"
-
+#include "BEnemySpawnVolume.h"
 
 ABGameMode::ABGameMode()
 {
-	UE_LOG(LogTemp, Warning, TEXT("ABGameMode::ABGameMode()"));
 	DefaultPawnClass = ABCharacter::StaticClass();
 	PlayerControllerClass = ABPlayerController::StaticClass();
 	GameStateClass = ABGameState::StaticClass();
@@ -19,7 +19,6 @@ ABGameMode::ABGameMode()
 
 void ABGameMode::BeginPlay()
 {
-	UE_LOG(LogTemp, Warning, TEXT("GameMode BeginPlay start"));
 	Super::BeginPlay();
 
 	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
@@ -31,10 +30,8 @@ void ABGameMode::BeginPlay()
 	else
 	{
 		GameInstance->GetUIManagerInstance()->LevelStartTransition();
-		UE_LOG(LogTemp, Warning, TEXT("ABGameMode::BeginPlay().StartLevel()"));
 		StartLevel();
 	}	
-	UE_LOG(LogTemp, Warning, TEXT("GameMode BeginPlay end"));
 }
 
 void ABGameMode::StartLevel()
@@ -44,13 +41,11 @@ void ABGameMode::StartLevel()
 	{
 		BGameState->InitializeGameState();
 	}
-	UE_LOG(LogTemp, Warning, TEXT("StartLevel: Spawning KeyBoxes!"));
 	SpawnLevelKeyBox();
 
 	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance()); //resetHUD
 	if (GameInstance)
 	{
-		UE_LOG(LogTemp, Log, TEXT("StartGame().RemoveHUD"));
 		GameInstance->GetUIManagerInstance()->RemoveHUD();
 	}
 
@@ -61,7 +56,7 @@ void ABGameMode::SpawnLevelKeyBox()
 	ABGameState* BGameState = GetGameState<ABGameState>();
 	if (!BGameState) return;
 
-	int32 RequiredKeyCount = BGameState->RequiredKeyCount;
+	//int32 RequiredKeyCount = BGameState->RequiredKeyCount;
 
 	TArray<AActor*> SpawnVolumes;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABSpawnVolume::StaticClass(), SpawnVolumes);
@@ -73,7 +68,7 @@ void ABGameMode::SpawnLevelKeyBox()
 	}
 
 
-	for (int32 i = 0; i < RequiredKeyCount; i++)
+	for (int32 i = 0; i < 3; i++)
 	{
         int32 RandomIndex = FMath::RandRange(0, SpawnVolumes.Num() - 1);
         ABSpawnVolume* SpawnVolume = Cast<ABSpawnVolume>(SpawnVolumes[RandomIndex]);
@@ -88,8 +83,9 @@ void ABGameMode::SpawnLevelKeyBox()
 void ABGameMode::StartGame()
 {
 	UE_LOG(LogTemp, Log, TEXT("StartGame! Eliminate all the enemies!"));
+	StartEnemySpawning();
 	ABGameState* BGameState = GetGameState<ABGameState>();
-
+	/*
 	GetWorldTimerManager().SetTimer
 	(
 		LevelTimerHandle,
@@ -97,15 +93,19 @@ void ABGameMode::StartGame()
 		&ABGameMode::EndGame,
 		BGameState->TimeLimit,
 		false
-	);
+	);*/
 
 	if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
 	{
+		ASkyManager* SkyManager = Cast<ASkyManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ASkyManager::StaticClass()));
+		if (SkyManager)
+		{
+			SkyManager->UpdateSkyColor(GameInstance->GetCurrentStage());
+		}
 		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
 		{
-			UE_LOG(LogTemp, Log, TEXT("StartGame().DisplayHUD()"));
-						UIManager->DisplayHUD();
-			}
+			UIManager->DisplayHUD();
+		}
 	}
 	if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 	{
@@ -125,14 +125,11 @@ void ABGameMode::onDoorReached() //문에 플레이어 도달 시 호출
 		{
 			GameInstance->GetUIManagerInstance()->LevelEndTransition();
 		}
-		NextLevel();
 	}
 }
 
 void ABGameMode::NextLevel() //다음 레벨로 이동
 {
-	UE_LOG(LogTemp, Log, TEXT("StartNextLevel()"));
-
 	if (UBGameInstance* BGameInstance = GetGameInstance<UBGameInstance>())
 	{
 		int32 CurrentStage = BGameInstance->GetCurrentStage() + 1;
@@ -170,7 +167,6 @@ void ABGameMode::RestartGame()
 		GameInstance->HasTitleScreenBeenShown = false;
 		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
 		{
-			UE_LOG(LogTemp, Log, TEXT("RestartGame().RemoveHUD"));
 			UIManager->RemoveHUD();
 		}
 	}
@@ -181,4 +177,48 @@ void ABGameMode::QuitGame()
 {
 	UWorld* World = GetWorld();
 	UKismetSystemLibrary::QuitGame(World, nullptr, EQuitPreference::Quit, false);
+}
+
+void ABGameMode::StartEnemySpawning()
+{
+	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
+	if (!GameInstance) return;
+
+	int32 CurrentStage = GameInstance->GetCurrentStage();
+
+	int32 TotalBasicCount = (CurrentStage == 3) ? 30 : 10;
+	int32 TotalSkillCount = (CurrentStage == 3) ? 0 : 4;
+
+	TArray<AActor*> EnemySpawners;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABEnemySpawnVolume::StaticClass(), EnemySpawners);
+
+	if (EnemySpawners.Num() == 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("EnemySpawnVolume 없음!"));
+		return;
+	}
+
+	int32 NumSpawners = EnemySpawners.Num();
+	int32 BasicPerSpawner = TotalBasicCount / NumSpawners;
+	int32 SkillPerSpawner = TotalSkillCount / NumSpawners;
+
+	int32 BasicRemainder = TotalBasicCount % NumSpawners;
+	int32 SkillRemainder = TotalSkillCount % NumSpawners;
+
+	for (AActor* SpawnerActor : EnemySpawners)
+	{
+		if (ABEnemySpawnVolume* Spawner = Cast<ABEnemySpawnVolume>(SpawnerActor))
+		{
+			int32 AssignedBasic = BasicPerSpawner + (BasicRemainder > 0 ? 1 : 0);
+			int32 AssignedSkill = SkillPerSpawner + (SkillRemainder > 0 ? 1 : 0);
+
+			if (BasicRemainder > 0) BasicRemainder--;
+			if (SkillRemainder > 0) SkillRemainder--;
+
+			UE_LOG(LogTemp, Warning, TEXT("스폰 볼륨 %s에서 Basic %d마리, Skill %d마리 스폰"),
+				*Spawner->GetName(), AssignedBasic, AssignedSkill);
+
+			Spawner->SpawnEnemies(AssignedBasic, AssignedSkill);
+		}
+	}
 }
