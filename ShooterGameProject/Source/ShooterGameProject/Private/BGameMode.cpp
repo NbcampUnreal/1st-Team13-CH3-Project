@@ -7,7 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "SkyManager.h"
 #include "TimerManager.h"
-
+#include "BEnemySpawnVolume.h"
 
 ABGameMode::ABGameMode()
 {
@@ -83,6 +83,7 @@ void ABGameMode::SpawnLevelKeyBox()
 void ABGameMode::StartGame()
 {
 	UE_LOG(LogTemp, Log, TEXT("StartGame! Eliminate all the enemies!"));
+	StartEnemySpawning();
 	ABGameState* BGameState = GetGameState<ABGameState>();
 	/*
 	GetWorldTimerManager().SetTimer
@@ -176,4 +177,48 @@ void ABGameMode::QuitGame()
 {
 	UWorld* World = GetWorld();
 	UKismetSystemLibrary::QuitGame(World, nullptr, EQuitPreference::Quit, false);
+}
+
+void ABGameMode::StartEnemySpawning()
+{
+	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
+	if (!GameInstance) return;
+
+	int32 CurrentStage = GameInstance->GetCurrentStage();
+
+	int32 TotalBasicCount = (CurrentStage == 3) ? 30 : 10;
+	int32 TotalSkillCount = (CurrentStage == 3) ? 0 : 4;
+
+	TArray<AActor*> EnemySpawners;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABEnemySpawnVolume::StaticClass(), EnemySpawners);
+
+	if (EnemySpawners.Num() == 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("EnemySpawnVolume 없음!"));
+		return;
+	}
+
+	int32 NumSpawners = EnemySpawners.Num();
+	int32 BasicPerSpawner = TotalBasicCount / NumSpawners;
+	int32 SkillPerSpawner = TotalSkillCount / NumSpawners;
+
+	int32 BasicRemainder = TotalBasicCount % NumSpawners;
+	int32 SkillRemainder = TotalSkillCount % NumSpawners;
+
+	for (AActor* SpawnerActor : EnemySpawners)
+	{
+		if (ABEnemySpawnVolume* Spawner = Cast<ABEnemySpawnVolume>(SpawnerActor))
+		{
+			int32 AssignedBasic = BasicPerSpawner + (BasicRemainder > 0 ? 1 : 0);
+			int32 AssignedSkill = SkillPerSpawner + (SkillRemainder > 0 ? 1 : 0);
+
+			if (BasicRemainder > 0) BasicRemainder--;
+			if (SkillRemainder > 0) SkillRemainder--;
+
+			UE_LOG(LogTemp, Warning, TEXT("스폰 볼륨 %s에서 Basic %d마리, Skill %d마리 스폰"),
+				*Spawner->GetName(), AssignedBasic, AssignedSkill);
+
+			Spawner->SpawnEnemies(AssignedBasic, AssignedSkill);
+		}
+	}
 }
