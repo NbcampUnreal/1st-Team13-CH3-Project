@@ -22,6 +22,11 @@ void UHealthAndLevelWidget::UpdateHealth(float CurrentHP, float MaxHP)
 	{
 		float HPPercent = CurrentHP / MaxHP;
 		HPBar->SetPercent(HPPercent);
+
+		if (HPPercent < 0.3)
+		{
+			HPBar->SetFillColorAndOpacity(FLinearColor(10.f, 0.f, 0.f, 1.f));
+		}
 	}
 
 	if (Anim_Jiggle)

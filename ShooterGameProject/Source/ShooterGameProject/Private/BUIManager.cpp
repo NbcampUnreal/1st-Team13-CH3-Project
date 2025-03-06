@@ -653,7 +653,7 @@ void UBUIManager::UpdateHUDAmmo()
 							{
 								if (ABBaseGun* EquippedGun = Cast<ABBaseGun>(EquippedWeapon))
 								{
-									WeaponAmmoWidget->UpdateLoadedAmmo(EquippedGun->AmmoCount);
+									WeaponAmmoWidget->UpdateLoadedAmmo(EquippedGun->CurrentAmmo);
 								}
 
 								if (EquippedWeapon->IsA<ABPistol>())
