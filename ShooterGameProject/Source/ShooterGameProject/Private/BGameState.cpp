@@ -22,7 +22,15 @@ void ABGameState::BeginPlay()
 
 void ABGameState::InitializeGameState()
 {
-	SpawnedEnemies = 10; //ex
+	if (UBGameInstance* BGameInstance = GetGameInstance<UBGameInstance>())
+	{
+		int32 currnetstage=BGameInstance->GetCurrentStage();
+		SpawnedEnemies = 14;
+		if (currnetstage == 2)
+		{
+		SpawnedEnemies = 30;
+		}
+	}
 	KilledEnemies = 0;
 	CollectedKeys = 0;
 	bIsDoorOpen = false;
@@ -33,11 +41,19 @@ void ABGameState::InitializeGameState()
 void ABGameState::EnemyDefeated()
 {
 	KilledEnemies++;
+	if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
+	{
+		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
+		{
+			UIManager->UpdateKillCount(KilledEnemies);
+		}
+	}
 	CheckGameStatus();
 }
 
 void ABGameState::ItemCollected()
 {
+	CollectedKeys++;
 	CheckGameStatus();
 }
 

@@ -20,7 +20,7 @@ UBUIManager* UBGameInstance::GetUIManagerInstance()
 void UBGameInstance::AddScore(int32 Points)
 {
 	TotalScore += Points;
-	UE_LOG(LogTemp, Log, TEXT("AddScore: %d, Total : %d"), Points, TotalScore);
+	GetUIManagerInstance()->UpdateCurrentScore(TotalScore);
 }
 
 int32 UBGameInstance::GetScore() const
