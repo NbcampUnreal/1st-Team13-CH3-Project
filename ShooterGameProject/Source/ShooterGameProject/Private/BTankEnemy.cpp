@@ -3,6 +3,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "BGameInstance.h"
 #include "BUIManager.h"
+#include "BCharacter.h"
 
 ABTankEnemy::ABTankEnemy()
 {
@@ -63,10 +64,12 @@ void ABTankEnemy::Explode()
 	ExplosionCollision->GetOverlappingActors(OverlappingActors);
 	for (AActor* Actor : OverlappingActors)
 	{
-		if (Actor && Actor->ActorHasTag("Player"))
+		// ABCharacter로 캐스팅하여 검사
+		ABCharacter* PlayerCharacter = Cast<ABCharacter>(Actor);
+		if (PlayerCharacter)
 		{
 			UGameplayStatics::ApplyDamage(
-				Actor,
+				PlayerCharacter,
 				ExplosionDamage,
 				nullptr,
 				this,
