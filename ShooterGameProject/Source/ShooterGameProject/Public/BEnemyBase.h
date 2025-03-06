@@ -78,7 +78,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 	UFUNCTION(BlueprintCallable, Category = "Battle")
-	virtual void Attack();
+	virtual void EnemyAttack();
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	virtual void UseSkill();
 	UFUNCTION(BlueprintCallable, Category = "Battle")

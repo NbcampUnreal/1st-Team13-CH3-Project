@@ -82,7 +82,7 @@ FName ABEnemyBase::GetMonsterType() const
 	return FName(TEXT("Basic"));
 }
 
-void ABEnemyBase::Attack()
+void ABEnemyBase::EnemyAttack()
 {
 	ABCharacter* PlayerCharacter = Cast<ABCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 	if (!PlayerCharacter) return;
