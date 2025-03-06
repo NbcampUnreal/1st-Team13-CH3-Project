@@ -8,6 +8,8 @@
 #include "ItemStruct.h"
 #include "BBaseItem.generated.h"
 
+
+
 class USphereComponent;
 UCLASS()
 class SHOOTERGAMEPROJECT_API ABBaseItem : public AActor, public IBItemInterface

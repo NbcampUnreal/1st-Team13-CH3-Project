@@ -76,6 +76,11 @@ void ABBaseWeapon::Attack()
 {
     // 해당 클래스를 상속받은 자식 클래스들 에서 만들 예정
     UE_LOG(LogTemp, Log, TEXT("무기 공격 완료!"));
+
+    if (AttackEvent.IsBound())
+    {
+        AttackEvent.Execute();
+    }
 }
 void ABBaseWeapon::DisablePhysicsSimulation()
 {

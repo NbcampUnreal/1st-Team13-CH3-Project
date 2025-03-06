@@ -18,8 +18,7 @@
 #include "BUIManager.h"
 #include "BGameInstance.h"
 #include "BInventoryWidget.h"
-
-
+#include "Blueprint/UserWidget.h"
 
 ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UBMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -72,6 +71,21 @@ ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 	CollectNearItem->SetupAttachment(GetRootComponent());
 	CollectNearItem->SetSphereRadius(400.f);;
 }
+
+//void ABCharacter::PlayAnimation(UAnimMontage* Montage)
+//{
+//	if (Montage)
+//	{
+//		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+//		{
+//			if (AnimInstance->Montage_IsPlaying(Montage))
+//			{
+//				AnimInstance->Montage_Stop(0.5f, Montage);
+//			}
+//			AnimInstance->Montage_Play(Montage);
+//		}
+//	}
+//}
 
 ABPlayerState* ABCharacter::GetBPlayerState() const
 {
@@ -165,7 +179,7 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 		{
 			// 리로드 시작
 			UE_LOG(LogTemp, Log, TEXT("라이플 리로드 중..."));
-
+			PlayAnimMontage(ReloadAnimation, 1.f, FName(TEXT("Rifle")));
 			if (ABPlayerState* BPlayerState = GetBPlayerState())
 			{
 				bIsReload = true;
@@ -194,6 +208,7 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 		// 탄창이 필요한 무기일 경우 (예: 라이플, 샷건 등)
 		else if (CurrentGun->WeaponType == "ShotGun")
 		{
+			PlayAnimMontage(ReloadAnimation, 1.f, FName(TEXT("ShotGun")));
 			// 리로드 시작
 			UE_LOG(LogTemp, Log, TEXT("샷건 리로드 중..."));
 
@@ -262,6 +277,11 @@ void ABCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	State = Cast<ABPlayerState>(GetPlayerState());
+
+	if (ReloadAnimation)
+	{
+		GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &ABCharacter::OnReloadMontageEnd);
+	}
 }
 void ABCharacter::Attack(const struct FInputActionValue& Value)
 {	
@@ -294,7 +314,11 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 		return;
 	}
 	UE_LOG(LogTemp, Warning, TEXT("🔍 [FireOnce] 현재 무기 타입: %s"), *CurrentWeapon->WeaponType);
-
+	//AttackEvent
+	if (!CurrentWeapon->AttackEvent.IsBound())
+	{
+		CurrentWeapon->AttackEvent.BindUObject(this, &ABCharacter::AttackCompleted);
+	}
 	CurrentWeapon->Attack();
 }
 void ABCharacter::UnequipGrenade()
@@ -792,6 +816,14 @@ void ABCharacter::PlayerCrouch()
 void ABCharacter::PlayerStand()
 {
 	Crouch(false);
+}
+
+void ABCharacter::OnReloadMontageEnd(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (Montage == ReloadAnimation)
+	{
+		RelaoadCompleted();
+	}
 }
 
 void ABCharacter::InventorySwitch()

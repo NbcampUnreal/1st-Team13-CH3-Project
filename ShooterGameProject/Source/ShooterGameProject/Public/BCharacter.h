@@ -26,6 +26,7 @@ class ABCharacter :
 	GENERATED_BODY()
 public:
 	ABCharacter(const FObjectInitializer& ObjectInitializer);
+	//void PlayAnimation(UAnimMontage* Montage);
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	class ABPlayerState* GetBPlayerState() const;
 	UFUNCTION(BlueprintCallable, Category = "Character")
@@ -57,10 +58,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UseItem(const FName& ItemName);
 	int32 GrenadeCount = 0;
-
+	UFUNCTION(BlueprintCallable)
+	void Reload(const struct FInputActionValue& Value);
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UAnimMontage* TakeDamageMontage;
+	UAnimMontage* ReloadAnimation;
 	/** 카메라 줌 관련 변수 */
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	float DefaultFOV = 90.0f;  // 기본 FOV 값
@@ -106,8 +108,7 @@ protected:
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Health")
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 	
-	UFUNCTION(BlueprintCallable)
-	void Reload(const struct FInputActionValue& Value);
+
 
 	UFUNCTION()
 	void ZoomStart(const FInputActionValue& Value);
@@ -121,8 +122,7 @@ protected:
 
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	void StopFire();
-
+	void StopFire();	
 	void EquipWeaponByType(EWeaponSlot Slot);
 	void EquipRifleParts();
 	void EquipPistolParts();
@@ -148,5 +148,5 @@ public:
 private:
 	FTimerHandle ZoomTimerHandle;
 	class ABPlayerState* State;
-
+	void OnReloadMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 };
