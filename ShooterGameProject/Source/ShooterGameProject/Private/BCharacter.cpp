@@ -808,16 +808,6 @@ void ABCharacter::AttackCompleted()
 	bIsWeaponFire = false;
 }
 
-void ABCharacter::PlayerCrouch()
-{
-	Crouch(true);
-}
-
-void ABCharacter::PlayerStand()
-{
-	Crouch(false);
-}
-
 void ABCharacter::OnReloadMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
 	if (Montage == ReloadAnimation)
