@@ -143,6 +143,7 @@ public:
 	void UpdateHUDItemMission(const FName& ItemName, const int32& CurrentCount, const int32& TargetCount);
 	void UpdateHUDBonusMission(const int32& CurrentCount, const int32& TargetCount);
 	void RemoveAllMissions();
+	UFUNCTION(BlueprintCallable)
 	void UpdateKillLog(const FName& KilledName);
 	void UpdateKillCount(const int32& KillCount);
 	void UpdateCurrentScore(const int32& CurrentScore);
@@ -155,6 +156,7 @@ public:
 
 	/* Crosshair Location and Direction for weapons */
 	TTuple<FVector, FVector> GetCrosshairLocationAndDirection();
+	void LineTraceCrosshair();
 
 protected:
 	/* Owning Game Instance */
