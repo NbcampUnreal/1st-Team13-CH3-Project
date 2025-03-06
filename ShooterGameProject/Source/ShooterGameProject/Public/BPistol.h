@@ -4,6 +4,7 @@
 #include "BBaseGun.h"
 #include "BProjectileBase.h"
 #include "BBulletShell.h"
+#include "BPistolPart.h"
 #include "BPistol.generated.h"
 
 
@@ -18,7 +19,15 @@ class SHOOTERGAMEPROJECT_API ABPistol : public ABBaseGun
 
 public:
     ABPistol();
+    // 피스톨 기본 데미지
+    UPROPERTY(EditAnywhere, Category = "Gun")
+    float Damage;
 
+    // 총기에 장착된 파츠의 매쉬
+        UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pistol")
+    UStaticMeshComponent * EquippedPartMesh;
+    // 파츠 장착 여부 확인
+    bool IsPartMeshEquipped(ABPistolPart* Part);
 protected:
     virtual void Attack() override;  // 피스톨 전용 공격 함수
 
@@ -49,13 +58,11 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, Category = "Weapon")
     TSubclassOf<ABBulletShell> ShellClass;  // 🔹 탄피 클래스 추가
-
-private:
-    // 피스톨 기본 데미지
-    UPROPERTY(EditAnywhere, Category = "Gun")
-    float Damage;
+   
 
     float LastFireTime; // 🔹 마지막으로 발사한 시간 저장
+private:
+    
 
     // 총 발사 소리
     UPROPERTY(EditAnywhere, Category = "Gun")

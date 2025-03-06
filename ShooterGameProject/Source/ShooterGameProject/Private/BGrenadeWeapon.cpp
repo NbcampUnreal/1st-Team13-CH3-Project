@@ -20,6 +20,7 @@ ABGrenadeWeapon::ABGrenadeWeapon()
 
     // 🔹 초기 회전 설정
     GrenadeBody->SetRelativeRotation(FRotator::ZeroRotator);
+    GrenadeBody->SetRelativeScale3D(FVector(0.05f, 0.05f, 0.05f)); // 50% 크기 설정
 
     // 🔹 물리 비활성화
     GrenadeBody->SetSimulatePhysics(false); // ✅ 물리 적용 방지
@@ -33,8 +34,6 @@ ABGrenadeWeapon::ABGrenadeWeapon()
         Collision->SetRelativeLocation(FVector::ZeroVector); // ✅ 위치 초기화
     }
 }
-
-
 void ABGrenadeWeapon::ActivateItem(AActor* Activator)
 {
     if (Activator && Activator->ActorHasTag("Player"))
@@ -48,7 +47,6 @@ void ABGrenadeWeapon::ActivateItem(AActor* Activator)
         }
     }
 }
-
 void ABGrenadeWeapon::Attack()
 {
     UE_LOG(LogTemp, Warning, TEXT("🔹 Attack() 호출됨"));
@@ -58,7 +56,7 @@ void ABGrenadeWeapon::Attack()
         UE_LOG(LogTemp, Error, TEXT("❌ GrenadeClass is NULL or OwnerCharacter is NULL!"));
         return;
     }
-
+   
     // ✅ 크로스헤어 방향 가져오기
     UBGameInstance* GameInstance = Cast<UBGameInstance>(GetWorld()->GetGameInstance());
     if (!GameInstance)
@@ -73,7 +71,7 @@ void ABGrenadeWeapon::Attack()
         UE_LOG(LogTemp, Warning, TEXT("❌ UBUIManager를 찾을 수 없습니다!"));
         return;
     }
-
+  
     // 크로스헤어의 위치와 방향을 가져옵니다
     TTuple<FVector, FVector> CrosshairData = UIManager->GetCrosshairLocationAndDirection();
     FVector CrosshairLocation = CrosshairData.Get<0>();
@@ -90,8 +88,8 @@ void ABGrenadeWeapon::Attack()
     if (OwnerCharacter->GetMesh())
     {
         // 손 위치에서 크로스헤어 방향으로 일정 거리만큼 이동
-        SpawnLocation = OwnerCharacter->GetMesh()->GetSocketLocation(TEXT("GrenadeSocket")) + CrosshairDirection * 700.0f;  // 크로스헤어 방향으로 이동
-        SpawnRotation = OwnerCharacter->GetMesh()->GetSocketRotation(TEXT("GrenadeSocket"));
+        SpawnLocation = OwnerCharacter->GetMesh()->GetSocketLocation(TEXT("WeaponSocket")) + CrosshairDirection * 700.0f;  // 크로스헤어 방향으로 이동
+        SpawnRotation = OwnerCharacter->GetMesh()->GetSocketRotation(TEXT("WeaponSocket"));
     }
     else
     {
@@ -104,7 +102,7 @@ void ABGrenadeWeapon::Attack()
     UE_LOG(LogTemp, Warning, TEXT("📌 Spawning Grenade at: %s"), *SpawnLocation.ToString());
 
     AABGrenadeProjectile* Grenade = GetWorld()->SpawnActor<AABGrenadeProjectile>(GrenadeClass, SpawnLocation, SpawnRotation);
-
+    OwnerCharacter -> GrenadeCount--;
     if (!Grenade)
     {
         UE_LOG(LogTemp, Error, TEXT("❌ Failed to spawn Grenade!"));
@@ -116,21 +114,17 @@ void ABGrenadeWeapon::Attack()
         return;
     }
 
-    // 수류탄의 MeshComponent가 충돌을 감지하도록 설정
     if (Grenade->MeshComponent)
     {
-        // 물리 시뮬레이션이 활성화되어야 충돌이 발생함
+        // 물리 시뮬레이션 활성화
         Grenade->MeshComponent->SetSimulatePhysics(true);
-
-        // 충돌 처리 활성화
-        Grenade->MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+        Grenade->MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); // 충돌 감지 활성화
         Grenade->MeshComponent->SetCollisionResponseToAllChannels(ECR_Block);  // 모든 채널에 대해 충돌 응답을 블록으로 설정
-
     }
 
     // 크로스헤어 방향을 던지는 방향으로 사용
     FVector StartLocation = SpawnLocation;
-    FVector EndLocation = StartLocation + CrosshairDirection * 800.f + FVector(0, 0, 150.f); // 크로스헤어 방향으로 던지기
+    FVector EndLocation = StartLocation + CrosshairDirection * 3500.f + FVector(0, 0, 150.f); // 크로스헤어 방향으로 던지기
 
     // 포물선 발사를 위한 속도 예측
     FVector OutVelocity = FVector::ZeroVector;
@@ -146,9 +140,9 @@ void ABGrenadeWeapon::Attack()
             Grenade->ProjectileMovement->bSweepCollision = true;  // ✅ 충돌 감지 활성화
 
             // 공기 저항 설정 (Drag 값 조정)
-            Grenade->ProjectileMovement->Velocity = Grenade->ProjectileMovement->Velocity * 0.9f;  // 속도 감소
+            Grenade->ProjectileMovement->Velocity = OutVelocity;  // 수정된 속도를 적용
             // 중력 강도를 더 강하게 설정 (1보다 크게 설정하면 더 빨리 떨어짐)
-            Grenade->ProjectileMovement->ProjectileGravityScale = 1.7f;  // 중력의 영향을 두 배로 설정
+            Grenade->ProjectileMovement->ProjectileGravityScale = 0.2f;  // 중력의 영향을 두 배로 설정
         }
     }
 

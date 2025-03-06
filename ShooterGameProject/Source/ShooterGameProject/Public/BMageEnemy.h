@@ -23,4 +23,5 @@ public:
 	float GetHealAmount();
 
 	void UseSkill() override;
+	virtual FName GetMonsterType() const override;
 };
