@@ -233,29 +233,6 @@ void ABCharacter::SetDraggingItem(AActor* NewItem)
 	}
 }
 
-void ABCharacter::StartDragging(const FInputActionValue& Value)
-{
-	bool Drag = Value.Get<bool>();
-	
-	if (Drag == true)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("DragStart"));
-	}
-}
-
-void ABCharacter::StopDragging(const FInputActionValue& Value)
-{
-	bool Drag = Value.Get<bool>();
-
-	if (Drag == false)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("DragStop"));
-	}
-}
-
-
-
-
 void ABCharacter::UpdateDragging()
 {
 	if (DraggingItem)
@@ -1029,16 +1006,6 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		ETriggerEvent::Completed,
 		this,
 		&ABCharacter::Reload);
-	EnhancedInput->BindAction(
-		PlayerController->DragAction,  
-		ETriggerEvent::Triggered, 
-		this, 
-		&ABCharacter::StartDragging);
-	EnhancedInput->BindAction(
-		PlayerController->DragAction, 
-		ETriggerEvent::Completed, 
-		this, 
-		&ABCharacter::StopDragging);
 	EnhancedInput->BindAction(
 		PlayerController->AimAction,
 		ETriggerEvent::Triggered,
