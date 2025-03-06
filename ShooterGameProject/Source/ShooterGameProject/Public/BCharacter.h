@@ -7,28 +7,15 @@
 #include "BCharacter.generated.h"
 struct FInputActionValue;
 
-USTRUCT()
-struct FReplicatedAcceleration
-{
-	GENERATED_BODY()
-
-	UPROPERTY()
-	uint8 AccelXYRadians = 0;	// Direction of XY accel component, quantized to represent [0, 2*pi]
-
-	UPROPERTY()
-	uint8 AccelXYMagnitude = 0;	//Accel rate of XY component, quantized to represent [0, MaxAcceleration]
-
-	UPROPERTY()
-	int8 AccelZ = 0;	// Raw Z accel rate component, quantized to represent [-MaxAcceleration, MaxAcceleration]
-};
 UENUM(BlueprintType)
 enum class EWeaponSlot : uint8
 {
-	Pistol,    // 欤茧旮� (鞓�: 靻岇礉)
-	Rifle,  // 氤挫“氍搓赴 (鞓�: 甓岇礉)
-	ShotGun,  // 氤挫“氍搓赴 (鞓�: 甓岇礉)
-	Melee,      // 攴检爲氍搓赴 (鞓�: 旃�, 霃勲伡)
-	Throwable,   // 韴矙氍搓赴 (鞓�: 靾橂韮�)
+	Unarmed UMETA(DisplayName = "Unarmed"),
+	Pistol UMETA(DisplayName = "Pistol"),    // 欤茧旮� (鞓�: 靻岇礉)
+	Rifle UMETA(DisplayName = "Rifle"),  // 氤挫“氍搓赴 (鞓�: 甓岇礉)
+	ShotGun UMETA(DisplayName = "ShotGun"),  // 氤挫“氍搓赴 (鞓�: 甓岇礉)
+	Melee UMETA(DisplayName = "Melee"),      // 攴检爲氍搓赴 (鞓�: 旃�, 霃勲伡)
+	Throwable UMETA(DisplayName = "Throwable"),   // 韴矙氍搓赴 (鞓�: 靾橂韮�)
 	Max
 };
 
@@ -96,37 +83,40 @@ protected:
 	TObjectPtr<class UBMovementComponent> MoveComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class USphereComponent> CollectNearItem;
+
 	//UFUNCTION(NetMulticast, unreliable)
 	//void FastSharedReplication(const FSharedRepMovement& SharedRepMovement);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void Move(const struct FInputActionValue& Value);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void Look(const struct FInputActionValue& Value);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void StartJump(const struct FInputActionValue& Value);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void StopJump(const struct FInputActionValue& Value);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void StartSprint(const struct FInputActionValue& Value);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void StopSprint(const struct FInputActionValue& Value);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void Attack(const struct FInputActionValue& Value);
 	void UnequipGrenade();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Health")
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 	
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
+	void Reload(const struct FInputActionValue& Value);
+	UFUNCTION(BlueprintCallable)
 	void AimStart(const FInputActionValue& Value);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void AimStop(const FInputActionValue& Value);
-	
+
 	UFUNCTION()
 	void ZoomStart(const FInputActionValue& Value);
 	UFUNCTION()
 	void ZoomStop(const FInputActionValue& Value);
-	
+
 	UFUNCTION()
 	void StartDragging(const FInputActionValue& Value);
 	UFUNCTION()
@@ -140,24 +130,23 @@ protected:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void StopFire();
-	
+
 	void EquipWeaponByType(EWeaponSlot Slot);
 	void EquipRifleParts();
 	void EquipPistolParts();
 	void EquipShotgunParts();
 	FTimerHandle FireTimerHandle;
 
-	
+
 private:
 	UPROPERTY()
 	FReplicatedAcceleration ReplicatedAcceleration;
 
-	FTimerHandle DragUpdateTimer; // 霌滊灅攴� 韮�鞚措ǜ
-	/** 줌 상태 변경 시만 보간을 실행하기 위한 타이머 */
+	FTimerHandle DragUpdateTimer; 
 	FTimerHandle ZoomTimerHandle;
 	bool bIsDragging = false;
 	ABBaseItem* DraggingItem = nullptr;
 
-	void UpdateDragging(); // 霌滊灅攴� 鞙勳箻 鞐呺嵃鞚错姼
+	void UpdateDragging();
 	class ABPlayerState* State;
 };
