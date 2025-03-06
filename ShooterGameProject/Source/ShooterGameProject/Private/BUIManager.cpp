@@ -19,6 +19,7 @@
 #include "KillCountWidget.h"
 #include "BUIWeaponWheel.h"
 #include "BInventoryWidget.h"
+#include "BEnemyBase.h"
 
 UBUIManager::UBUIManager()
 {
@@ -27,61 +28,35 @@ UBUIManager::UBUIManager()
 	/**** Assign WBPs to TSubclassOf variables using FClassFinder ****/
 	// Title Screen
 	ConstructorHelpers::FClassFinder<UUserWidget> TitleWidgetClassFinder(TEXT("/Game/UI/WBP/WBP_TitleScreen"));
-	if (TitleWidgetClassFinder.Succeeded())
-	{
-		TitleWidgetClass = TitleWidgetClassFinder.Class;
-	}
+	TitleWidgetClass = TitleWidgetClassFinder.Succeeded() ? TitleWidgetClassFinder.Class : nullptr;
 
 	// Level Transition
 	ConstructorHelpers::FClassFinder<UUserWidget> LevelTransitionWidgetClassFinder(TEXT("/Game/UI/WBP/WBP_LevelTransition"));
-	if (LevelTransitionWidgetClassFinder.Succeeded())
-	{
-		LevelTransitionWidgetClass = LevelTransitionWidgetClassFinder.Class;
-	}
+	LevelTransitionWidgetClass = LevelTransitionWidgetClassFinder.Succeeded() ? LevelTransitionWidgetClassFinder.Class : nullptr;
 
 	// In-Game Menu
 	ConstructorHelpers::FClassFinder<UUserWidget> InGameMenuWidgetClassFinder(TEXT("/Game/UI/WBP/WBP_InGameMenu"));
-	if (InGameMenuWidgetClassFinder.Succeeded())
-	{
-		InGameMenuWidgetClass = InGameMenuWidgetClassFinder.Class;
-	}
+	InGameMenuWidgetClass = InGameMenuWidgetClassFinder.Succeeded() ? InGameMenuWidgetClassFinder.Class : nullptr;
 
 	// Game Over
 	ConstructorHelpers::FClassFinder<UUserWidget> GameOverWidgetClassFinder(TEXT("/Game/UI/WBP/WBP_GameOverMenu"));
-	if (GameOverWidgetClassFinder.Succeeded())
-	{
-		GameOverWidgetClass = GameOverWidgetClassFinder.Class;
-	}
+	GameOverWidgetClass = GameOverWidgetClassFinder.Succeeded() ? GameOverWidgetClassFinder.Class : nullptr;
 
 	// HUD
 	ConstructorHelpers::FClassFinder<UUserWidget> HUDWidgetClassFinder(TEXT("/Game/UI/WBP/WBP_HUD"));
-	if (HUDWidgetClassFinder.Succeeded())
-	{
-		HUDWidgetClass = HUDWidgetClassFinder.Class;
-	}
+	HUDWidgetClass = HUDWidgetClassFinder.Succeeded() ? HUDWidgetClassFinder.Class : nullptr;
 
 	// WeaponWheel
 	ConstructorHelpers::FClassFinder<UUserWidget> WeaponWheelClassFinder(TEXT("/Game/UI/WBP/WBP_BUIWeaponWheel"));
-	if (WeaponWheelClassFinder.Succeeded())
-	{
-		WeaponWheelClass = WeaponWheelClassFinder.Class;
-	}
+	WeaponWheelClass = WeaponWheelClassFinder.Succeeded() ? WeaponWheelClassFinder.Class : nullptr;
+	
+	// Inventory
 	ConstructorHelpers::FClassFinder<UUserWidget> Inventory(TEXT("/Game/UI/WBP/WBP_InventoryWidget"));
-	if (Inventory.Succeeded())
-	{
-		InventoryWidget = Inventory.Class;
-	}
+	InventoryWidget = Inventory.Succeeded() ? Inventory.Class : nullptr;
 
 	// ItemDataTable
 	ConstructorHelpers::FObjectFinder<UDataTable> ItemDataTableFinder(TEXT("/Game/UI/ItemDataTable.ItemDataTable"));
-	if (ItemDataTableFinder.Succeeded())
-	{
-		ItemDataTable = ItemDataTableFinder.Object;
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to find ItemDataTable"))
-	}
+	ItemDataTable = ItemDataTableFinder.Succeeded() ? ItemDataTableFinder.Object : nullptr;
 
 	TitleWidgetInstance = nullptr;
 	LevelTransitionWidgetInstance = nullptr;
@@ -465,7 +440,16 @@ void UBUIManager::UpdateHUD()
 		}
 	}
 
-	UpdateHUDTimed();
+	if (GetWorld() && !GetWorld()->bIsTearingDown)
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+			UpdateHUDTimerHandle,
+			this,
+			&UBUIManager::UpdateHUDTimed,
+			0.1f,
+			true
+		);
+	}
 }
 
 void UBUIManager::CollapseHUD()
@@ -537,16 +521,8 @@ void UBUIManager::CloseInventory()
 // Update timed elements in HUD (repeated by UpdateHUDTimerHandle)
 void UBUIManager::UpdateHUDTimed()
 {
-	if (GetWorld() && !GetWorld()->bIsTearingDown)
-	{
-		GetWorld()->GetTimerManager().SetTimer(
-			UpdateHUDTimerHandle,
-			this,
-			&UBUIManager::UpdateHUDMap,
-			0.1f,
-			true
-		);
-	}
+	UpdateHUDMap();
+	LineTraceCrosshair();
 }
 
 void UBUIManager::UpdateHUDMap()
@@ -587,16 +563,23 @@ void UBUIManager::UpdateKillLog(const FName& KilledName)
 {
 	if (HUDWidgetInstance && KillLogWidget)
 	{
-		//if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
-		//{
-		//	if (ABCharacter* Character = Cast<ABCharacter>(PlayerController->GetCharacter()))
-		//	{
-		//		if (ABBaseWeapon* EquippedWeapon = Character->GetCurrentWeapon())
-		//		{
-					KillLogWidget->UpdateKillLog(KilledName);
-				//}
-			//}
-		//}
+		if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+		{
+			if (ABCharacter* Character = Cast<ABCharacter>(PlayerController->GetCharacter()))
+			{
+				if (ABBaseWeapon* EquippedWeapon = Character->EquippedWeapon)
+				{
+					if (ItemDataTable)
+					{
+						FBShopItemRow* Row = ItemDataTable->FindRow<FBShopItemRow>(FName(EquippedWeapon->WeaponType), TEXT("UIContext"));
+						if (Row)
+						{
+							KillLogWidget->UpdateKillLog(KilledName, Row->ItemTexture);
+						}
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -762,3 +745,38 @@ TTuple<FVector, FVector> UBUIManager::GetCrosshairLocationAndDirection()
 	return TTuple<FVector, FVector>(CrosshairLocation, CrosshairDirection);
 }
 
+void UBUIManager::LineTraceCrosshair()
+{
+	if (GetWorld())
+	{
+		TTuple<FVector, FVector> CrosshairData = GetCrosshairLocationAndDirection();
+		FVector CrosshairLocation = CrosshairData.Key;
+		FVector CrosshairDirection = CrosshairData.Value;
+		FVector EndTrace = CrosshairLocation + (CrosshairDirection * 1500.0f);
+		FHitResult HitResult;
+		FCollisionQueryParams Params;
+		if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+		{
+			if (ACharacter* Character = PlayerController->GetCharacter())
+			{
+				Params.AddIgnoredActor(Character);
+			}
+		}
+
+		if (GetWorld()->LineTraceSingleByChannel(HitResult, CrosshairLocation, EndTrace, ECC_Pawn, Params))
+		{
+			if (AActor* HitActor = HitResult.GetActor())
+			{
+				if (HitActor->IsA<ABEnemyBase>())
+				{
+					GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, TEXT("Crosshair Line Trace with Enemy"));
+					// Show Enemy Health Bar widget / Update
+
+					return;
+				}
+			}
+		}
+
+		// Hide Enemy Health Bar Widget
+	}
+}
