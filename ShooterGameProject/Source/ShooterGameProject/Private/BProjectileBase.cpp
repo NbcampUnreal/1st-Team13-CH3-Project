@@ -56,6 +56,33 @@ void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
         UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *OtherActor->GetName());
         UE_LOG(LogTemp, Warning, TEXT("Hit Location: %s"), *GetActorLocation().ToString());
     }
+
+    // LineTrace 추가
+    FHitResult TraceResult;
+    FVector StartLocation = Hit.ImpactPoint; // Hit된 위치를 시작 지점으로 설정
+    FVector EndLocation = StartLocation + Hit.Normal * 200.0f; // 200 유닛 정도 떨어진 곳까지 라인 트레이스
+
+    FCollisionQueryParams TraceParams;
+    TraceParams.AddIgnoredActor(this);  // 자기 자신을 무시하여 충돌 안 하도록 설정
+
+    bool bHit = GetWorld()->LineTraceSingleByChannel(
+        TraceResult,        // 충돌 결과
+        StartLocation,      // 시작 지점
+        EndLocation,        // 끝 지점
+        ECC_Visibility,     // 충돌 채널
+        TraceParams         // 트레이스 파라미터
+    );
+
+    if (bHit)
+    {
+        // LineTrace로 추가적인 충돌 처리
+        UE_LOG(LogTemp, Warning, TEXT("LineTrace Hit Actor: %s"), *TraceResult.GetActor()->GetName());
+
+        // LineTrace에서 얻은 정보에 따라 추가적인 작업을 할 수 있습니다.
+        // 예를 들어, 추가적인 파티클 효과를 생성하거나 데미지를 적용할 수 있습니다.
+    }
+
+    // 기존 충돌 처리 (기존 코드 그대로)
     if (OtherActor && OtherActor != this && OtherComp)
     {
         // ✅ 데미지 적용
@@ -81,7 +108,7 @@ void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
         // ✅ 충돌한 표면의 Physical Material 가져오기
         UPhysicalMaterial* PhysMaterial = Hit.PhysMaterial.IsValid() ? Hit.PhysMaterial.Get() : nullptr;
         float SurfaceValue = 0.0f;  // 기본값
-        
+
         if (PhysMaterial)
         {
             // ✅ Surface Type 확인
@@ -110,8 +137,6 @@ void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
                 break;
             }
         }
-        
-
         // ✅ 오디오 컴포넌트를 생성하여 사운드 재생 및 파라미터 적용
         if (HitSoundCue)
         {
@@ -123,14 +148,13 @@ void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 
             if (AudioComponent)
             {
-
                 // ✅ 사운드 큐의 파라미터 적용 (Int & Float 모두 설정)
                 AudioComponent->SetIntParameter(TEXT("SurfaceValue"), (int32)SurfaceValue);
                 AudioComponent->SetFloatParameter(TEXT("SurfaceValue"), SurfaceValue);
                 // ✅ 사운드 재생 시작
                 AudioComponent->Play();
-
             }
+
             if (AActor* HitActor = Hit.GetActor())
             {
                 APawn* NoiseInstigator = Cast<APawn>(HitActor);
@@ -140,6 +164,7 @@ void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
                 }
             }
         }
+
         if (ParticleSystem && HitComp)
         {
             // HitComp의 위치를 사용해서 파티클을 생성
@@ -151,9 +176,9 @@ void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
                 true                        // 파티클의 월드 위치 사용 여부
             );
         }
+
         // ✅ 총알 제거
         Destroy();
-
     }
 }
 

@@ -22,19 +22,31 @@
 
 
 ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UBMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = false;
-	ActiveWeaponSlot = EWeaponSlot::Pistol;  // ê¸°ë³¸ì ìœ¼ë¡œ ì£¼ë¬´ê¸°ë¥¼ í™œì„±í™”
-	// ë°°ì—´ì˜ í¬ê¸°ë¥¼ ActiveWeaponSlotì— ë§žê²Œ í™•ìž¥
-	EquippedWeapons.SetNumZeroed(5);  // ActiveWeaponSlotì— ë§žê²Œ ë°°ì—´ í¬ê¸° ì„¤ì •
+
+	ActiveWeaponSlot = EWeaponSlot::Pistol; // 기본 무기 슬롯 설정
+	EquippedWeapons.SetNumZeroed(5);  // 기본 5개의 무기 슬롯 초기화
+
+	// SpringArm 초기화
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	if (!SpringArm)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to create SpringArm!"));
+	}
 	SpringArm->TargetArmLength = 300.f;
-	SpringArm->bUsePawnControlRotation = true; // ?Œì „??ì¹´ë©”?¼ë„ ?´ë™?œë‹¤.
+	SpringArm->bUsePawnControlRotation = true;
 	SpringArm->SetupAttachment(GetRootComponent());
 
+	// CameraComp 초기화
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	if (!CameraComp)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to create CameraComp!"));
+	}
 	CameraComp->SetupAttachment(SpringArm);
-	CameraComp->bUsePawnControlRotation = false; // ì¹´ë©”?¼ë„ ?Œì „?˜ë©´ ?•ì‹ ?†ìœ¼ë¯€ë¡?false
+	CameraComp->bUsePawnControlRotation = false;
 
 	Collision = GetCapsuleComponent();
 	check(Collision);
@@ -58,7 +70,7 @@ ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 
 	CollectNearItem = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	CollectNearItem->SetupAttachment(GetRootComponent());
-	CollectNearItem->SetSphereRadius(400.f);
+	CollectNearItem->SetSphereRadius(400.f);;
 }
 
 ABPlayerState* ABCharacter::GetBPlayerState() const
@@ -154,28 +166,28 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 			// 리로드 시작
 			UE_LOG(LogTemp, Log, TEXT("라이플 리로드 중..."));
 
-				if (ABPlayerState* BPlayerState = GetBPlayerState())
+			if (ABPlayerState* BPlayerState = GetBPlayerState())
+			{
+				FName RifleMagazine = "RifleMagazine";
+				// 무기의 종류에 맞는 탄약 아이템을 인벤토리에서 찾음
+				TArray<FItemData> AmmoItems = BPlayerState->GetInventoryTypeItem(RifleMagazine);
+				if (AmmoItems.Num() > 0)
 				{
-					FName RifleMagazine = "RifleMagazine";
-					// 무기의 종류에 맞는 탄약 아이템을 인벤토리에서 찾음
-					TArray<FItemData> AmmoItems = BPlayerState->GetInventoryTypeItem(RifleMagazine);
-					if (AmmoItems.Num() > 0)
+					// 아이템이 있다면 첫 번째 아이템을 사용하여 리로드
+					ABBaseItem* AmmoItem = AmmoItems[0].ItemRef;  // FItemData 내에서 ItemRef를 통해 인스턴스 가져오기
+					if (AmmoItem)
 					{
-						// 아이템이 있다면 첫 번째 아이템을 사용하여 리로드
-						ABBaseItem* AmmoItem = AmmoItems[0].ItemRef;  // FItemData 내에서 ItemRef를 통해 인스턴스 가져오기
-						if (AmmoItem)
-						{
-							AmmoItem->UseItem(this);  // UseItem을 호출하여 리로드 실행
-							UE_LOG(LogTemp, Log, TEXT("리로드 아이템을 사용하여 탄약 추가"));
-							// UseItem이 끝난 후 리로드를 호출하여 총기의 탄약 상태 업데이트
-							CurrentGun->Reload(); // 리로드 함수 호출하여 실제 총기의 CurrentAmmo 증가
-						}
-					}
-					else
-					{
-						UE_LOG(LogTemp, Warning, TEXT("리로드 아이템을 찾을 수 없습니다."));
+						AmmoItem->UseItem(this);  // UseItem을 호출하여 리로드 실행
+						UE_LOG(LogTemp, Log, TEXT("리로드 아이템을 사용하여 탄약 추가"));
+						// UseItem이 끝난 후 리로드를 호출하여 총기의 탄약 상태 업데이트
+						CurrentGun->Reload(); // 리로드 함수 호출하여 실제 총기의 CurrentAmmo 증가
 					}
 				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("리로드 아이템을 찾을 수 없습니다."));
+				}
+			}
 		}
 		// 탄창이 필요한 무기일 경우 (예: 라이플, 샷건 등)
 		else if (CurrentGun->WeaponType == "ShotGun")
@@ -184,27 +196,27 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 			UE_LOG(LogTemp, Log, TEXT("샷건 리로드 중..."));
 
 			if (ABPlayerState* BPlayerState = GetBPlayerState())
+			{
+				FName ShotGunMagazine = "ShotgunMagazine";
+				// 무기의 종류에 맞는 탄약 아이템을 인벤토리에서 찾음
+				TArray<FItemData> AmmoItems = BPlayerState->GetInventoryTypeItem(ShotGunMagazine);
+				if (AmmoItems.Num() > 0)
 				{
-					FName ShotGunMagazine = "ShotgunMagazine";
-					// 무기의 종류에 맞는 탄약 아이템을 인벤토리에서 찾음
-					TArray<FItemData> AmmoItems = BPlayerState->GetInventoryTypeItem(ShotGunMagazine);
-					if (AmmoItems.Num() > 0)
+					// 아이템이 있다면 첫 번째 아이템을 사용하여 리로드
+					ABBaseItem* AmmoItem = AmmoItems[0].ItemRef;  // FItemData 내에서 ItemRef를 통해 인스턴스 가져오기
+					if (AmmoItem)
 					{
-						// 아이템이 있다면 첫 번째 아이템을 사용하여 리로드
-						ABBaseItem* AmmoItem = AmmoItems[0].ItemRef;  // FItemData 내에서 ItemRef를 통해 인스턴스 가져오기
-						if (AmmoItem)
-						{
-							AmmoItem->UseItem(this);  // UseItem을 호출하여 리로드 실행
-							UE_LOG(LogTemp, Log, TEXT("리로드 아이템을 사용하여 탄약 추가"));
-							// UseItem이 끝난 후 리로드를 호출하여 총기의 탄약 상태 업데이트
-							CurrentGun->Reload(); // 리로드 함수 호출하여 실제 총기의 CurrentAmmo 증가
-						}
-					}
-					else
-					{
-						UE_LOG(LogTemp, Warning, TEXT("리로드 아이템을 찾을 수 없습니다."));
+						AmmoItem->UseItem(this);  // UseItem을 호출하여 리로드 실행
+						UE_LOG(LogTemp, Log, TEXT("리로드 아이템을 사용하여 탄약 추가"));
+						// UseItem이 끝난 후 리로드를 호출하여 총기의 탄약 상태 업데이트
+						CurrentGun->Reload(); // 리로드 함수 호출하여 실제 총기의 CurrentAmmo 증가
 					}
 				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("리로드 아이템을 찾을 수 없습니다."));
+				}
+			}
 		}
 		else
 		{
@@ -263,7 +275,7 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 		UE_LOG(LogTemp, Warning, TEXT("No weapon equipped in slot: %d"), (int32)ActiveWeaponSlot);
 		return;
 	}
-	if (CurrentWeapon->WeaponType == "Grenade" && GrenadeCount <= 0) 
+	if (CurrentWeapon->WeaponType == "Grenade" && GrenadeCount <= 0)
 	{
 		UE_LOG(LogTemp, Log, TEXT("💣 수류탄 장착 해제 완료!"));
 		UnequipGrenade();
@@ -277,18 +289,18 @@ void ABCharacter::UnequipGrenade()
 {
 	if (EquippedWeapon && EquippedWeapon->WeaponType == "Grenade")
 	{
-			UE_LOG(LogTemp, Log, TEXT("Hiding previously equipped weapon: %s"), *EquippedWeapon->WeaponType);
-			EquippedWeapon->SetActorHiddenInGame(true);
-			EquippedWeapon->SetActorEnableCollision(false);
-			EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		UE_LOG(LogTemp, Log, TEXT("Hiding previously equipped weapon: %s"), *EquippedWeapon->WeaponType);
+		EquippedWeapon->SetActorHiddenInGame(true);
+		EquippedWeapon->SetActorEnableCollision(false);
+		EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
-			// 무기 보관 위치 설정
-			FName StorageSocketName = TEXT("WeaponStorageSocket");
-			if (GetMesh()->DoesSocketExist(StorageSocketName))
-			{
-				EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, StorageSocketName);
-			}
-		
+		// 무기 보관 위치 설정
+		FName StorageSocketName = TEXT("WeaponStorageSocket");
+		if (GetMesh()->DoesSocketExist(StorageSocketName))
+		{
+			EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, StorageSocketName);
+		}
+
 		UE_LOG(LogTemp, Log, TEXT("💣 수류탄 장착 해제 완료!"));
 	}
 }
@@ -461,7 +473,7 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("✅ %s attached to %s successfully: %s"), *WeaponToEquip->GetName(), *TargetSocketName.ToString(), *WeaponToEquip -> GetActorLocation().ToString());
+		UE_LOG(LogTemp, Warning, TEXT("✅ %s attached to %s successfully: %s"), *WeaponToEquip->GetName(), *TargetSocketName.ToString(), *WeaponToEquip->GetActorLocation().ToString());
 	}
 
 	// 🔹 무기 메쉬 처리
@@ -481,7 +493,7 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	{
 		AdjustedRotation = FRotator(0.0f, -180.0f, 0.0f);
 	}
-	else if (WeaponToEquip->WeaponType == "Shotgun") 
+	else if (WeaponToEquip->WeaponType == "Shotgun")
 	{
 		AdjustedRotation = FRotator(0.0f, -180.0f, 0.0f);
 	}
@@ -496,7 +508,7 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	else if (WeaponToEquip->WeaponType == "Grenade")
 	{
 		WeaponToEquip->SetActorRelativeLocation(FVector::ZeroVector);
-		AdjustedRotation = FRotator(90.0f, -90.0f, 90.0f); 
+		AdjustedRotation = FRotator(90.0f, -90.0f, 90.0f);
 	}
 	WeaponToEquip->SetActorRelativeRotation(AdjustedRotation);
 
@@ -515,7 +527,7 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 			{
 				if (ABBaseGun* Gun = Cast<ABBaseGun>(EquippedWeapon))
 				{
-					
+
 					FString Message = TEXT("데미지: ") + FString::Printf(TEXT("%d"), Gun->WeaponDamage) +
 						TEXT(", 발사속도: ") + FString::Printf(TEXT("%.0f"), Gun->FireRate) +
 						TEXT(", 최대 장탄 수: ") + FString::Printf(TEXT("%d"), Gun->MaxAmmo);
@@ -605,8 +617,8 @@ void ABCharacter::EquipRifleParts()
 				ItemsToRemove.Add(RiflePartItem);
 
 				UE_LOG(LogTemp, Log, TEXT("%s 파츠가 라이플에 장착되었습니다."), *RiflePart->PartName);
-				
-				
+
+
 			}
 			else
 			{
@@ -620,7 +632,7 @@ void ABCharacter::EquipRifleParts()
 	{
 		BPlayerState->InventoryRemoveItem(Item);
 	}
-	
+
 }
 
 void ABCharacter::EquipPistolParts()
@@ -798,7 +810,7 @@ void ABCharacter::UseFirstAidKit()
 			HealingItem->UseItem(this);  // 아이템 사용 (체력 회복)
 
 			// ✅ 체력 회복 후 로그 출력
-			UE_LOG(LogTemp, Log, TEXT("구급상자 사용 완료. 현재 체력: %f"),BPlayerState -> GetCurrentHealth());
+			UE_LOG(LogTemp, Log, TEXT("구급상자 사용 완료. 현재 체력: %f"), BPlayerState->GetCurrentHealth());
 		}
 	}
 	else
