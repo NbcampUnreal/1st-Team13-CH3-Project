@@ -22,20 +22,21 @@ void ABGameState::BeginPlay()
 
 void ABGameState::InitializeGameState()
 {
-	if (UBGameInstance* BGameInstance = GetGameInstance<UBGameInstance>())
+	UBGameInstance* BGameInstance = GetGameInstance<UBGameInstance>();
+	int32 currnetstage=BGameInstance->GetCurrentStage();
+	SpawnedEnemies = 14;
+	if (currnetstage == 2)
 	{
-		int32 currnetstage=BGameInstance->GetCurrentStage();
-		SpawnedEnemies = 14;
-		if (currnetstage == 2)
-		{
 		SpawnedEnemies = 30;
-		}
 	}
 	KilledEnemies = 0;
 	CollectedKeys = 0;
 	bIsDoorOpen = false;
 	TimeLimit = 30.0f;
 	RequiredKeyCount = 1;
+	//UI Update
+	BGameInstance->GetUIManagerInstance()->UpdateHUDItemMission("Battery", CollectedKeys, RequiredKeyCount);
+	BGameInstance->GetUIManagerInstance()->UpdateHUDBonusMission(KilledEnemies, SpawnedEnemies);
 }
 
 void ABGameState::EnemyDefeated()
@@ -46,6 +47,7 @@ void ABGameState::EnemyDefeated()
 		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
 		{
 			UIManager->UpdateKillCount(KilledEnemies);
+			UIManager->UpdateHUDBonusMission(KilledEnemies, SpawnedEnemies);
 		}
 	}
 	CheckGameStatus();
@@ -54,6 +56,8 @@ void ABGameState::EnemyDefeated()
 void ABGameState::ItemCollected()
 {
 	CollectedKeys++;
+	UBGameInstance* BGameInstance = GetGameInstance<UBGameInstance>();
+	BGameInstance->GetUIManagerInstance()->UpdateHUDItemMission("Battery", CollectedKeys, RequiredKeyCount);
 	CheckGameStatus();
 }
 
