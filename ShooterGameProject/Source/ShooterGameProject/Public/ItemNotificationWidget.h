@@ -13,7 +13,7 @@ public:
 	UItemNotificationWidget(const FObjectInitializer& ObjectInitializer);
 
 	UFUNCTION(BlueprintCallable)
-	void DisplayNotification(FName ItemName);
+	void DisplayNotification(const FString& ItemName, UTexture2D* IconTexture);
 	UFUNCTION(BlueprintImplementableEvent)
 	void FadeInOutNotification();
 	UFUNCTION(BlueprintCallable)

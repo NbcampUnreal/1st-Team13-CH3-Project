@@ -6,6 +6,7 @@
 #include "BBaseWeapon.h"
 #include "BBaseGun.h"
 #include "BPistol.h"
+#include "BShopItemRow.h"
 #include "NotificationWidget.h"
 #include "ItemNotificationWidget.h"
 #include "HealthAndLevelWidget.h"
@@ -70,6 +71,18 @@ UBUIManager::UBUIManager()
 	{
 		InventoryWidget = Inventory.Class;
 	}
+
+	// ItemDataTable
+	ConstructorHelpers::FObjectFinder<UDataTable> ItemDataTableFinder(TEXT("/Game/UI/ItemDataTable.ItemDataTable"));
+	if (ItemDataTableFinder.Succeeded())
+	{
+		ItemDataTable = ItemDataTableFinder.Object;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to find ItemDataTable"))
+	}
+
 	TitleWidgetInstance = nullptr;
 	LevelTransitionWidgetInstance = nullptr;
 	InGameMenuWidgetInstance = nullptr;
@@ -413,43 +426,31 @@ void UBUIManager::UpdateHUD()
 				PlayerInputComponent->BindAction("WeaponWheel", IE_Released, this, &UBUIManager::ExitWeaponWheel);
 			}
 
+			if (ABCharacter* Character = Cast<ABCharacter>(PlayerController->GetCharacter()))
+			{
+				if (ABBaseWeapon* EquippedWeapon = Character->GetCurrentWeapon())
+				{
+					UpdateHUDEquippedWeapon(EquippedWeapon->WeaponType);
+					UpdateHUDAmmo();
+				}
+				else
+				{
+					if (WeaponAmmoWidget)
+					{
+						WeaponAmmoWidget->SetVisibility(ESlateVisibility::Hidden);
+					}
+				}
+			}
+
 			if (ABPlayerState* PlayerState = PlayerController->GetPlayerState<ABPlayerState>())
 			{
 				UpdateHUDHealth(PlayerState->GetCurrentHealth(), PlayerState->GetMaxHealth());
 				UpdateHUDLevelAndExp(PlayerState->GetPlayerLevel(), PlayerState->GetCurrentExp(), PlayerState->GetMaxExp());
-		
-				if (ABCharacter* Character = Cast<ABCharacter>(PlayerController->GetCharacter()))
-				{
-					if (ABBaseWeapon* EquippedWeapon = Character->GetCurrentWeapon())
-					{
-						UpdateHUDEquippedWeapon(EquippedWeapon->WeaponType);
-						if (EquippedWeapon->IsA<ABBaseGun>())
-						{
-							ABBaseGun* EquippedGun = Cast<ABBaseGun>(EquippedWeapon);
-							UpdateHUDLoadedAmmo(EquippedGun->AmmoCount);
-						
-							if (EquippedWeapon->IsA<ABPistol>())
-							{
-								UpdateHUDInventoryAmmo();
-							}
-							else
-							{
-								// TODO: check Ammo ItemName 
-								TArray<FItemData> InventoryAmmo = PlayerState->GetInventoryTypeItem(FName(EquippedWeapon->WeaponType + "Ammo"));
-								UpdateHUDInventoryAmmo(InventoryAmmo.Num());
-							}
-						}
-						else
-						{
-							UpdateHUDLoadedAmmo();
-							UpdateHUDInventoryAmmo();
-						}
-					}
-					TArray<FItemData> InventoryFirstAidKit = PlayerState->GetInventoryTypeItem(FName("FirstAidKit"));
-					UpdateHUDQuickSlot("FirstAidKit", InventoryFirstAidKit.Num());
-					TArray<FItemData> InventoryGrenade = PlayerState->GetInventoryTypeItem(FName("Grenade"));
-					UpdateHUDQuickSlot("Grenade", InventoryFirstAidKit.Num());
-				}
+					
+				TArray<FItemData> InventoryFirstAidKit = PlayerState->GetInventoryTypeItem(FName("FirstAidKit"));
+				UpdateHUDQuickSlot("FirstAidKit", InventoryFirstAidKit.Num());
+				TArray<FItemData> InventoryGrenade = PlayerState->GetInventoryTypeItem(FName("Grenade"));
+				UpdateHUDQuickSlot("Grenade", InventoryFirstAidKit.Num());
 			}
 		}
 
@@ -615,11 +616,11 @@ void UBUIManager::UpdateCurrentScore(const int32& CurrentScore)
 	}
 }
 
-void UBUIManager::UpdateHUDHealth(const float& CurrentHP, const float& MaxHP)
+void UBUIManager::UpdateHUDHealth(const int32& CurrentHP, const int32& MaxHP)
 {
 	if (HUDWidgetInstance && HealthAndLevelWidget)
 	{
-		HealthAndLevelWidget->UpdateHealth(CurrentHP, MaxHP);
+		HealthAndLevelWidget->UpdateHealth(float(CurrentHP), float(MaxHP));
 	}
 }
 
@@ -639,20 +640,50 @@ void UBUIManager::UpdateHUDQuickSlot(const FName& ItemName, const int32& Count)
 	}	
 }
 
-void UBUIManager::UpdateHUDLoadedAmmo(const int32& LoadedAmmo)
+void UBUIManager::UpdateHUDAmmo()
 {
 	if (HUDWidgetInstance && WeaponAmmoWidget)
 	{
-		WeaponAmmoWidget->UpdateLoadedAmmo(LoadedAmmo);
-	}	
-}
+		if (GetWorld())
+		{
+			if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+			{
+				if (ABPlayerState* PlayerState = PlayerController->GetPlayerState<ABPlayerState>())
+				{
+					if (ABCharacter* Character = Cast<ABCharacter>(PlayerController->GetCharacter()))
+					{
+						if (ABBaseWeapon* EquippedWeapon = Character->GetCurrentWeapon())
+						{
+							if (EquippedWeapon->IsA<ABBaseGun>())
+							{
+								if (ABBaseGun* EquippedGun = Cast<ABBaseGun>(EquippedWeapon))
+								{
+									WeaponAmmoWidget->UpdateLoadedAmmo(EquippedGun->AmmoCount);
+								}
 
-void UBUIManager::UpdateHUDInventoryAmmo(const int32& InventoryAmmo)
-{
-	if (HUDWidgetInstance && WeaponAmmoWidget)
-	{
-		WeaponAmmoWidget->UpdateInventoryAmmo(InventoryAmmo);
-	}
+								if (EquippedWeapon->IsA<ABPistol>())
+								{
+									WeaponAmmoWidget->UpdateInventoryAmmo(); // default value -1 --> displays empty text
+								}
+								else
+								{
+									// TODO: change to actual Ammo ItemName 
+									TArray<FItemData> InventoryAmmo = PlayerState->GetInventoryTypeItem(FName(EquippedWeapon->WeaponType + "Ammo"));
+									WeaponAmmoWidget->UpdateInventoryAmmo(InventoryAmmo.Num());
+								}
+							}
+							else
+							{
+								WeaponAmmoWidget->UpdateLoadedAmmo(-1);
+								WeaponAmmoWidget->UpdateInventoryAmmo(-1);
+							}
+						}
+					}
+				}
+			}
+		}
+		WeaponAmmoWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}	
 }
 
 
@@ -660,7 +691,17 @@ void UBUIManager::UpdateHUDEquippedWeapon(const FString& WeaponType)
 {
 	if (HUDWidgetInstance && WeaponAmmoWidget)
 	{
-		WeaponAmmoWidget->UpdateWeapon(WeaponType);	
+		UTexture2D* IconTexture = nullptr;
+		if (FBShopItemRow* Row = ItemDataTable->FindRow<FBShopItemRow>(FName(WeaponType), TEXT("UIContext")))
+		{
+			IconTexture = Row->ItemTexture;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to find Row from EquippedWeapon"))
+		}
+		WeaponAmmoWidget->UpdateWeapon(IconTexture);
+		WeaponAmmoWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 	}
 }
 
@@ -676,7 +717,18 @@ void UBUIManager::DisplayItemNotification(const FName& ItemName)
 {
 	if (HUDWidgetInstance && ItemNotificationWidget)
 	{
-		ItemNotificationWidget->DisplayNotification(ItemName);
+		FString DisplayName = "";
+		UTexture2D* IconTexture = nullptr;
+		if (FBShopItemRow* Row = ItemDataTable->FindRow<FBShopItemRow>(ItemName, TEXT("UIContext")))
+		{
+			DisplayName = Row->DisplayName;
+			IconTexture = Row->ItemTexture;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to find Item for notification"))
+		}
+		ItemNotificationWidget->DisplayNotification(DisplayName, IconTexture);
 	}
 }
 
