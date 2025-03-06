@@ -148,6 +148,8 @@ void ABPistol::Attack()
     if (FireSound)
     {
         UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+        // 📌 🔊 총기 발사 소음 발생!
+        MakeNoise(1.0f, OwnerCharacter, GetActorLocation());
     }
 
     if (ShellClass)
