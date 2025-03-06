@@ -9,7 +9,7 @@ ABTankEnemy::ABTankEnemy()
 	MaxHP = 500.f;
 	CurrentHP = MaxHP;
 	Power = 30.f;
-	Speed = 350.f;
+	Speed = 500.f;
 	AttackSpeed = 3.f;
 	CoolTime = 5.f;
 	SkillDuration = 2.f;
