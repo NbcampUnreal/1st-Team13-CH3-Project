@@ -11,6 +11,7 @@
 #include "BUIManager.h"
 #include "DrawDebugHelpers.h"
 #include "BPlayerState.h"
+#include "BGameState.h"
 
 class ABCharacter;
 
@@ -20,14 +21,14 @@ ABEnemyBase::ABEnemyBase()
 	CurrentHP = MaxHP;
 	Power = 0.f;
 	Speed = 0.f;
-	AttackSpeed = 10.f; // ³·À»¼ö·Ï ºü¸§
-	CoolTime = 10.f;    // ³·À»¼ö·Ï ºü¸§
+	AttackSpeed = 10.f; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	CoolTime = 10.f;    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	SkillDuration = 0.f;
 	AttackRange = 0.f;
-	bIsRanged = false;   // false = ±Ù°Å¸®
+	bIsRanged = false;   // false = ï¿½Ù°Å¸ï¿½
 	bIsDead = false;
 
-	// AIControllerClass ÁöÁ¤ ¡æ AIController°¡ °¨Áö ·ÎÁ÷À» ´ã´ç
+	// AIControllerClass ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ AIControllerï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	AIControllerClass = ABEnemyAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
@@ -116,6 +117,11 @@ void ABEnemyBase::OnDeath()
 		}
 	}
 
+	if (ABGameState* GameState = GetWorld()->GetGameState<ABGameState>())
+	{
+		GameState->EnemyDefeated();
+	}
+
 	if (GetMesh())
 	{
 		GetMesh()->SetSimulatePhysics(true);
@@ -176,38 +182,38 @@ void ABEnemyBase::DropItem()
 	float RandomValue = FMath::FRandRange(0.0f, 100.0f);
 	FVector DropLocation = GetActorLocation() + FVector(FMath::RandRange(-50.f, 50.f), FMath::RandRange(-50.f, 50.f), 0.f);
 
-	if (EnemyType == "Ranger" && RandomValue < 10.0f) // 10% È®·ü·Î ¹«±â ÆÄÃ÷ µå¶ø
+	if (EnemyType == "Ranger" && RandomValue < 10.0f) // 10% È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	{
 		if (WeaponPartItem)
 		{
 			World->SpawnActor<ABBaseItem>(WeaponPartItem, DropLocation, FRotator::ZeroRotator);
-			UE_LOG(LogTemp, Log, TEXT("¹«±â ÆÄÃ÷ µå¶øµÊ!"));
+			UE_LOG(LogTemp, Log, TEXT("ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½!"));
 		}
 	}
 
-	else if (EnemyType == "Mage" && RandomValue < 50.0f) // 20% È®·ü·Î È¸º¹¾à µå¶ø //test50%
+	else if (EnemyType == "Mage" && RandomValue < 50.0f) // 20% È®ï¿½ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ //test50%
 	{
 		if (HealthKitItem)
 		{
 			World->SpawnActor<ABBaseItem>(HealthKitItem, DropLocation, FRotator::ZeroRotator);
-			UE_LOG(LogTemp, Log, TEXT("È¸º¹¾à µå¶øµÊ!"));
+			UE_LOG(LogTemp, Log, TEXT("È¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½!"));
 		}
 	}
 
-	else if (EnemyType == "Tank") // ÅÊÄ¿ ¸÷ ¡æ ¼ö·ùÅº µå¶ø (¹Ì±¸Çö ½Ã ¾Æ¹«°Íµµ µå¶ø ¾È ÇÔ)
+	else if (EnemyType == "Tank") // ï¿½ï¿½Ä¿ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Åº ï¿½ï¿½ï¿½ (ï¿½Ì±ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Æ¹ï¿½ï¿½Íµï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½)
 	{
 		if (GrenadeItem)
 		{
 			World->SpawnActor<ABBaseItem>(GrenadeItem, DropLocation, FRotator::ZeroRotator);
-			UE_LOG(LogTemp, Log, TEXT("¼ö·ùÅº µå¶øµÊ!"));
+			UE_LOG(LogTemp, Log, TEXT("ï¿½ï¿½ï¿½ï¿½Åº ï¿½ï¿½ï¿½ï¿½ï¿½!"));
 		}
 		else
 		{
-			UE_LOG(LogTemp, Log, TEXT("ÅÊÄ¿ Ã³Ä¡ÇßÀ¸³ª µå¶ø ¾ÆÀÌÅÛ ¾øÀ½"));
+			UE_LOG(LogTemp, Log, TEXT("ï¿½ï¿½Ä¿ Ã³Ä¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½"));
 		}
 	}
 	else
 	{
-		UE_LOG(LogTemp, Log, TEXT("¾ÆÀÌÅÛ ¾øÀ½"));
+		UE_LOG(LogTemp, Log, TEXT("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½"));
 	}
 }
