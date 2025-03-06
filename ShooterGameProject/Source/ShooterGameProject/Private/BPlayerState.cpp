@@ -16,7 +16,7 @@ ABPlayerState::ABPlayerState()
 	Level = 1;
 	MaxExperience = 0;
 	CurrentExperience = 0;
-	Coin = 0;	
+	Coin = 4000;	
 }
 
 void ABPlayerState::BeginPlay()
@@ -256,6 +256,7 @@ void ABPlayerState::InventoryRemoveItem(const FItemData& Item)
 	if (Items->IsEmpty())
 	{
 		Inventory.Remove(Item.ItemName);
+		UpdateQuickSlot(Item.ItemName, 0);
 	}
 	else
 	{

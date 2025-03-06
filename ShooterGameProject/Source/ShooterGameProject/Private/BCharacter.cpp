@@ -618,10 +618,11 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 			{
 				if (ABBaseGun* Gun = Cast<ABBaseGun>(EquippedWeapon))
 				{
-					FString Message = "데미지: " + LexToString(Gun->WeaponDamage) +
-						", 발사속도: " + LexToString(Gun->FireRate) +
-						", 최대 장탄 수: " + LexToString(Gun->MaxAmmo);
-					UIManager->DisplayNotification("라이플 강화 완료", Message);
+					
+					FString Message = TEXT("데미지: ") + FString::Printf(TEXT("%d"), Gun->WeaponDamage) +
+						TEXT(", 발사속도: ") + FString::Printf(TEXT("%.0f"), Gun->FireRate) +
+						TEXT(", 최대 장탄 수: ") + FString::Printf(TEXT("%d"), Gun->MaxAmmo);
+					UIManager->DisplayNotification(TEXT("라이플 강화 완료"), Message);
 				}
 				if (UBInventoryWidget* Inventory = Cast<UBInventoryWidget>(UIManager->GetInventoryInstance()))
 				{
@@ -640,10 +641,10 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 			{
 				if (ABBaseGun* Gun = Cast<ABBaseGun>(EquippedWeapon))
 				{
-					FString Message = "데미지: " + LexToString(Gun->WeaponDamage) +
-						", 발사속도: " + LexToString(Gun->FireRate) +
-						", 최대 장탄 수: " + LexToString(Gun->MaxAmmo);
-					UIManager->DisplayNotification("샷건 강화 완료", Message);
+					FString Message = TEXT("데미지: ") + FString::Printf(TEXT("%d"), Gun->WeaponDamage) +
+						TEXT(", 발사속도: ") + FString::Printf(TEXT("%.0f"), Gun->FireRate) +
+						TEXT(", 최대 장탄 수: ") + FString::Printf(TEXT("%d"), Gun->MaxAmmo);
+					UIManager->DisplayNotification(TEXT("샷건 강화 완료"), Message);
 				}
 				if (UBInventoryWidget* Inventory = Cast<UBInventoryWidget>(UIManager->GetInventoryInstance()))
 				{
@@ -661,10 +662,8 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 			{
 				if (ABBaseGun* Gun = Cast<ABBaseGun>(EquippedWeapon))
 				{
-					FString Message = "데미지: " + LexToString(Gun->WeaponDamage) +
-						", 발사속도: " + LexToString(Gun->FireRate) +
-						", 장탄 수: " + LexToString(Gun->MaxAmmo);
-					UIManager->DisplayNotification("피스톨 강화 완료", Message);
+					FString Message = TEXT("데미지: ") + FString::Printf(TEXT("%d"), Gun->WeaponDamage);
+					UIManager->DisplayNotification(TEXT("피스톨 강화 완료"), Message);
 				}
 				if (UBInventoryWidget* Inventory = Cast<UBInventoryWidget>(UIManager->GetInventoryInstance()))
 				{
