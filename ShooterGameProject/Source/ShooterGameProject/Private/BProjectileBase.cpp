@@ -88,9 +88,6 @@ void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
             EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(PhysMaterial);
             FString MaterialName = PhysMaterial->GetName();
 
-            UE_LOG(LogTemp, Warning, TEXT("Surface Type: %d, Physical Material: %s"),
-                (int32)SurfaceType, *MaterialName);
-
             switch (SurfaceType)
             {
             case EPhysicalSurface::SurfaceType1:  // 금속 표면
@@ -130,24 +127,9 @@ void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
                 // ✅ 사운드 큐의 파라미터 적용 (Int & Float 모두 설정)
                 AudioComponent->SetIntParameter(TEXT("SurfaceValue"), (int32)SurfaceValue);
                 AudioComponent->SetFloatParameter(TEXT("SurfaceValue"), SurfaceValue);
-
-
                 // ✅ 사운드 재생 시작
                 AudioComponent->Play();
 
-                // ✅ 0.1초 후 사운드가 실제로 재생되고 있는지 확인 (비동기 딜레이 사용)
-                FTimerHandle TimerHandle;
-                GetWorld()->GetTimerManager().SetTimer(TimerHandle, [AudioComponent]()
-                    {
-                        if (AudioComponent && AudioComponent->IsPlaying())
-                        {
-                            UE_LOG(LogTemp, Warning, TEXT("✅ Sound is Playing Successfully!"));
-                        }
-                        else
-                        {
-                            UE_LOG(LogTemp, Error, TEXT("⚠️ Sound did NOT play! Check SoundCue settings!"));
-                        }
-                    }, 0.1f, false);
             }
             if (AActor* HitActor = Hit.GetActor())
             {
@@ -155,9 +137,19 @@ void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
                 if (NoiseInstigator)
                 {
                     MakeNoise(1.0f, NoiseInstigator, Hit.ImpactPoint);
-                    UE_LOG(LogTemp, Log, TEXT("🔊 탄환 피격 소음 발생! 위치: %s"), *Hit.ImpactPoint.ToString());
                 }
             }
+        }
+        if (ParticleSystem && HitComp)
+        {
+            // HitComp의 위치를 사용해서 파티클을 생성
+            UParticleSystemComponent* ParticleComp = UGameplayStatics::SpawnEmitterAtLocation(
+                GetWorld(),                // 현재 월드
+                ParticleSystem,            // 사용할 파티클 시스템
+                HitComp->GetComponentLocation(), // HitComp의 위치
+                FRotator::ZeroRotator,     // 회전 (필요에 따라 조정)
+                true                        // 파티클의 월드 위치 사용 여부
+            );
         }
         // ✅ 총알 제거
         Destroy();
