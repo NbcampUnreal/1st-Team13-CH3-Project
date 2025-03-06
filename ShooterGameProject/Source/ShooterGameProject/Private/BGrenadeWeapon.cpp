@@ -132,7 +132,7 @@ void ABGrenadeWeapon::Attack()
     {
         UE_LOG(LogTemp, Warning, TEXT("✅ Predicted outVelocity: %s"), *OutVelocity.ToString());
 
-         // 수류탄의 프로젝타일 무브먼트에 속도 값을 설정
+        // 수류탄의 프로젝타일 무브먼트에 속도 값을 설정
         if (Grenade->ProjectileMovement)
         {
             Grenade->ProjectileMovement->bShouldBounce = true; // 바운스 활성화

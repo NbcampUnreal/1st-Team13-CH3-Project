@@ -16,4 +16,5 @@ public:
 
 	void UseSkill() override;
 	void EndSkill();
+	virtual FName GetMonsterType() const override;
 };

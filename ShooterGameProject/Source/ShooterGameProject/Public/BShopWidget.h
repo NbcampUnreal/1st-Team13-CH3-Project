@@ -20,8 +20,27 @@ public:
 	class UScrollBox* ShopScrollBox;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	class UTextBlock* PlayerCoinText;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UScrollBox* SellScrollBox;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float SellPriceMultiplier = 0.5f;
 
-	class ABBaseItem* ItemToSell = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UBorder* MessageBorder;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UTextBlock* MessageText;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UButton* YesButton;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UTextBlock* NoButtonText;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsBuying = true;
+
+	struct FBShopItemRow* PurchaseItemRow;
+	class ABBaseItem* SellItemRef;
+	FName SellItemName;
+	int32 SellItemPrice;
 	
 	UFUNCTION(BlueprintCallable)
 	void DisplayPlayerCoin();
@@ -29,18 +48,16 @@ public:
 	void AddItemsToScrollBox();
 
 	UFUNCTION(BlueprintCallable)
-	void ConfirmPurchase();
+	void ConfirmPurchase(const FName& RowName);
 	UFUNCTION(BlueprintCallable)
 	void ExecutePurchase();
 	UFUNCTION(BlueprintCallable)
-	void CancelPurchase();
+	void CloseMessage();
 
 	UFUNCTION(BlueprintCallable)
-	void ShowInventory();
+	void AddInventoryItemsToScrollBox();
 	UFUNCTION(BlueprintCallable)
-	void ConfirmSell();
+	void ConfirmSell(const FName& ItemName, class ABBaseItem* ItemRef, int32 SellPrice);
 	UFUNCTION(BlueprintCallable)
 	void ExecuteSell();
-	UFUNCTION(BlueprintCallable)
-	void CancelSell();
 };

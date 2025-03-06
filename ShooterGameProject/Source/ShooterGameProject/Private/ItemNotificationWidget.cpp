@@ -10,22 +10,6 @@
 UItemNotificationWidget::UItemNotificationWidget(const FObjectInitializer& ObjectInitializer)
 	: UUserWidget(ObjectInitializer)
 {
-	// TODO: i need a way to get a pointer to Textures and Materials (load once and refer to that instead of loading repeatedly)
-	// below is for testing purposes
-	ConstructorHelpers::FObjectFinder<UTexture2D> FirstAidKitIconFinder(
-		TEXT("/Game/UI/Textures/T_FirstAidKit_Icon.T_FirstAidKit_Icon"));
-	if (FirstAidKitIconFinder.Succeeded())
-	{
-		FirstAidKitIcon = FirstAidKitIconFinder.Object;
-	}
-
-	ConstructorHelpers::FObjectFinder<UTexture2D> GrenadeIconFinder(
-		TEXT("/Game/UI/Textures/T_Grenade_Icon.T_Grenade_Icon"));
-	if (GrenadeIconFinder.Succeeded())
-	{
-		GrenadeIcon = GrenadeIconFinder.Object;
-	}
-	
 	RobotoItalic = LoadObject<UObject>(this, TEXT("/Game/UI/Fonts/Font_RobotoItalic.Font_RobotoItalic"));
 
 	ConstructorHelpers::FObjectFinder<UMaterialInstance> PurpleGlowMaterialFinder(
@@ -39,22 +23,8 @@ UItemNotificationWidget::UItemNotificationWidget(const FObjectInitializer& Objec
 	ImageSizeY = 84.f;
 }
 
-void UItemNotificationWidget::DisplayNotification(FName ItemName)
+void UItemNotificationWidget::DisplayNotification(const FString& DisplayItemName, UTexture2D* ItemTexture)
 {
-	UTexture2D* ItemTexture = nullptr;
-	FName DisplayItemName = "default";
-	// TODO: Based on ItemName assign the corresponding texture and name
-	if (ItemName == "FirstAidKit")
-	{
-		ItemTexture = FirstAidKitIcon;
-		DisplayItemName = "First Aid Kit";
-	}
-	else if (ItemName == "Grenade")
-	{
-		ItemTexture = GrenadeIcon;
-		DisplayItemName = "Grenade";
-	}
-
 	/********** Horizontal Box **********/
 	UHorizontalBox* ItemNotificationHBox = Cast<UHorizontalBox>(GetWidgetFromName("ItemNotificationHBox"));
 	if (ItemNotificationHBox == nullptr)
@@ -152,7 +122,7 @@ void UItemNotificationWidget::DisplayNotification(FName ItemName)
 			{
 				ItemNotificationVBox->AddChildToVerticalBox(ItemNotificationName);
 
-				ItemNotificationName->SetText(FText::FromName(DisplayItemName));
+				ItemNotificationName->SetText(FText::FromString(DisplayItemName));
 				ItemNotificationName->SetAutoWrapText(true);
 				ItemNotificationName->SetColorAndOpacity(FLinearColor(0.6f, 1.f, 0.f, 1.f));
 				// TODO: Set Font, Size, outline material, etc.
