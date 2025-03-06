@@ -9,6 +9,8 @@
 #include "SkyManager.h"
 #include "TimerManager.h"
 #include "BEnemySpawnVolume.h"
+#include "GameFramework/CharacterMovementComponent.h"
+
 
 ABGameMode::ABGameMode()
 {
@@ -124,6 +126,15 @@ void ABGameMode::onDoorReached() //문에 플레이어 도달 시 호출
 		UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
 		if (GameInstance)
 		{
+			APlayerController* PC = GetWorld()->GetFirstPlayerController();
+			if (PC)
+			{
+				ABCharacter* BChar = Cast<ABCharacter>(PC->GetPawn());
+				if (BChar)
+				{
+					BChar->GetCharacterMovement()->DisableMovement();
+				}
+			}
 			GameInstance->GetUIManagerInstance()->LevelEndTransition();
 		}
 	}
