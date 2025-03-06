@@ -62,6 +62,7 @@ public:
 	void EquipShotgun();
 	void EquipMelee();
 	void EquipGrenade();
+	void UseFirstAidKit();
 	UFUNCTION(BlueprintCallable, Category = "Collect")
 	TArray<class ABBaseItem*> GetNearItemArray() const;
 
@@ -70,6 +71,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UseItem(const FName& ItemName);
 	int32 GrenadeCount = 0;
+
+	UFUNCTION()
+	void Reload(const struct FInputActionValue& Value);
+
 protected:
 	/** 카메라 줌 관련 변수 */
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
@@ -108,8 +113,10 @@ protected:
 	UFUNCTION()
 	void Attack(const struct FInputActionValue& Value);
 	void UnequipGrenade();
-	UFUNCTION()
-	void Reload(const struct FInputActionValue& Value);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Health")
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	
 	UFUNCTION()
 	void AimStart(const FInputActionValue& Value);
 	UFUNCTION()

@@ -10,11 +10,11 @@
 #include "BMovementComponent.h"
 #include "Components/SphereComponent.h"
 #include "BBaseItem.h"
+#include "BBaseGun.h"
 #include "BPlayerState.h"
 #include "BUIManager.h"
 #include "BGameInstance.h"
 #include "BInventoryWidget.h"
-#include <BShotGun.h>
 
 ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UBMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -136,9 +136,80 @@ void ABCharacter::StopSprint(const FInputActionValue& Value)
 
 void ABCharacter::Reload(const FInputActionValue& Value)
 {
-	if (Value.Get<bool>())
+	if (!EquippedWeapon)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("Reload"));
+		UE_LOG(LogTemp, Warning, TEXT("장착된 무기가 없습니다. 리로드 실패."));
+		return;
+	}
+
+	if (ABBaseGun* CurrentGun = Cast<ABBaseGun>(EquippedWeapon))
+	{
+		// 탄창이 필요한 무기일 경우 (예: 라이플, 샷건 등)
+		if (CurrentGun->WeaponType == "Rifle")
+		{
+			// 리로드 시작
+			UE_LOG(LogTemp, Log, TEXT("라이플 리로드 중..."));
+
+				if (ABPlayerState* BPlayerState = GetBPlayerState())
+				{
+					FName RifleMagazine = "RifleMagazine";
+					// 무기의 종류에 맞는 탄약 아이템을 인벤토리에서 찾음
+					TArray<FItemData> AmmoItems = BPlayerState->GetInventoryTypeItem(RifleMagazine);
+					if (AmmoItems.Num() > 0)
+					{
+						// 아이템이 있다면 첫 번째 아이템을 사용하여 리로드
+						ABBaseItem* AmmoItem = AmmoItems[0].ItemRef;  // FItemData 내에서 ItemRef를 통해 인스턴스 가져오기
+						if (AmmoItem)
+						{
+							AmmoItem->UseItem(this);  // UseItem을 호출하여 리로드 실행
+							UE_LOG(LogTemp, Log, TEXT("리로드 아이템을 사용하여 탄약 추가"));
+							// UseItem이 끝난 후 리로드를 호출하여 총기의 탄약 상태 업데이트
+							CurrentGun->Reload(); // 리로드 함수 호출하여 실제 총기의 CurrentAmmo 증가
+						}
+					}
+					else
+					{
+						UE_LOG(LogTemp, Warning, TEXT("리로드 아이템을 찾을 수 없습니다."));
+					}
+				}
+		}
+		// 탄창이 필요한 무기일 경우 (예: 라이플, 샷건 등)
+		else if (CurrentGun->WeaponType == "ShotGun")
+		{
+			// 리로드 시작
+			UE_LOG(LogTemp, Log, TEXT("샷건 리로드 중..."));
+
+			if (ABPlayerState* BPlayerState = GetBPlayerState())
+				{
+					FName ShotGunMagazine = "ShotgunMagazine";
+					// 무기의 종류에 맞는 탄약 아이템을 인벤토리에서 찾음
+					TArray<FItemData> AmmoItems = BPlayerState->GetInventoryTypeItem(ShotGunMagazine);
+					if (AmmoItems.Num() > 0)
+					{
+						// 아이템이 있다면 첫 번째 아이템을 사용하여 리로드
+						ABBaseItem* AmmoItem = AmmoItems[0].ItemRef;  // FItemData 내에서 ItemRef를 통해 인스턴스 가져오기
+						if (AmmoItem)
+						{
+							AmmoItem->UseItem(this);  // UseItem을 호출하여 리로드 실행
+							UE_LOG(LogTemp, Log, TEXT("리로드 아이템을 사용하여 탄약 추가"));
+							// UseItem이 끝난 후 리로드를 호출하여 총기의 탄약 상태 업데이트
+							CurrentGun->Reload(); // 리로드 함수 호출하여 실제 총기의 CurrentAmmo 증가
+						}
+					}
+					else
+					{
+						UE_LOG(LogTemp, Warning, TEXT("리로드 아이템을 찾을 수 없습니다."));
+					}
+				}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("리로드할 수 없는 무기입니다."));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("현재 장착된 무기가 총기가 아닙니다."));
 	}
 }
 
@@ -584,6 +655,37 @@ void ABCharacter::EquipGrenade()
 	ActiveWeaponSlot = EWeaponSlot::Throwable;
 	EquipWeaponByType(ActiveWeaponSlot);
 }
+void ABCharacter::UseFirstAidKit()
+{
+	// 플레이어 상태 확인
+	ABPlayerState* BPlayerState = GetBPlayerState();
+	if (!BPlayerState)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("플레이어 상태를 찾을 수 없습니다. 치료 아이템 사용 불가"));
+		return;
+	}
+
+	// 🔹 인벤토리에서 구급상자 찾기
+	FName HealingItemName = "FirstAidKit";  // 아이템 이름
+	TArray<FItemData> HealingItems = BPlayerState->GetInventoryTypeItem(HealingItemName);
+
+	if (HealingItems.Num() > 0)
+	{
+		// 첫 번째 구급상자 아이템을 사용
+		ABBaseItem* HealingItem = HealingItems[0].ItemRef;
+		if (HealingItem)
+		{
+			HealingItem->UseItem(this);  // 아이템 사용 (체력 회복)
+
+			// ✅ 체력 회복 후 로그 출력
+			UE_LOG(LogTemp, Log, TEXT("구급상자 사용 완료. 현재 체력: %f"),BPlayerState -> GetCurrentHealth());
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("구급상자가 없습니다!"));
+	}
+}
 TArray<ABBaseItem*> ABCharacter::GetNearItemArray() const
 {
 	TArray<AActor*> ActivateItem;
@@ -627,7 +729,24 @@ void ABCharacter::CloseInventory()
 	}
 }
 
+float ABCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, FString::Printf(TEXT("TakeDamage ActualDamage %d"), ActualDamage));
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, FString::Printf(TEXT("TakeDamage DamageAmount %d"), DamageAmount));
+
+	if (ABPlayerState* BPlayerState = GetPlayerState<ABPlayerState>())
+	{
+		BPlayerState->AddCurrentHealth(-DamageAmount);
+		if (BPlayerState->GetCurrentHealth() <= 0)
+		{
+			BPlayerState->StartDeath();
+		}
+	}
+
+	return ActualDamage;
+}
 
 
 void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -682,7 +801,6 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		this,
 		&ABCharacter::Attack
 	);
-	
 	EnhancedInput->BindAction(
 		PlayerController->ReloadAction,
 		ETriggerEvent::Completed,
@@ -733,6 +851,11 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		ETriggerEvent::Completed,  // 🔹 키를 누르는 순간 실행
 		this,
 		&ABCharacter::EquipGrenade);
+	EnhancedInput->BindAction(
+		PlayerController->UseFristAidKitAction,
+		ETriggerEvent::Completed,  // 🔹 키를 누르는 순간 실행
+		this,
+		&ABCharacter::UseFirstAidKit);
 	EnhancedInput->BindAction(
 		PlayerController->ZoomAction,
 		ETriggerEvent::Triggered,

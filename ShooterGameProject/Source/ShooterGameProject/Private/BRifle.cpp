@@ -18,6 +18,8 @@ ABRifle::ABRifle()
     // 소총 기본 설정
     FireRate = 0.1f; // 예: 초당 10발
     AmmoCount = 30;  // 탄창 30발
+    CurrentAmmo = 30; // 주우면 1탄창을 준다는 계산
+    ReservedAmmo = 0; // 예비탄환은 0개
     ItemPrice = 200; // 가격 200
     WeaponName = "AK47";
     WeaponType = "Rifle";
@@ -64,6 +66,7 @@ ABRifle::ABRifle()
 
 void ABRifle::Attack()
 {
+    UE_LOG(LogTemp, Log, TEXT("[ABRifle] 현재 예비 탄약: %d"), ReservedAmmo);
     if (!OwnerCharacter)
     {
         UE_LOG(LogTemp, Warning, TEXT("무기 소유 캐릭터가 없습니다!"));
@@ -79,16 +82,21 @@ void ABRifle::Attack()
     }
 
     LastFireTime = CurrentTime; // 마지막 발사 시간 갱신
-    UE_LOG(LogTemp, Warning, TEXT("⏳ [ABShotgun] 현재 시간: %f, 마지막 발사 시간: %f, FireRate: %f"),
-        CurrentTime, LastFireTime, FireRate);
-    if (AmmoCount <= 0)
+    if (CurrentAmmo <= 0)
     {
         UE_LOG(LogTemp, Warning, TEXT("탄약이 없습니다! 재장전 필요"));
+        if (ReservedAmmo > 0)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("라이플 추가 탄환이 있으니 자동 재장전 하겠습니다."));
+            Reload();
+        }
         return;
     }
-
-    // 🔹 탄약 1발 소모
-    AmmoCount--;
+    else {
+        // 탄약 감소
+        CurrentAmmo--;
+        UE_LOG(LogTemp, Error, TEXT("❌ 현재탄환: %d"), CurrentAmmo);
+    }
 
     // 🔹 총구 위치 가져오기
     FVector MuzzleLocation = GunMuzzle ? GunMuzzle->GetComponentLocation() : GetActorLocation();
@@ -120,14 +128,12 @@ void ABRifle::Attack()
     UBGameInstance* GameInstance = Cast<UBGameInstance>(GetWorld()->GetGameInstance());
     if (!GameInstance)
     {
-        UE_LOG(LogTemp, Warning, TEXT("GameInstance를 찾을 수 없습니다!"));
         return;
     }
 
     UBUIManager* UIManager = GameInstance->GetUIManagerInstance();
     if (!UIManager)
     {
-        UE_LOG(LogTemp, Warning, TEXT("UBUIManager를 찾을 수 없습니다!"));
         return;
     }
 
@@ -187,15 +193,12 @@ void ABRifle::Attack()
             ? ShellEjectSocket->GetComponentRotation()
             : FRotator::ZeroRotator;
 
-        UE_LOG(LogTemp, Log, TEXT("탄피 스폰 시도: %s"), *ShellClass->GetName());
 
         ABBulletShell* Shell = GetWorld()->SpawnActor<ABBulletShell>(ShellClass, ShellEjectLocation, ShellEjectRotation);
 
         if (Shell)
         {
-            UE_LOG(LogTemp, Log, TEXT("탄피 스폰 성공: %s"), *Shell->GetName());
             Shell->SetShellType("Rifle");
-
             FVector EjectDirection =
                 (GetActorRightVector() * FMath::RandRange(3.0f, 4.0f)) +  // 🔹 오른쪽으로 더 강하게 튀게
                 (GetActorUpVector() * FMath::RandRange(1.5f, 2.0f)) +    // 🔹 위로 더 튀게
@@ -204,16 +207,14 @@ void ABRifle::Attack()
 
             Shell->GetShellMesh()->AddImpulse(EjectDirection * 15.0f); // 🔹 Impulse 값을 낮춰 자연스럽게 낙하
         }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("탄피 스폰 실패!"));
-        }
     }
 
     // 🔹 사운드 재생
     if (FireSound)
     {
         UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+        // 📌 🔊 총기 발사 소음 발생!
+        MakeNoise(1.0f, OwnerCharacter, GetActorLocation());
     }
     
 }
