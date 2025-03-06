@@ -11,10 +11,15 @@
 #include "Components/SphereComponent.h"
 #include "BBaseItem.h"
 #include "BBaseGun.h"
+#include "BRiflePart.h"
+#include "BPistolPart.h"
+#include "BShotgunPart.h"
 #include "BPlayerState.h"
 #include "BUIManager.h"
 #include "BGameInstance.h"
 #include "BInventoryWidget.h"
+
+
 
 ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UBMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -575,7 +580,11 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 
 	// 🔹 무기 회전값 조정 (무기 타입별)
 	FRotator AdjustedRotation(0.0f, 0.0f, 0.0f);
-	if (WeaponToEquip->WeaponType == "Rifle" || WeaponToEquip->WeaponType == "Shotgun")
+	if (WeaponToEquip->WeaponType == "Rifle")
+	{
+		AdjustedRotation = FRotator(0.0f, -180.0f, 0.0f);
+	}
+	else if (WeaponToEquip->WeaponType == "Shotgun") 
 	{
 		AdjustedRotation = FRotator(0.0f, -180.0f, 0.0f);
 	}
@@ -597,8 +606,223 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	// 🔹 장착된 무기 업데이트
 	EquippedWeapon = WeaponToEquip;
 
-	UE_LOG(LogTemp, Warning, TEXT("✅ Equipped %s on %s"), *EquippedWeapon->WeaponType, *TargetSocketName.ToString());
 	UE_LOG(LogTemp, Warning, TEXT("📌 CurrentWeapon: %s"), *EquippedWeapon->GetName());
+
+	if (EquippedWeapon->WeaponType.Equals("Rifle"))  // Equals() 사용
+	{
+		UE_LOG(LogTemp, Warning, TEXT("라이플 파츠 장착"));
+		EquipRifleParts();  // 라이플 파츠 장착
+		if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+		{
+			if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
+			{
+				if (ABBaseGun* Gun = Cast<ABBaseGun>(EquippedWeapon))
+				{
+					FString Message = "데미지: " + LexToString(Gun->WeaponDamage) +
+						", 발사속도: " + LexToString(Gun->FireRate) +
+						", 최대 장탄 수: " + LexToString(Gun->MaxAmmo);
+					UIManager->DisplayNotification("라이플 강화 완료", Message);
+				}
+				if (UBInventoryWidget* Inventory = Cast<UBInventoryWidget>(UIManager->GetInventoryInstance()))
+				{
+					Inventory->SendItemData(GetNearItemArray(), Cast<ABPlayerState>(GetPlayerState()));
+				}
+			}
+		}
+	}
+	else if (EquippedWeapon->WeaponType.Equals("Shotgun"))  // Equals() 사용
+	{
+		UE_LOG(LogTemp, Warning, TEXT("샷건 파츠 장착"));
+		EquipShotgunParts();  // 라이플 파츠 장착
+		if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+		{
+			if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
+			{
+				if (ABBaseGun* Gun = Cast<ABBaseGun>(EquippedWeapon))
+				{
+					FString Message = "데미지: " + LexToString(Gun->WeaponDamage) +
+						", 발사속도: " + LexToString(Gun->FireRate) +
+						", 최대 장탄 수: " + LexToString(Gun->MaxAmmo);
+					UIManager->DisplayNotification("샷건 강화 완료", Message);
+				}
+				if (UBInventoryWidget* Inventory = Cast<UBInventoryWidget>(UIManager->GetInventoryInstance()))
+				{
+					Inventory->SendItemData(GetNearItemArray(), Cast<ABPlayerState>(GetPlayerState()));
+				}
+			}
+		}
+	}
+	else if (EquippedWeapon->WeaponType.Equals("Pistol"))  // Equals() 사용
+	{
+		UE_LOG(LogTemp, Warning, TEXT("피스톨 파츠 장착"));
+		if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+		{
+			if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
+			{
+				if (ABBaseGun* Gun = Cast<ABBaseGun>(EquippedWeapon))
+				{
+					FString Message = "데미지: " + LexToString(Gun->WeaponDamage) +
+						", 발사속도: " + LexToString(Gun->FireRate) +
+						", 장탄 수: " + LexToString(Gun->MaxAmmo);
+					UIManager->DisplayNotification("피스톨 강화 완료", Message);
+				}
+				if (UBInventoryWidget* Inventory = Cast<UBInventoryWidget>(UIManager->GetInventoryInstance()))
+				{
+					Inventory->SendItemData(GetNearItemArray(), Cast<ABPlayerState>(GetPlayerState()));
+				}
+			}
+		}
+		EquipPistolParts();  // 라이플 파츠 장착
+	}
+}
+void ABCharacter::EquipRifleParts()
+{
+	ABPlayerState* BPlayerState = GetBPlayerState();
+	if (!BPlayerState)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("플레이어 상태를 찾을 수 없습니다."));
+		return;
+	}
+
+	// RiflePart 클래스로 인벤토리 검색
+	TArray<FItemData> RiflePartsInInventory = BPlayerState->GetInventoryClassItem(ABRiflePart::StaticClass());
+	UE_LOG(LogTemp, Log, TEXT("Found %d RiflePart items in inventory."), RiflePartsInInventory.Num());
+
+	// 장착 후 제거할 아이템 목록
+	TArray<FItemData> ItemsToRemove;
+
+	for (const FItemData& RiflePartItem : RiflePartsInInventory)
+	{
+		if (RiflePartItem.ItemClass)
+		{
+			// ItemClass에서 RiflePart 객체 생성
+			ABRiflePart* RiflePart = NewObject<ABRiflePart>(this, RiflePartItem.ItemClass);
+
+			if (RiflePart)
+			{
+				UE_LOG(LogTemp, Log, TEXT("Attempting to apply RiflePart: %s"), *RiflePart->PartName);
+
+				// RiflePart를 라이플에 장착
+				RiflePart->UseItem(this);
+
+				// 제거할 아이템 목록에 추가 (바로 삭제하면 안 됨)
+				ItemsToRemove.Add(RiflePartItem);
+
+				UE_LOG(LogTemp, Log, TEXT("%s 파츠가 라이플에 장착되었습니다."), *RiflePart->PartName);
+				
+				
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("라이플 파츠를 찾을 수 없습니다."));
+			}
+		}
+	}
+
+	// 🔹 모든 아이템을 루프가 끝난 후 삭제
+	for (const FItemData& Item : ItemsToRemove)
+	{
+		BPlayerState->InventoryRemoveItem(Item);
+	}
+	
+}
+
+void ABCharacter::EquipPistolParts()
+{
+	ABPlayerState* BPlayerState = GetBPlayerState();
+	if (!BPlayerState)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("플레이어 상태를 찾을 수 없습니다."));
+		return;
+	}
+
+	// PistolPart 클래스로 인벤토리 검색
+	TArray<FItemData> PistolPartsInInventory = BPlayerState->GetInventoryClassItem(ABPistolPart::StaticClass());
+	UE_LOG(LogTemp, Log, TEXT("Found %d PistolPart items in inventory."), PistolPartsInInventory.Num());
+
+	// 장착 후 제거할 아이템 목록
+	TArray<FItemData> ItemsToRemove;
+
+	for (const FItemData& PistolPartItem : PistolPartsInInventory)
+	{
+		if (PistolPartItem.ItemClass)
+		{
+			// ItemClass에서 PistolPart 객체 생성
+			ABPistolPart* PistolPart = NewObject<ABPistolPart>(this, PistolPartItem.ItemClass);
+
+			if (PistolPart)
+			{
+				UE_LOG(LogTemp, Log, TEXT("Attempting to apply PistolPart: %s"), *PistolPart->PartName);
+
+				// PistolPart를 피스톨에 장착
+				PistolPart->UseItem(this);
+
+				// 제거할 아이템 목록에 추가
+				ItemsToRemove.Add(PistolPartItem);
+
+				UE_LOG(LogTemp, Log, TEXT("%s 파츠가 피스톨에 장착되었습니다."), *PistolPart->PartName);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("피스톨 파츠를 찾을 수 없습니다."));
+			}
+		}
+	}
+
+	// 🔹 루프 종료 후 아이템 삭제
+	for (const FItemData& Item : ItemsToRemove)
+	{
+		BPlayerState->InventoryRemoveItem(Item);
+	}
+}
+
+void ABCharacter::EquipShotgunParts()
+{
+	ABPlayerState* BPlayerState = GetBPlayerState();
+	if (!BPlayerState)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("플레이어 상태를 찾을 수 없습니다."));
+		return;
+	}
+
+	// ShotgunPart 클래스로 인벤토리 검색
+	TArray<FItemData> ShotgunPartsInInventory = BPlayerState->GetInventoryClassItem(ABShotgunPart::StaticClass());
+	UE_LOG(LogTemp, Log, TEXT("Found %d ShotgunPart items in inventory."), ShotgunPartsInInventory.Num());
+
+	// 장착 후 제거할 아이템 목록
+	TArray<FItemData> ItemsToRemove;
+
+	for (const FItemData& ShotgunPartItem : ShotgunPartsInInventory)
+	{
+		if (ShotgunPartItem.ItemClass)
+		{
+			// ItemClass에서 ShotgunPart 객체 생성
+			ABShotgunPart* ShotgunPart = NewObject<ABShotgunPart>(this, ShotgunPartItem.ItemClass);
+
+			if (ShotgunPart)
+			{
+				UE_LOG(LogTemp, Log, TEXT("Attempting to apply ShotgunPart: %s"), *ShotgunPart->PartName);
+
+				// ShotgunPart를 샷건에 장착
+				ShotgunPart->UseItem(this);
+
+				// 제거할 아이템 목록에 추가
+				ItemsToRemove.Add(ShotgunPartItem);
+
+				UE_LOG(LogTemp, Log, TEXT("%s 파츠가 샷건에 장착되었습니다."), *ShotgunPart->PartName);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("샷건 파츠를 찾을 수 없습니다."));
+			}
+		}
+	}
+
+	// 🔹 루프 종료 후 아이템 삭제
+	for (const FItemData& Item : ItemsToRemove)
+	{
+		BPlayerState->InventoryRemoveItem(Item);
+	}
 }
 
 void ABCharacter::InventorySwitch()
@@ -729,7 +953,24 @@ void ABCharacter::CloseInventory()
 	}
 }
 
+float ABCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, FString::Printf(TEXT("TakeDamage ActualDamage %d"), ActualDamage));
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, FString::Printf(TEXT("TakeDamage DamageAmount %d"), DamageAmount));
+
+	if (ABPlayerState* BPlayerState = GetPlayerState<ABPlayerState>())
+	{
+		BPlayerState->AddCurrentHealth(-DamageAmount);
+		if (BPlayerState->GetCurrentHealth() <= 0)
+		{
+			BPlayerState->StartDeath();
+		}
+	}
+
+	return ActualDamage;
+}
 
 
 void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

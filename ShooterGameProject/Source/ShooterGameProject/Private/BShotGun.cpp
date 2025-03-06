@@ -27,7 +27,10 @@ ABShotgun::ABShotgun()
     // 🔹 충돌 설정 (Collision)
      // 루트 컴포넌트로 설정
     Collision->SetupAttachment(ShotGunBody);
-
+    // 🔹 조준경 (옵션)
+    EquippedPartMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("EquippedPartMesh"));
+    EquippedPartMesh->SetupAttachment(ShotGunBody);
+    EquippedPartMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 10.0f));  // 위치 조정
     // 🔹 총구 (Muzzle)
     Muzzle = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Muzzle"));
     Muzzle->SetupAttachment(ShotGunBody);
@@ -42,6 +45,12 @@ ABShotgun::ABShotgun()
     ShellEjectSocket->SetupAttachment(RootComponent);  // 루트 컴포넌트에 부착
 }
 
+
+bool ABShotgun::IsPartMeshEquipped(ABShotgunPart* Part)
+{
+    // 이미 장착된 파츠의 매쉬가 있으면 새로 장착하지 않도록 처리
+    return EquippedPartMesh == Part->Mesh;
+}
 
 void ABShotgun::Attack()
 {

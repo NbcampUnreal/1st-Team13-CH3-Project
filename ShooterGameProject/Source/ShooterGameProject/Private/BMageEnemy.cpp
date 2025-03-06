@@ -4,7 +4,7 @@
 
 ABMageEnemy::ABMageEnemy()
 {
-	MaxHP = 100.f;
+	MaxHP = 250.f;
 	CurrentHP = MaxHP;
 	Power = 10.f;
 	Speed = 250.f;
