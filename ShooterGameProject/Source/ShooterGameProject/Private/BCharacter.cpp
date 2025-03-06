@@ -759,6 +759,11 @@ void ABCharacter::EquipShotgunParts()
 	}
 }
 
+void ABCharacter::OnReloadMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	bIsReload = false;
+}
+
 bool ABCharacter::GetIsWeaponFire() const
 {
 	return bIsWeaponFire;
@@ -932,7 +937,7 @@ float ABCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 			BPlayerState->StartDeath();
 		}
 	}
-
+	
 	// 애니메이션 몽타주고 뭐고 바로 플레이어는 공격을 받는 모션을 취해야한다.
 	return ActualDamage;
 }

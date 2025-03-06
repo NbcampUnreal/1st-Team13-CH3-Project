@@ -59,6 +59,8 @@ public:
 	int32 GrenadeCount = 0;
 
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* TakeDamageMontage;
 	/** 카메라 줌 관련 변수 */
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	float DefaultFOV = 90.0f;  // 기본 FOV 값
@@ -128,6 +130,8 @@ protected:
 	FTimerHandle FireTimerHandle;
 
 public:
+	UFUNCTION(BlueprintCallable)
+	void OnReloadMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 	UFUNCTION(BlueprintCallable)
 	bool GetIsWeaponFire() const;
 	UFUNCTION(BlueprintCallable)
