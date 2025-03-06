@@ -575,22 +575,28 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 
+	
 	// 🔹 물리(Physics) 영향 방지
 	WeaponMesh->SetSimulatePhysics(false);
 
 	// 🔹 무기 회전값 조정 (무기 타입별)
 	FRotator AdjustedRotation(0.0f, 0.0f, 0.0f);
+	FVector RelativeLotation = FVector::ZeroVector;
+	
 	if (WeaponToEquip->WeaponType == "Rifle")
 	{
-		AdjustedRotation = FRotator(0.0f, -180.0f, 0.0f);
+		RelativeLotation = FVector(2.535449f, 0.f, 6.554011f);
+		AdjustedRotation = FRotator(-0.000448f, -9.999977f, 0.000252f);
 	}
 	else if (WeaponToEquip->WeaponType == "Shotgun") 
 	{
-		AdjustedRotation = FRotator(0.0f, -180.0f, 0.0f);
+		RelativeLotation = FVector(2.535449f, 0.f, 6.554011f);
+		AdjustedRotation = FRotator(-0.000448f, -9.999977f, 0.000252f);
 	}
 	else if (WeaponToEquip->WeaponType == "Pistol")
 	{
-		AdjustedRotation = FRotator(0.0f, 90.0f, 90.0f);
+		RelativeLotation = FVector(9.44462f, 0.000001f, 2.322482f);
+		AdjustedRotation = FRotator(119.999588f, 0.000025f, -90.000006f);
 	}
 	else if (WeaponToEquip->WeaponType == "Melee")
 	{
@@ -602,6 +608,7 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 		AdjustedRotation = FRotator(90.0f, -90.0f, 90.0f); 
 	}
 	WeaponToEquip->SetActorRelativeRotation(AdjustedRotation);
+	WeaponToEquip->SetActorRelativeLocation(RelativeLotation);
 
 	// 🔹 장착된 무기 업데이트
 	EquippedWeapon = WeaponToEquip;
