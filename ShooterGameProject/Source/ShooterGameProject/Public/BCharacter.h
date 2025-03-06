@@ -58,10 +58,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UseItem(const FName& ItemName);
 	int32 GrenadeCount = 0;
-
-	UFUNCTION()
-	void Reload(const struct FInputActionValue& Value);
-
 protected:
 	/** 카메라 줌 관련 변수 */
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
@@ -136,12 +132,7 @@ protected:
 	void EquipPistolParts();
 	void EquipShotgunParts();
 	FTimerHandle FireTimerHandle;
-
-
 private:
-	UPROPERTY()
-	FReplicatedAcceleration ReplicatedAcceleration;
-
 	FTimerHandle DragUpdateTimer; 
 	FTimerHandle ZoomTimerHandle;
 	bool bIsDragging = false;
