@@ -27,7 +27,7 @@ ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 	PrimaryActorTick.bCanEverTick = false;
 
 	ActiveWeaponSlot = EWeaponSlot::Pistol; // 기본 무기 슬롯 설정
-	EquippedWeapons.SetNumZeroed(5);  // 기본 5개의 무기 슬롯 초기화
+	EquippedWeapons.SetNumZeroed((int)EWeaponSlot::Max);  // 최대사이즈로 초기화
 
 	// SpringArm 초기화
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
