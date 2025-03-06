@@ -203,7 +203,9 @@ void ABRifle::Attack()
         // 📌 🔊 총기 발사 소음 발생!
         MakeNoise(1.0f, OwnerCharacter, GetActorLocation());
     }
-    
+   
+    UIManager->UpdateHUDAmmo();
+
 }
 
 

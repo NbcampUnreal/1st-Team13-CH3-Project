@@ -216,6 +216,14 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("현재 장착된 무기가 총기가 아닙니다."));
 	}
+
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
+		{
+			UIManager->UpdateHUDAmmo();
+		}
+	}
 }
 
 void ABCharacter::SetDraggingItem(AActor* NewItem)
@@ -606,6 +614,15 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	// 🔹 장착된 무기 업데이트
 	EquippedWeapon = WeaponToEquip;
 
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
+		{
+			UIManager->UpdateHUDEquippedWeapon(EquippedWeapon->WeaponType);
+			UIManager->UpdateHUDAmmo();
+		}
+	}
+
 	UE_LOG(LogTemp, Warning, TEXT("📌 CurrentWeapon: %s"), *EquippedWeapon->GetName());
 
 	if (EquippedWeapon->WeaponType.Equals("Rifle"))  // Equals() 사용
@@ -673,6 +690,8 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 		}
 		EquipPistolParts();  // 라이플 파츠 장착
 	}
+
+
 }
 void ABCharacter::EquipRifleParts()
 {

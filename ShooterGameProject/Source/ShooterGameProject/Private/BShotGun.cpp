@@ -205,6 +205,13 @@ void ABShotgun::Attack()
             }
         }
     }
+    if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+    {
+        if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
+        {
+            UIManager->UpdateHUDAmmo();
+        }
+    }
 }
 
 
