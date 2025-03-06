@@ -108,7 +108,11 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void Attack(const struct FInputActionValue& Value);
 	void UnequipGrenade();
+<<<<<<< HEAD
 	UFUNCTION(BlueprintCallable)
+=======
+	UFUNCTION()
+>>>>>>> main
 	void Reload(const struct FInputActionValue& Value);
 	UFUNCTION()
 	void AimStart(const FInputActionValue& Value);

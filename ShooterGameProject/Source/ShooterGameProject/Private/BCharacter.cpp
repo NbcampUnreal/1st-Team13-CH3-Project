@@ -160,7 +160,7 @@ void ABCharacter::SetDraggingItem(AActor* NewItem)
 void ABCharacter::StartDragging(const FInputActionValue& Value)
 {
 	bool Drag = Value.Get<bool>();
-
+	
 	if (Drag == true)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("DragStart"));
@@ -299,18 +299,18 @@ void ABCharacter::UnequipGrenade()
 {
 	if (EquippedWeapon && EquippedWeapon->WeaponType == "Grenade")
 	{
-		UE_LOG(LogTemp, Log, TEXT("Hiding previously equipped weapon: %s"), *EquippedWeapon->WeaponType);
-		EquippedWeapon->SetActorHiddenInGame(true);
-		EquippedWeapon->SetActorEnableCollision(false);
-		EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			UE_LOG(LogTemp, Log, TEXT("Hiding previously equipped weapon: %s"), *EquippedWeapon->WeaponType);
+			EquippedWeapon->SetActorHiddenInGame(true);
+			EquippedWeapon->SetActorEnableCollision(false);
+			EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
-		// 무기 보관 위치 설정
-		FName StorageSocketName = TEXT("WeaponStorageSocket");
-		if (GetMesh()->DoesSocketExist(StorageSocketName))
-		{
-			EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, StorageSocketName);
-		}
-
+			// 무기 보관 위치 설정
+			FName StorageSocketName = TEXT("WeaponStorageSocket");
+			if (GetMesh()->DoesSocketExist(StorageSocketName))
+			{
+				EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, StorageSocketName);
+			}
+		
 		UE_LOG(LogTemp, Log, TEXT("💣 수류탄 장착 해제 완료!"));
 	}
 }
@@ -474,7 +474,7 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("✅ %s attached to %s successfully: %s"), *WeaponToEquip->GetName(), *TargetSocketName.ToString(), *WeaponToEquip->GetActorLocation().ToString());
+		UE_LOG(LogTemp, Warning, TEXT("✅ %s attached to %s successfully: %s"), *WeaponToEquip->GetName(), *TargetSocketName.ToString(), *WeaponToEquip -> GetActorLocation().ToString());
 	}
 
 	// 🔹 무기 메쉬 처리
@@ -505,7 +505,7 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	else if (WeaponToEquip->WeaponType == "Grenade")
 	{
 		WeaponToEquip->SetActorRelativeLocation(FVector::ZeroVector);
-		AdjustedRotation = FRotator(90.0f, -90.0f, 90.0f);
+		AdjustedRotation = FRotator(90.0f, -90.0f, 90.0f); 
 	}
 	WeaponToEquip->SetActorRelativeRotation(AdjustedRotation);
 
@@ -535,6 +535,7 @@ void ABCharacter::UseItem(const FName& ItemName)
 {
 	State->UseItem(ItemName);
 }
+
 
 void ABCharacter::EquipPistol()
 {
@@ -667,21 +668,21 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		this,
 		&ABCharacter::Attack
 	);
-
+	
 	EnhancedInput->BindAction(
 		PlayerController->ReloadAction,
 		ETriggerEvent::Completed,
 		this,
 		&ABCharacter::Reload);
 	EnhancedInput->BindAction(
-		PlayerController->DragAction,
-		ETriggerEvent::Triggered,
-		this,
+		PlayerController->DragAction,  
+		ETriggerEvent::Triggered, 
+		this, 
 		&ABCharacter::StartDragging);
 	EnhancedInput->BindAction(
-		PlayerController->DragAction,
-		ETriggerEvent::Completed,
-		this,
+		PlayerController->DragAction, 
+		ETriggerEvent::Completed, 
+		this, 
 		&ABCharacter::StopDragging);
 	EnhancedInput->BindAction(
 		PlayerController->AimAction,
