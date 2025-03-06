@@ -63,8 +63,8 @@ public:
 	class UKillLogWidget* KillLogWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
 	class UKillCountWidget* KillCountWidget;
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
-	//class UEnemyInfoWidget* EnemyInfoWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
+	class UEnemyInfoWidget* EnemyInfoWidget;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|Inventory")
 	TSubclassOf<UUserWidget> InventoryWidget;
