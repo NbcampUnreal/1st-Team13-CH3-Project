@@ -38,6 +38,7 @@ void ABGameState::EnemyDefeated()
 
 void ABGameState::ItemCollected()
 {
+	CollectedKeys++;
 	CheckGameStatus();
 }
 
