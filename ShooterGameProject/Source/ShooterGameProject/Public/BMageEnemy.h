@@ -22,6 +22,7 @@ public:
 	float HealAmount;
 	float GetHealAmount();
 
+	void BeginPlay() override;
 	void UseSkill() override;
 	virtual FName GetMonsterType() const override;
 };

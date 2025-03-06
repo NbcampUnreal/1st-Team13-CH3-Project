@@ -27,8 +27,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties|Tank")
 	bool bIsReflecting;
 
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
 	FTimerHandle ExplosionTimerHandle;
 
+	void BeginPlay() override;
 	void UseSkill() override;
 	UFUNCTION(BlueprintCallable)
 	void Explode();
