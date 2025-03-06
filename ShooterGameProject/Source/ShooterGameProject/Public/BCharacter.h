@@ -7,20 +7,6 @@
 #include "BCharacter.generated.h"
 struct FInputActionValue;
 
-USTRUCT()
-struct FReplicatedAcceleration
-{
-	GENERATED_BODY()
-
-	UPROPERTY()
-	uint8 AccelXYRadians = 0;	// Direction of XY accel component, quantized to represent [0, 2*pi]
-
-	UPROPERTY()
-	uint8 AccelXYMagnitude = 0;	//Accel rate of XY component, quantized to represent [0, MaxAcceleration]
-
-	UPROPERTY()
-	int8 AccelZ = 0;	// Raw Z accel rate component, quantized to represent [-MaxAcceleration, MaxAcceleration]
-};
 UENUM(BlueprintType)
 enum class EWeaponSlot : uint8
 {
@@ -62,6 +48,8 @@ public:
 	void EquipRifle();
 	void EquipShotgun();
 	void EquipMelee();
+	void EquipGrenade();
+	void UseFirstAidKit();
 	UFUNCTION(BlueprintCallable, Category = "Collect")
 	TArray<class ABBaseItem*> GetNearItemArray() const;
 
@@ -69,6 +57,11 @@ public:
 	void InventorySwitch();
 	UFUNCTION(BlueprintCallable)
 	void UseItem(const FName& ItemName);
+	int32 GrenadeCount = 0;
+
+	UFUNCTION()
+	void Reload(const struct FInputActionValue& Value);
+
 protected:
 	/** 카메라 줌 관련 변수 */
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
@@ -99,7 +92,7 @@ protected:
 	void Look(const struct FInputActionValue& Value);
 	UFUNCTION(BlueprintCallable)
 	void StartJump(const struct FInputActionValue& Value);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void StopJump(const struct FInputActionValue& Value);
 	UFUNCTION(BlueprintCallable)
 	void StartSprint(const struct FInputActionValue& Value);
@@ -108,11 +101,15 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void Attack(const struct FInputActionValue& Value);
 	void UnequipGrenade();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Health")
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	
 	UFUNCTION(BlueprintCallable)
 	void Reload(const struct FInputActionValue& Value);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void AimStart(const FInputActionValue& Value);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void AimStop(const FInputActionValue& Value);
 
 	UFUNCTION()
@@ -130,12 +127,14 @@ protected:
 	void CloseInventory();
 	virtual void BeginPlay() override;
 
-	void EquipGrenade();
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void StopFire();
 
 	void EquipWeaponByType(EWeaponSlot Slot);
+	void EquipRifleParts();
+	void EquipPistolParts();
+	void EquipShotgunParts();
 	FTimerHandle FireTimerHandle;
 
 

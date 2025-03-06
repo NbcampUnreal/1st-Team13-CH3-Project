@@ -28,8 +28,12 @@ public:
 	float CaptureOffsetY;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Minimap")
 	float MinimapSize;
+	UPROPERTY()
+	TArray<class UMapIconWidget*> MapIconArray;
 
 	void UpdateMap();
 	UFUNCTION(BlueprintCallable)
 	void CreateIconForMinimap(AActor* OwningActor);
+	UFUNCTION(BlueprintCallable)
+	void RemoveIconFromMinimap(AActor* OwningActor);
 };

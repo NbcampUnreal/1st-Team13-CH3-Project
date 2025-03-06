@@ -11,10 +11,11 @@
 ABShotgun::ABShotgun()
 {
     WeaponType = "ShotGun";
-    AmmoCount = 12;
+    CurrentAmmo = 12; // 1탄창 지급
+    ReservedAmmo = 0; // 예비탄환은 0개
     ShotPelletCount = 6;
     PelletSpreadAngle = 35.0f;
-    Damage = 10.0f; // 기본 탄환 데미지 설정
+    Damage = 20.0f; // 기본 탄환 데미지 설정
     bCanFire = true; // 🔹 게임 시작 시 공격 가능 상태로 설정
     // 🔹 본체 (Root Component로 설정)
     ShotGunBody = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ShotGunBody"));
@@ -26,7 +27,10 @@ ABShotgun::ABShotgun()
     // 🔹 충돌 설정 (Collision)
      // 루트 컴포넌트로 설정
     Collision->SetupAttachment(ShotGunBody);
-
+    // 🔹 조준경 (옵션)
+    EquippedPartMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("EquippedPartMesh"));
+    EquippedPartMesh->SetupAttachment(ShotGunBody);
+    EquippedPartMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 10.0f));  // 위치 조정
     // 🔹 총구 (Muzzle)
     Muzzle = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Muzzle"));
     Muzzle->SetupAttachment(ShotGunBody);
@@ -42,6 +46,12 @@ ABShotgun::ABShotgun()
 }
 
 
+bool ABShotgun::IsPartMeshEquipped(ABShotgunPart* Part)
+{
+    // 이미 장착된 파츠의 매쉬가 있으면 새로 장착하지 않도록 처리
+    return EquippedPartMesh == Part->Mesh;
+}
+
 void ABShotgun::Attack()
 {
     UE_LOG(LogTemp, Warning, TEXT("🔫 [ABShotgun] Attack() 실행"));
@@ -54,17 +64,13 @@ void ABShotgun::Attack()
 
 
     AActor* EquippedWeapon = OwnerCharacter->GetCurrentWeapon();
-    UE_LOG(LogTemp, Warning, TEXT("🛠️ [ABShotgun] 현재 장착된 무기: %s"), *EquippedWeapon->GetName());
 
     if (EquippedWeapon != this)
     {
-        UE_LOG(LogTemp, Error, TEXT("❌ [ABShotgun] 현재 장착된 무기가 아닙니다!"));
         return;
     }
 
     float CurrentTime = GetWorld()->GetTimeSeconds();
-    UE_LOG(LogTemp, Warning, TEXT("⏳ [ABShotgun] 현재 시간: %f, 마지막 발사 시간: %f, FireRate: %f"),
-        CurrentTime, LastFireTime, FireRate);
 
     if (CurrentTime - LastFireTime < FireRate)
     {
@@ -73,17 +79,27 @@ void ABShotgun::Attack()
     }
     LastFireTime = CurrentTime;
 
-    if (AmmoCount <= 0)
+    if (CurrentAmmo <= 0)
     {
-        UE_LOG(LogTemp, Error, TEXT("❌ [ABShotgun] 탄약이 없습니다! 재장전 필요"));
+        UE_LOG(LogTemp, Warning, TEXT("탄약이 없습니다! 재장전 필요"));
+        if (ReservedAmmo > 0)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("샷건 추가 탄환이 있으니 자동 재장전 하겠습니다."));
+            Reload();
+        }
         return;
     }
-
-
+    else {
+        // 탄약 감소
+        CurrentAmmo--;
+        UE_LOG(LogTemp, Error, TEXT("❌ 현재탄환: %d"), CurrentAmmo);
+    }
 
     if (FireSound)
     {
         UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+        // 📌 🔊 총기 발사 소음 발생!
+        MakeNoise(1.0f, OwnerCharacter, GetActorLocation());
     }
 
     FVector MuzzleLocation = GunMuzzle ? GunMuzzle->GetComponentLocation() : GetActorLocation();
@@ -115,14 +131,10 @@ void ABShotgun::Attack()
 
     SplitRotation = ForwardVector.Rotation();
 
-    UE_LOG(LogTemp, Warning, TEXT("📍 [ABShotgun] MuzzleLocation: %s"), *MuzzleLocation.ToString());
-    UE_LOG(LogTemp, Warning, TEXT("🎯 [ABShotgun] CrosshairTarget: %s"), *CrosshairTarget.ToString());
-    UE_LOG(LogTemp, Warning, TEXT("📐 [ABShotgun] SplitRotation: %s"), *SplitRotation.ToString());
 
     // 🔹 탄환 클래스가 설정되었는지 확인
     if (!ProjectileClass)
     {
-        UE_LOG(LogTemp, Error, TEXT("❌ [ABShotgun] ProjectileClass가 설정되지 않았습니다! 탄환이 생성되지 않습니다."));
         return;
     }
     if (ShellClass)
@@ -138,13 +150,11 @@ void ABShotgun::Attack()
             ? ShellEjectSocket->GetComponentRotation()
             : FRotator::ZeroRotator;
 
-        UE_LOG(LogTemp, Log, TEXT("탄피 스폰 시도: %s"), *ShellClass->GetName());
 
         ABBulletShell* Shell = GetWorld()->SpawnActor<ABBulletShell>(ShellClass, ShellEjectLocation, ShellEjectRotation);
 
         if (Shell)
         {
-            UE_LOG(LogTemp, Log, TEXT("탄피 스폰 성공: %s"), *Shell->GetName());
             Shell->SetShellType("Pistol");
 
             FVector EjectDirection =
@@ -154,10 +164,7 @@ void ABShotgun::Attack()
 
             Shell->GetShellMesh()->AddImpulse(EjectDirection * 30.0f);
         }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("탄피 스폰 실패!"));
-        }
+      
         // 🔹 탄환 발사
         // 🔹 발사된 탄환을 저장할 리스트
         TArray<ABProjectileBase*> SpawnedProjectiles;
@@ -197,8 +204,6 @@ void ABShotgun::Attack()
                 }
             }
         }
-
-        UE_LOG(LogTemp, Warning, TEXT("🎯 [ABShotgun] 공격 완료"));
     }
 }
 
@@ -208,14 +213,12 @@ FVector ABShotgun::GetCrosshairTarget()
     UBGameInstance* GameInstance = Cast<UBGameInstance>(GetWorld()->GetGameInstance());
     if (!GameInstance)
     {
-        UE_LOG(LogTemp, Warning, TEXT("GameInstance를 찾을 수 없습니다!"));
         return FVector::ZeroVector;
     }
 
     UBUIManager* UIManager = GameInstance->GetUIManagerInstance();
     if (!UIManager)
     {
-        UE_LOG(LogTemp, Warning, TEXT("UBUIManager를 찾을 수 없습니다!"));
         return FVector::ZeroVector;
     }
 

@@ -4,15 +4,16 @@
 
 ABAssassinEnemy::ABAssassinEnemy()
 {
-	MaxHP = 50.f;
+	MaxHP = 250.f;
 	CurrentHP = MaxHP;
 	Power = 50.f;
-	Speed = 500.f;
+	Speed = 550.f;
 	AttackSpeed = 0.7f;
 	CoolTime = 5.f;
 	SkillDuration = 3.f;
 	AttackRange = 150.f;
 	bIsRanged = false;
+	EnemyType = "Assassin";
 
 	bIsStealthed = false;
 }
@@ -35,4 +36,9 @@ void ABAssassinEnemy::EndSkill()
 	{
 		GetMesh()->SetVisibility(true, true);
 	}
+}
+
+FName ABAssassinEnemy::GetMonsterType() const
+{
+	return FName(TEXT("Assassin"));
 }

@@ -31,8 +31,19 @@ ABPistol::ABPistol()
     //총기 배출구 생성
     ShellEjectSocket = CreateDefaultSubobject<USceneComponent>(TEXT("ShellEjectSocket"));
     ShellEjectSocket->SetupAttachment(RootComponent);  // 루트 컴포넌트에 부착
+
+    // 🔹 조준경 (옵션)
+    EquippedPartMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("EquippedPartMesh"));
+    EquippedPartMesh->SetupAttachment(WeaponMesh);
+    EquippedPartMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 10.0f));  // 위치 조정
     // 물리 시뮬레이션 끄기
     DisablePhysicsSimulation();
+}
+
+bool ABPistol::IsPartMeshEquipped(ABPistolPart* Part)
+{
+    // 이미 장착된 파츠의 매쉬가 있으면 새로 장착하지 않도록 처리
+    return EquippedPartMesh == Part->Mesh;
 }
 
 void ABPistol::Attack()
@@ -135,8 +146,8 @@ void ABPistol::Attack()
 
         if (Projectile)
         {
-            UE_LOG(LogTemp, Log, TEXT("총알 스폰 성공: %s"), *Projectile->GetName());
             Projectile->FireInDirection(AdjustedShootDirection);  // 🔹 조정된 방향으로 발사
+            Projectile->SetDamage(Damage);
         }
     }
     else
@@ -148,6 +159,8 @@ void ABPistol::Attack()
     if (FireSound)
     {
         UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+        // 📌 🔊 총기 발사 소음 발생!
+        MakeNoise(1.0f, OwnerCharacter, GetActorLocation());
     }
 
     if (ShellClass)
