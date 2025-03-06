@@ -5,8 +5,6 @@
 #include "BBaseItem.h"
 #include "BBaseWeapon.generated.h"
 
-DECLARE_DELEGATE(OnAttackCompleted);
-
 class ABCharacter; // 캐릭터 클래스 전방 선언
 UCLASS(Blueprintable)  // 블루프린트에서 사용 가능하도록 설정
 class SHOOTERGAMEPROJECT_API ABBaseWeapon : public ABBaseItem
@@ -15,7 +13,6 @@ class SHOOTERGAMEPROJECT_API ABBaseWeapon : public ABBaseItem
 	
 public:
 	ABBaseWeapon();
-	OnAttackCompleted AttackEvent;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	FString WeaponType;
 	

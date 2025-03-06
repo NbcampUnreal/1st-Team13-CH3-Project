@@ -63,6 +63,8 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UAnimMontage* ReloadAnimation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* AttackAnimation;
 	/** 카메라 줌 관련 변수 */
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	float DefaultFOV = 90.0f;  // 기본 FOV 값
@@ -144,5 +146,5 @@ public:
 private:
 	FTimerHandle ZoomTimerHandle;
 	class ABPlayerState* State;
-	void OnReloadMontageEnd(UAnimMontage* Montage, bool bInterrupted);
+	void OnMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 };

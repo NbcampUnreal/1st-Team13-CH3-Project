@@ -280,7 +280,7 @@ void ABCharacter::BeginPlay()
 
 	if (ReloadAnimation)
 	{
-		GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &ABCharacter::OnReloadMontageEnd);
+		GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &ABCharacter::OnMontageEnd);
 	}
 }
 void ABCharacter::Attack(const struct FInputActionValue& Value)
@@ -808,7 +808,7 @@ void ABCharacter::AttackCompleted()
 	bIsWeaponFire = false;
 }
 
-void ABCharacter::OnReloadMontageEnd(UAnimMontage* Montage, bool bInterrupted)
+void ABCharacter::OnMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
 	if (Montage == ReloadAnimation)
 	{
