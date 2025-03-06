@@ -285,7 +285,6 @@ void ABCharacter::BeginPlay()
 }
 void ABCharacter::Attack(const struct FInputActionValue& Value)
 {	
-	bIsWeaponFire = true;
 	UE_LOG(LogTemp, Log, TEXT("Attack() called"));
 	if (EquippedWeapon == nullptr)
 	{
@@ -314,12 +313,12 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 		return;
 	}
 	UE_LOG(LogTemp, Warning, TEXT("🔍 [FireOnce] 현재 무기 타입: %s"), *CurrentWeapon->WeaponType);
-	//AttackEvent
-	if (!CurrentWeapon->AttackEvent.IsBound())
-	{
-		CurrentWeapon->AttackEvent.BindUObject(this, &ABCharacter::AttackCompleted);
-	}
+
 	CurrentWeapon->Attack();
+	if (AttackAnimation)
+	{
+		PlayAnimMontage(AttackAnimation, 0.1f,CurrentWeapon->GetItemName());
+	}
 }
 void ABCharacter::UnequipGrenade()
 {
@@ -788,11 +787,6 @@ void ABCharacter::OnReloadMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 	bIsReload = false;
 }
 
-bool ABCharacter::GetIsWeaponFire() const
-{
-	return bIsWeaponFire;
-}
-
 bool ABCharacter::IsReload() const
 {
 	return bIsReload;
@@ -801,11 +795,6 @@ bool ABCharacter::IsReload() const
 void ABCharacter::RelaoadCompleted()
 {
 	bIsReload = false;
-}
-
-void ABCharacter::AttackCompleted()
-{
-	bIsWeaponFire = false;
 }
 
 void ABCharacter::OnMontageEnd(UAnimMontage* Montage, bool bInterrupted)

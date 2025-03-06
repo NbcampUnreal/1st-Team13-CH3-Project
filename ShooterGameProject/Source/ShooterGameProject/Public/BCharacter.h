@@ -86,8 +86,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class USphereComponent> CollectNearItem;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bIsWeaponFire;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsReload;
 	//UFUNCTION(NetMulticast, unreliable)
 	//void FastSharedReplication(const FSharedRepMovement& SharedRepMovement);
@@ -141,8 +139,6 @@ public:
 	// 애니메이션 노티파이 혹은 몽타주를 통해 넣어야한다.
 	UFUNCTION(BlueprintCallable)
 	void RelaoadCompleted();
-	UFUNCTION(BlueprintCallable)
-	void AttackCompleted();
 private:
 	FTimerHandle ZoomTimerHandle;
 	class ABPlayerState* State;
