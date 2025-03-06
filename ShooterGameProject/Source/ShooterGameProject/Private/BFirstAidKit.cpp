@@ -10,6 +10,17 @@ ABFirstAidKit::ABFirstAidKit()
 	ItemType = "Consumeable";
 	ItemName = "FirstAidKit";
 	RecoveryHealth = 50.0f;
+
+	// FItemData 초기화
+	FItemData NewItemData;
+	NewItemData.ItemName = TEXT("FirstAidKit");
+	NewItemData.ItemClass = ABFirstAidKit::StaticClass();
+	NewItemData.ItemCount = 1;  // 기본적으로 1개씩 추가
+	NewItemData.ItemIcon = nullptr;  // 필요 시 아이콘 설정
+	NewItemData.ItemRef = this;
+
+	// SetItemData를 통해 ItemData 설정
+	SetItemData(NewItemData);
 }
 
 void ABFirstAidKit::ActivateItem(AActor* Activator)

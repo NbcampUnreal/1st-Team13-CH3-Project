@@ -59,11 +59,19 @@ void ABBulletShell::BeginPlay()
     // 랜덤 회전 추가
     ShellMesh->AddTorqueInDegrees(FVector(0, 0, FMath::RandRange(50, 150)));
     ShellMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);  // 🔹 플레이어와 충돌 무시
+
     // 탄피 바닥 충돌 시 사운드 재생
     if (ShellDropSound)
     {
-        UGameplayStatics::PlaySoundAtLocation(this, ShellDropSound, GetActorLocation(),0.5f,0.5f);
+        UGameplayStatics::PlaySoundAtLocation(this, ShellDropSound, GetActorLocation(), 0.5f, 0.5f);
+
+        // 📌 🔊 탄피 떨어지는 소음 발생 (AI 인식)
+        if (APawn* OwnerPawn = Cast<APawn>(GetOwner()))
+        {
+            MakeNoise(0.3f, OwnerPawn, GetActorLocation());
+        }
     }
+
     // 일정 시간 후 탄피 제거
     SetLifeSpan(5.0f);
 }
