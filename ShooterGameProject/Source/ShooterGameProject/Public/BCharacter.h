@@ -62,6 +62,7 @@ public:
 	void EquipShotgun();
 	void EquipMelee();
 	void EquipGrenade();
+	void UseFirstAidKit();
 	UFUNCTION(BlueprintCallable, Category = "Collect")
 	TArray<class ABBaseItem*> GetNearItemArray() const;
 
