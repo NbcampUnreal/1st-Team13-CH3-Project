@@ -22,7 +22,6 @@
 
 
 ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer.SetDefaultSubobjectClass<UBMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = false;
 	ActiveWeaponSlot = EWeaponSlot::Pistol;  // ê¸°ë³¸ì ìœ¼ë¡œ ì£¼ë¬´ê¸°ë¥¼ í™œì„±í™”
@@ -218,85 +217,6 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 	}
 }
 
-void ABCharacter::SetDraggingItem(AActor* NewItem)
-{
-	ABBaseItem* Item = Cast<ABBaseItem>(NewItem);
-	if (Item)
-	{
-		// ì•„ì´í…œì´ íŠ¹ì • ì†Œì¼“ì— ìž¥ì°©ë˜ì–´ ìžˆë‹¤ë©´ ë“œëž˜ê·¸ ë¶ˆê°€
-		if (Item->GetAttachParentSocketName() == "WeaponSocket")
-		{
-			return;
-		}
-
-		DraggingItem = Item;
-	}
-}
-
-void ABCharacter::UpdateDragging()
-{
-	if (DraggingItem)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Yellow, TEXT("UpdateDragging is Running!"));
-
-		if (!DraggingItem)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("DraggingItem is NULL in UpdateDragging!"));
-			return;
-		}
-
-		ABPlayerController* PlayerController = Cast<ABPlayerController>(GetController());
-		if (PlayerController)
-		{
-
-			FVector WorldLocation, WorldDirection;
-			if (PlayerController->DeprojectMousePositionToWorld(WorldLocation, WorldDirection))
-			{
-				FVector TargetLocation = WorldLocation + WorldDirection * 200.0f;
-				// ì•„ì´í…œ ìœ„ì¹˜ ì—…ë°ì´íŠ¸
-				DraggingItem->SetActorEnableCollision(false);  // ì¶©ëŒ ë¹„í™œì„±í™”
-				DraggingItem->SetActorLocation(TargetLocation);
-				DraggingItem->SetActorEnableCollision(true);   // ì´ë™ í›„ ì¶©ëŒ ë‹¤ì‹œ í™œì„±í™”
-				bool bMoved = DraggingItem->SetActorLocation(TargetLocation);
-			}
-			else
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("DeprojectMousePositionToWorld Failed!"));
-			}
-		}
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("UpdateDragging Failed: DraggingItem is NULL!"));
-	}
-}
-void ABCharacter::AimStart(const FInputActionValue& Value)
-{
-	if (Value.Get<bool>())
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, *FString("AimStart"));
-	}
-}
-
-void ABCharacter::AimStop(const FInputActionValue& Value)
-{
-	if (DraggingItem)
-	{
-		bIsDragging = true;
-		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Blue, TEXT("Drag Start"));
-
-		bool bIsValid = GetWorldTimerManager().TimerExists(DragUpdateTimer);
-		if (bIsValid)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("Timer Already Exists!"));
-		}
-		else
-		{
-			GetWorldTimerManager().SetTimer(DragUpdateTimer, this, &ABCharacter::UpdateDragging, 0.01f, true);
-			GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green, TEXT("Timer Set Successfully!"));
-		}
-	}
-}
 
 void ABCharacter::ZoomStart(const FInputActionValue& Value)
 {
@@ -1006,16 +926,7 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		ETriggerEvent::Completed,
 		this,
 		&ABCharacter::Reload);
-	EnhancedInput->BindAction(
-		PlayerController->AimAction,
-		ETriggerEvent::Triggered,
-		this,
-		&ABCharacter::AimStart);
-	EnhancedInput->BindAction(
-		PlayerController->AimAction,
-		ETriggerEvent::Completed,
-		this,
-		&ABCharacter::AimStop);
+
 	EnhancedInput->BindAction(
 		PlayerController->EquipPistolAction,
 		ETriggerEvent::Completed,  // 🔹 키를 누르는 순간 실행되도록 변경

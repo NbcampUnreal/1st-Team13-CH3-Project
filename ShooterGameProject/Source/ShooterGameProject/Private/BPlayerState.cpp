@@ -16,11 +16,7 @@ ABPlayerState::ABPlayerState()
 	Level = 1;
 	MaxExperience = 0;
 	CurrentExperience = 0;
-<<<<<<< HEAD
 	Coin = 4000;	
-=======
-	Coin = 0;
->>>>>>> character
 }
 
 void ABPlayerState::BeginPlay()
@@ -343,8 +339,4 @@ void ABPlayerState::LevelUP()
 			UI->DisplayNotification("Level Up!", FString::Printf(TEXT("Current Level is %d"), Level));
 		}
 	}
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> character
