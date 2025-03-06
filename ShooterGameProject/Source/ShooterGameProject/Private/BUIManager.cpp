@@ -17,6 +17,7 @@
 #include "CrosshairWidget.h"
 #include "KillLogWidget.h"
 #include "KillCountWidget.h"
+#include "EnemyInfoWidget.h"
 #include "BUIWeaponWheel.h"
 #include "BInventoryWidget.h"
 #include "BEnemyBase.h"
@@ -75,6 +76,7 @@ UBUIManager::UBUIManager()
 	CrosshairWidget = nullptr;
 	KillLogWidget = nullptr;
 	KillCountWidget = nullptr;
+	EnemyInfoWidget = nullptr;
 
 	bIsWeaponWheelOpen = false;
 
@@ -384,6 +386,7 @@ void UBUIManager::DisplayHUD()
 		MissionWidget = Cast<UMissionWidget>(HUDWidgetInstance->GetWidgetFromName(TEXT("MissionWidget")));
 		KillLogWidget = Cast<UKillLogWidget>(HUDWidgetInstance->GetWidgetFromName(TEXT("KillLogWidget")));
 		KillCountWidget = Cast<UKillCountWidget>(HUDWidgetInstance->GetWidgetFromName(TEXT("KillCountWidget")));
+		EnemyInfoWidget = Cast<UEnemyInfoWidget>(HUDWidgetInstance->GetWidgetFromName(TEXT("EnemyInfoWidget")));
 
 		UpdateHUD();
 	}
@@ -599,6 +602,15 @@ void UBUIManager::UpdateCurrentScore(const int32& CurrentScore)
 	}
 }
 
+void UBUIManager::UpdateEnemyInfo(const FName& EnemyType, const float& CurrentHP, const float& MaxHP)
+{
+	if (HUDWidgetInstance && EnemyInfoWidget)
+	{
+		EnemyInfoWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+		EnemyInfoWidget->UpdateEnemyInfo(EnemyType, CurrentHP, MaxHP);
+	}
+}
+
 void UBUIManager::UpdateHUDHealth(const int32& CurrentHP, const int32& MaxHP)
 {
 	if (HUDWidgetInstance && HealthAndLevelWidget)
@@ -651,7 +663,7 @@ void UBUIManager::UpdateHUDAmmo()
 								else
 								{
 									// TODO: change to actual Ammo ItemName 
-									TArray<FItemData> InventoryAmmo = PlayerState->GetInventoryTypeItem(FName(EquippedWeapon->WeaponType + "Ammo"));
+									TArray<FItemData> InventoryAmmo = PlayerState->GetInventoryTypeItem(FName(EquippedWeapon->WeaponType + "Magazine"));
 									WeaponAmmoWidget->UpdateInventoryAmmo(InventoryAmmo.Num());
 								}
 							}
@@ -767,16 +779,17 @@ void UBUIManager::LineTraceCrosshair()
 		{
 			if (AActor* HitActor = HitResult.GetActor())
 			{
-				if (HitActor->IsA<ABEnemyBase>())
+				if (ABEnemyBase* HitEnemy = Cast<ABEnemyBase>(HitActor))
 				{
-					GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, TEXT("Crosshair Line Trace with Enemy"));
-					// Show Enemy Health Bar widget / Update
-
+					// Update	
+					//UpdateEnemyInfo(HitEnemy->GetMonsterType(), HitEnemy->GetCurrentHP(), HitEnemy->GetMaxHP());
+					UpdateEnemyInfo("EnemyType", HitEnemy->GetCurrentHP(), HitEnemy->GetMaxHP());
 					return;
 				}
 			}
 		}
 
 		// Hide Enemy Health Bar Widget
+		EnemyInfoWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
