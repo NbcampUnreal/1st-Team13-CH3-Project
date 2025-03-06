@@ -123,11 +123,6 @@ protected:
 	void ZoomStart(const FInputActionValue& Value);
 	UFUNCTION()
 	void ZoomStop(const FInputActionValue& Value);
-	
-	UFUNCTION()
-	void StartDragging(const FInputActionValue& Value);
-	UFUNCTION()
-	void StopDragging(const FInputActionValue& Value);
 	UFUNCTION(BlueprintCallable)
 	void ShowInventory();
 	UFUNCTION(BlueprintCallable)
