@@ -79,7 +79,10 @@ protected:
 	TObjectPtr<class UBMovementComponent> MoveComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class USphereComponent> CollectNearItem;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsWeaponFire;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsReload;
 	//UFUNCTION(NetMulticast, unreliable)
 	//void FastSharedReplication(const FSharedRepMovement& SharedRepMovement);
 	UFUNCTION(BlueprintCallable)
@@ -124,12 +127,22 @@ protected:
 	void EquipShotgunParts();
 	FTimerHandle FireTimerHandle;
 
-
+public:
+	UFUNCTION(BlueprintCallable)
+	bool GetIsWeaponFire() const;
+	UFUNCTION(BlueprintCallable)
+	bool IsReload() const;
+	// 애니메이션 노티파이 혹은 몽타주를 통해 넣어야한다.
+	UFUNCTION(BlueprintCallable)
+	void RelaoadCompleted();
+	UFUNCTION(BlueprintCallable)
+	void AttackCompleted();
+	UFUNCTION(BlueprintCallable)
+	void PlayerCrouch();
+	UFUNCTION(BlueprintCallable)
+	void PlayerStand();
 private:
-
-	
 	FTimerHandle ZoomTimerHandle;
-	
-
 	class ABPlayerState* State;
+
 };

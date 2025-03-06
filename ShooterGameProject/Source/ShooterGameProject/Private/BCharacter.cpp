@@ -168,6 +168,7 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 
 			if (ABPlayerState* BPlayerState = GetBPlayerState())
 			{
+				bIsReload = true;
 				FName RifleMagazine = "RifleMagazine";
 				// 무기의 종류에 맞는 탄약 아이템을 인벤토리에서 찾음
 				TArray<FItemData> AmmoItems = BPlayerState->GetInventoryTypeItem(RifleMagazine);
@@ -181,6 +182,7 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 						UE_LOG(LogTemp, Log, TEXT("리로드 아이템을 사용하여 탄약 추가"));
 						// UseItem이 끝난 후 리로드를 호출하여 총기의 탄약 상태 업데이트
 						CurrentGun->Reload(); // 리로드 함수 호출하여 실제 총기의 CurrentAmmo 증가
+						
 					}
 				}
 				else
@@ -197,6 +199,7 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 
 			if (ABPlayerState* BPlayerState = GetBPlayerState())
 			{
+				bIsReload = true;
 				FName ShotGunMagazine = "ShotgunMagazine";
 				// 무기의 종류에 맞는 탄약 아이템을 인벤토리에서 찾음
 				TArray<FItemData> AmmoItems = BPlayerState->GetInventoryTypeItem(ShotGunMagazine);
@@ -261,7 +264,8 @@ void ABCharacter::BeginPlay()
 	State = Cast<ABPlayerState>(GetPlayerState());
 }
 void ABCharacter::Attack(const struct FInputActionValue& Value)
-{
+{	
+	bIsWeaponFire = true;
 	UE_LOG(LogTemp, Log, TEXT("Attack() called"));
 	if (EquippedWeapon == nullptr)
 	{
@@ -755,6 +759,36 @@ void ABCharacter::EquipShotgunParts()
 	}
 }
 
+bool ABCharacter::GetIsWeaponFire() const
+{
+	return bIsWeaponFire;
+}
+
+bool ABCharacter::IsReload() const
+{
+	return bIsReload;
+}
+
+void ABCharacter::RelaoadCompleted()
+{
+	bIsReload = false;
+}
+
+void ABCharacter::AttackCompleted()
+{
+	bIsWeaponFire = false;
+}
+
+void ABCharacter::PlayerCrouch()
+{
+	Crouch(true);
+}
+
+void ABCharacter::PlayerStand()
+{
+	Crouch(false);
+}
+
 void ABCharacter::InventorySwitch()
 {
 	static bool Switch = false;
@@ -899,6 +933,7 @@ float ABCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 		}
 	}
 
+	// 애니메이션 몽타주고 뭐고 바로 플레이어는 공격을 받는 모션을 취해야한다.
 	return ActualDamage;
 }
 
