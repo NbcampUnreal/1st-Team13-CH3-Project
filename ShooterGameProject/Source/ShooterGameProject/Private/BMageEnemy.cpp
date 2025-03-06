@@ -4,14 +4,15 @@
 
 ABMageEnemy::ABMageEnemy()
 {
-	MaxHP = 100.f;
+	MaxHP = 250.f;
 	CurrentHP = MaxHP;
 	Power = 10.f;
-	Speed = 200.f;
+	Speed = 250.f;
 	AttackSpeed = 3.f;
 	CoolTime = 10.f;
-	AttackRange = 600.f;
+	AttackRange = 1200.f;
 	bIsRanged = true;
+	EnemyType = "Mage";
 
 	HealingRadius = 1500.f;
 	HealAmount = 20.f;
@@ -46,4 +47,9 @@ void ABMageEnemy::UseSkill()
 			}
 		}
 	}
+}
+
+FName ABMageEnemy::GetMonsterType() const
+{
+	return FName(TEXT("Mage"));
 }

@@ -30,7 +30,7 @@ public:
 	FTimerHandle ExplosionTimerHandle;
 
 	void UseSkill() override;
-	void OnDeath() override;
 	virtual void Explode();
 	void EndSkill();
+	virtual FName GetMonsterType() const override;
 };

@@ -24,9 +24,9 @@ ABProjectileBase::ABProjectileBase()
     ProjectileMovement->UpdatedComponent = CollisionComponent;
     ProjectileMovement->InitialSpeed = 3000.0f;  // 초기 속도 (충분히 커야 함)
     ProjectileMovement->MaxSpeed = 5000.0f;
-    ProjectileMovement->bRotationFollowsVelocity = true;
-    ProjectileMovement->bShouldBounce = false;
-
+    ProjectileMovement->bShouldBounce = true;
+    ProjectileMovement->bSimulationEnabled = true;
+    ProjectileMovement->bSweepCollision = true;  // ✅ 충돌 감지 활성화
     // 🔹 발사체끼리 충돌하지 않도록 설정
     if (CollisionComponent)
     {
@@ -50,10 +50,11 @@ ABProjectileBase::ABProjectileBase()
 void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
     UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-    UE_LOG(LogTemp, Warning, TEXT("ABProjectileBase::OnHit Called!"));
+    UE_LOG(LogTemp, Warning, TEXT("ABProjectileBase::OnHit Called! Actors: %s"), *OtherActor->GetName());
     if (OtherActor && OtherActor != this && OtherComp)
     {
         UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *OtherActor->GetName());
+        UE_LOG(LogTemp, Warning, TEXT("Hit Location: %s"), *GetActorLocation().ToString());
     }
     if (OtherActor && OtherActor != this && OtherComp)
     {
@@ -112,10 +113,7 @@ void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
                 break;
             }
         }
-        else
-        {
-            UE_LOG(LogTemp, Error, TEXT("PhysMaterial is NULL!"));
-        }
+        
 
         // ✅ 오디오 컴포넌트를 생성하여 사운드 재생 및 파라미터 적용
         if (HitSoundCue)
@@ -128,14 +126,11 @@ void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 
             if (AudioComponent)
             {
-                UE_LOG(LogTemp, Warning, TEXT("✅ AudioComponent Created Successfully!"));
 
                 // ✅ 사운드 큐의 파라미터 적용 (Int & Float 모두 설정)
                 AudioComponent->SetIntParameter(TEXT("SurfaceValue"), (int32)SurfaceValue);
                 AudioComponent->SetFloatParameter(TEXT("SurfaceValue"), SurfaceValue);
 
-                UE_LOG(LogTemp, Warning, TEXT("🔹 Sound Parameter Applied: SurfaceValue = %i (Int) | %f (Float)"),
-                    (int32)SurfaceValue, SurfaceValue);
 
                 // ✅ 사운드 재생 시작
                 AudioComponent->Play();
@@ -154,16 +149,16 @@ void ABProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
                         }
                     }, 0.1f, false);
             }
-            else
+            if (AActor* HitActor = Hit.GetActor())
             {
-                UE_LOG(LogTemp, Error, TEXT("❌ Failed to create Audio Component!"));
+                APawn* NoiseInstigator = Cast<APawn>(HitActor);
+                if (NoiseInstigator)
+                {
+                    MakeNoise(1.0f, NoiseInstigator, Hit.ImpactPoint);
+                    UE_LOG(LogTemp, Log, TEXT("🔊 탄환 피격 소음 발생! 위치: %s"), *Hit.ImpactPoint.ToString());
+                }
             }
         }
-        else
-        {
-            UE_LOG(LogTemp, Error, TEXT("❌ HitSoundCue is NULL! Sound cannot be played!"));
-        }
-
         // ✅ 총알 제거
         Destroy();
 

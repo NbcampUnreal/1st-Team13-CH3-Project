@@ -5,6 +5,8 @@
 #include "BEnemyBase.generated.h"
 
 class ABProjectileBase;
+class ABCharacter;
+class ABBaseItem;
 
 UCLASS()
 class SHOOTERGAMEPROJECT_API ABEnemyBase : public ACharacter
@@ -17,19 +19,12 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	// OnMeleeAttackMontageEnded 함수 선언 추가
-	UFUNCTION(BlueprintCallable, Category = "Animation")
-	void OnMeleeAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
-
 public:
 	// 타이머 핸들 (AIController에서 접근할 수 있도록 public으로 선언)
 	FTimerHandle AttackTimerHandle;
 	FTimerHandle SkillTimerHandle;
 
 public:
-	// 애니메이션 관련
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation", meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* MeleeAttackMontage;
 
 	// 순찰 포인트
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "AI|Components")
@@ -62,25 +57,28 @@ public:
 	virtual float GetAttackRange() const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	bool bIsRanged;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Battle")
-	bool bIsMeleeAttacking;
-
-	// 투사체 관련
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
-	TSubclassOf<ABProjectileBase> ProjectileClass;
-	// Accuracy: 1.0이면 완벽, 0.0이면 가장 부정확
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
-	float Accuracy;
-
-	// 함수들
-	UFUNCTION(BlueprintCallable, Category = "Combat")
-	void SpawnProjectile();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
+	bool bIsDead;
 
 
+	//보상 관련
 	UFUNCTION(BlueprintCallable, Category = "Battle")
-	virtual void AttackPlayer();
+	void GrantRewards();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Rewards")
+	TSubclassOf<ABBaseItem> WeaponPartItem;
+	UPROPERTY(EditDefaultsOnly, Category = "Rewards")
+	TSubclassOf<ABBaseItem> HealthKitItem;
+	UPROPERTY(EditDefaultsOnly, Category = "Rewards")
+	TSubclassOf<ABBaseItem> GrenadeItem;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Enemy Type")
+	FString EnemyType;
+
+
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	UFUNCTION(BlueprintCallable, Category = "Battle")
+	virtual void Attack();
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	virtual void UseSkill();
 	UFUNCTION(BlueprintCallable, Category = "Battle")
@@ -89,6 +87,8 @@ public:
 	virtual void DropItem();
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	virtual void GainHP(float HP);
-	void PlayMeleeAttackMontage();
-	bool IsMeleeAttacking() const { return bIsMeleeAttacking; }
+	UFUNCTION()
+	virtual void DelayedDropAndDestroy();
+	UFUNCTION(BlueprintCallable, Category = "Enemy Type")
+	virtual FName GetMonsterType() const;
 };

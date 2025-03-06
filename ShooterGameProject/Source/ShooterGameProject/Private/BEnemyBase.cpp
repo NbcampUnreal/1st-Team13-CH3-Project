@@ -7,6 +7,10 @@
 #include "BCharacter.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BProjectileBase.h"
+#include "BGameInstance.h"
+#include "BUIManager.h"
+#include "DrawDebugHelpers.h"
+#include "BPlayerState.h"
 
 class ABCharacter;
 
@@ -20,11 +24,8 @@ ABEnemyBase::ABEnemyBase()
 	CoolTime = 10.f;    // 낮을수록 빠름
 	SkillDuration = 0.f;
 	AttackRange = 0.f;
-	Accuracy = 0.7f;
 	bIsRanged = false;   // false = 근거리
-	// bIsInBattle는 이제 AIController에서 관리합니다.
-	bIsMeleeAttacking = false;
-	MeleeAttackMontage = nullptr;
+	bIsDead = false;
 
 	// AIControllerClass 지정 → AIController가 감지 로직을 담당
 	AIControllerClass = ABEnemyAIController::StaticClass();
@@ -76,26 +77,17 @@ float ABEnemyBase::GetAttackRange() const
 	return AttackRange;
 }
 
-void ABEnemyBase::AttackPlayer()
+FName ABEnemyBase::GetMonsterType() const
 {
-	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
-	if (PlayerPawn)
-	{
-		if (bIsRanged)
-		{
-			SpawnProjectile();
-		}
-		else
-		{
-			UGameplayStatics::ApplyDamage(
-				PlayerPawn,
-				Power,
-				GetController(),
-				this,
-				UDamageType::StaticClass()
-			);
-		}
-	}
+	return FName(TEXT("Basic"));
+}
+
+void ABEnemyBase::Attack()
+{
+	ABCharacter* PlayerCharacter = Cast<ABCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+	if (!PlayerCharacter) return;
+
+	UGameplayStatics::ApplyDamage(PlayerCharacter, Power, nullptr, this, UDamageType::StaticClass());
 }
 
 void ABEnemyBase::UseSkill()
@@ -109,20 +101,39 @@ float ABEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 	CurrentHP = FMath::Clamp(CurrentHP - DamageAmount, 0.f, MaxHP);
 	if (CurrentHP <= 0.f)
 	{
-		OnDeath();
+		bIsDead = true;
 	}
 	return ActualDamage;
 }
 
 void ABEnemyBase::OnDeath()
 {
-	DropItem();
-	Destroy();
+	if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
+	{
+		if (UBUIManager* UIManagerInstance = Cast<UBUIManager>(GameInstance->GetUIManagerInstance()))
+		{
+			UIManagerInstance->UpdateKillLog(GetMonsterType());
+		}
+	}
+
+	if (GetMesh())
+	{
+		GetMesh()->SetSimulatePhysics(true);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+	if (GetWorld())
+	{
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABEnemyBase::DelayedDropAndDestroy, 3.f, false);
+	}
+
 }
 
-void ABEnemyBase::DropItem()
+void ABEnemyBase::DelayedDropAndDestroy()
 {
-	// 아이템 드랍 로직 구현 (필요 시)
+	GrantRewards();
+	DropItem();
+	Destroy();
 }
 
 void ABEnemyBase::GainHP(float HP)
@@ -130,66 +141,73 @@ void ABEnemyBase::GainHP(float HP)
 	CurrentHP = FMath::Clamp(CurrentHP + HP, 0.f, MaxHP);
 }
 
-void ABEnemyBase::PlayMeleeAttackMontage()
+void ABEnemyBase::GrantRewards()
 {
-	if (!MeleeAttackMontage)
-		return;
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (!PlayerController) return;
+	ABPlayerState* BPlayerState = PlayerController->GetPlayerState<ABPlayerState>();
+	if (!BPlayerState) return;
 
-	UAnimInstance* AnimInstance = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
-	if (AnimInstance)
+	int32 GoldReward = 0;
+	int32 ExpReward = 0;
+
+	if (EnemyType == "Basic")
 	{
-		AnimInstance->Montage_Play(MeleeAttackMontage);
-		FOnMontageEnded EndDelegate;
-		EndDelegate.BindUObject(this, &ABEnemyBase::OnMeleeAttackMontageEnded);
-		AnimInstance->Montage_SetEndDelegate(EndDelegate, MeleeAttackMontage);
-		bIsMeleeAttacking = true;
+		GoldReward = 10;
+		ExpReward = 100;
 	}
+	else
+	{
+		GoldReward = 50;
+		ExpReward = 200;
+	}
+
+	BPlayerState->AddCoin(GoldReward);
+	BPlayerState->AddExp(ExpReward);
+
+	UE_LOG(LogTemp, Log, TEXT("%s destroyed! %d Gold, %d EXP Gained!"), *EnemyType, GoldReward, ExpReward);
 }
 
-void ABEnemyBase::OnMeleeAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+void ABEnemyBase::DropItem()
 {
-	if (Montage == MeleeAttackMontage)
-	{
-		bIsMeleeAttacking = false;
-	}
-}
-
-void ABEnemyBase::SpawnProjectile()
-{
-	if (!ProjectileClass)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ProjectileClass is not set!"));
-		return;
-	}
-
-	FVector SpawnLocation = GetActorLocation();
-	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
-	if (!PlayerPawn)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("PlayerPawn not found!"));
-		return;
-	}
-
-	FVector TargetLocation = PlayerPawn->GetActorLocation();
-	FVector ShootDirection = (TargetLocation - SpawnLocation).GetSafeNormal();
-	FRotator MuzzleRotation = ShootDirection.Rotation();
-
-	float MaxSpreadAngle = 10.0f;
-	float CurrentSpread = MaxSpreadAngle * (1.0f - Accuracy);
-	float RandomPitch = FMath::FRandRange(-CurrentSpread, CurrentSpread);
-	float RandomYaw = FMath::FRandRange(-CurrentSpread, CurrentSpread);
-	FRotator FinalRotation = MuzzleRotation;
-	FinalRotation.Pitch += RandomPitch;
-	FinalRotation.Yaw += RandomYaw;
-
-	FVector FinalDirection = FinalRotation.Vector();
 	UWorld* World = GetWorld();
-	if (World)
+	if (!World) return;
+
+	float RandomValue = FMath::FRandRange(0.0f, 100.0f);
+	FVector DropLocation = GetActorLocation() + FVector(FMath::RandRange(-50.f, 50.f), FMath::RandRange(-50.f, 50.f), 0.f);
+
+	if (EnemyType == "Ranger" && RandomValue < 10.0f) // 10% 확률로 무기 파츠 드랍
 	{
-		ABProjectileBase* Projectile = World->SpawnActor<ABProjectileBase>(ProjectileClass, SpawnLocation, FinalRotation);
-		if (Projectile)
+		if (WeaponPartItem)
 		{
-			Projectile->FireInDirection(FinalDirection);
+			World->SpawnActor<ABBaseItem>(WeaponPartItem, DropLocation, FRotator::ZeroRotator);
+			UE_LOG(LogTemp, Log, TEXT("무기 파츠 드랍됨!"));
 		}
+	}
+
+	else if (EnemyType == "Mage" && RandomValue < 50.0f) // 20% 확률로 회복약 드랍 //test50%
+	{
+		if (HealthKitItem)
+		{
+			World->SpawnActor<ABBaseItem>(HealthKitItem, DropLocation, FRotator::ZeroRotator);
+			UE_LOG(LogTemp, Log, TEXT("회복약 드랍됨!"));
+		}
+	}
+
+	else if (EnemyType == "Tank") // 탱커 몹 → 수류탄 드랍 (미구현 시 아무것도 드랍 안 함)
+	{
+		if (GrenadeItem)
+		{
+			World->SpawnActor<ABBaseItem>(GrenadeItem, DropLocation, FRotator::ZeroRotator);
+			UE_LOG(LogTemp, Log, TEXT("수류탄 드랍됨!"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("탱커 처치했으나 드랍 아이템 없음"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("아이템 없음"));
 	}
 }

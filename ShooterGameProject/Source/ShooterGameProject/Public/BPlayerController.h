@@ -44,6 +44,10 @@ protected:
 	class UInputAction* EquipShotgunAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	class UInputAction* EquipMeleeAction;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+	class UInputAction* EquipGrenadeAction;	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+	class UInputAction* UseFristAidKitAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<UUserWidget> WidgetHUDClass;
 	class UUserWidget* WidgetHUDInstance;

@@ -1,5 +1,8 @@
 #include "BUIWeaponWheel.h"
 #include "BCharacter.h"
+#include "BPlayerState.h"
+#include "BGameInstance.h"
+#include "BUIManager.h"
 #include "BBaseItem.h"
 #include "BFirstAidKit.h"
 #include "BPistol.h"
@@ -13,41 +16,76 @@ void UBUIWeaponWheel::ExitWeaponWheel_Implementation()
 {
 	if (HoveredItemName == NAME_None) return;
 
-	if (HoveredItemName == "FirstAidKit")
-	{
-		// TODO: Use First Aid Kit Item 
-	}
-	
-	// Get currently equipped weapon
 	if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 	{
 		if (ABCharacter* BCharacter = Cast<ABCharacter>(PlayerController->GetCharacter()))
 		{
-			// ABBaseItem* EquippedWeapon = BCharacter->EquippedWeapons[(int32)EWeaponSlot::Primary];
+			if (ABPlayerState* PlayerState = BCharacter->GetPlayerState<ABPlayerState>())
+			{
+				if (HoveredItemName == "FirstAidKit")
+				{
+					TArray<FItemData> InventoryItems;
+					InventoryItems = PlayerState->GetInventoryTypeItem(HoveredItemName);
+					if (InventoryItems.IsEmpty())
+					{
+						// Item doesn't exist in the inventory - notification
+						if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
+						{
+							if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
+							{
+								FString Message = TEXT("Couldn't find ") + HoveredItemName.ToString() + TEXT(" in the inventory.");
+								UIManager->DisplayNotification("Cannot find item!", Message);
+							}
+						}
+						return;
+					}
+					PlayerState->UseItem(HoveredItemName);
+					return;
+				}
+			}
 
 			// Equip Pistol
-		// TODO: Equip the pistol that's actually in the inventory
-		// QUESTION: If there are multipel pistols,,, in the inventory,,, do i need to iterate through the whole inventory to find the best one?
-		// 임시로 피스톨 만들어 장착 시켜봄
 			if (HoveredItemName == "Pistol")
 			{
-				// Return if it's not already equipped
-				//if (EquippedWeapon && EquippedWeapon->IsA<ABPistol>()) return;
-
-				// THIS IS TEMPORARY!!!!!!
-				//ABPistol* TempPistol = NewObject<ABPistol>(BCharacter);
-				//BCharacter->EquipWeapon(TempPistol);
+				if (BCharacter->EquippedWeapons[(int32)EWeaponSlot::Pistol])
+				{
+					BCharacter->EquipPistol();
+				}
+				else
+				{
+					// Item doesn't exist in the inventory - notification
+					if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
+					{
+						if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
+						{
+							FString Message = TEXT("Couldn't find ") + HoveredItemName.ToString() + TEXT(" in the inventory.");
+							UIManager->DisplayNotification("Cannot find item!", Message);
+						}
+					}
+				}
+				
 				return;
 			}
 
 			// Equip Rifle
 			if (HoveredItemName == "Rifle")
 			{
-				// Return if rifle is already equipped
-				//if (EquippedWeapon && EquippedWeapon->IsA<ABRifle>()) return;
-
-				//ABRifle* TempRifle = NewObject<ABRifle>(BCharacter);
-				//BCharacter->EquipWeapon(TempRifle);	
+				if (BCharacter->EquippedWeapons[(int32)EWeaponSlot::Rifle])
+				{
+					BCharacter->EquipRifle();
+				}
+				else
+				{
+					// Item doesn't exist in the inventory - notification
+					if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
+					{
+						if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
+						{
+							FString Message = TEXT("Couldn't find ") + HoveredItemName.ToString() + TEXT(" in the inventory.");
+							UIManager->DisplayNotification("Cannot find item!", Message);
+						}
+					}
+				}
 				return;
 			}
 
@@ -55,11 +93,22 @@ void UBUIWeaponWheel::ExitWeaponWheel_Implementation()
 			// Equip Shotgun
 			if (HoveredItemName == "Shotgun")
 			{
-				// Return if Shotgun is already equipped
-				//if (EquippedWeapon && EquippedWeapon->IsA<ABShotgun>()) return;
-
-				//ABShotgun* TempShotgun = NewObject<ABShotgun>(BCharacter);
-				//BCharacter->EquipWeapon(TempShotgun);
+				if (BCharacter->EquippedWeapons[(int32)EWeaponSlot::ShotGun])
+				{
+					BCharacter->EquipShotgun();
+				}
+				else
+				{
+					// Item doesn't exist in the inventory - notification
+					if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
+					{
+						if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
+						{
+							FString Message = TEXT("Couldn't find ") + HoveredItemName.ToString() + TEXT(" in the inventory.");
+							UIManager->DisplayNotification("Cannot find item!", Message);
+						}
+					}
+				}
 				return;
 			}
 			
@@ -67,22 +116,44 @@ void UBUIWeaponWheel::ExitWeaponWheel_Implementation()
 			// Equip Shotgun
 			if (HoveredItemName == "Melee")
 			{
-				// Return if Melee is already equipped
-				//if (EquippedWeapon && EquippedWeapon->IsA<ABMeleeWeapon>()) return;
-
-				//ABMeleeWeapon* TempMeleeWeapon = NewObject<ABMeleeWeapon>(BCharacter);
-				//BCharacter->EquipWeapon(TempMeleeWeapon);
+				if (BCharacter->EquippedWeapons[(int32)EWeaponSlot::Melee])
+				{
+					BCharacter->EquipMelee();
+				}
+				else
+				{
+					// Item doesn't exist in the inventory - notification
+					if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
+					{
+						if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
+						{
+							FString Message = TEXT("Couldn't find ") + HoveredItemName.ToString() + TEXT(" in the inventory.");
+							UIManager->DisplayNotification("Cannot find item!", Message);
+						}
+					}
+				}
 				return;
 			}
 
 			// Equip Grenade
 			if (HoveredItemName == "Grenade")
 			{
-				// Return if Grenade is already equipped
-				//if (EquippedWeapon && EquippedWeapon->IsA<ABGrenadeWeapon>()) return;
-
-				//ABGrenadeWeapon* TempGrenade = NewObject<ABGrenadeWeapon>(BCharacter);
-				//BCharacter->EquipWeapon(TempGrenade);
+				if (BCharacter->EquippedWeapons[(int32)EWeaponSlot::Throwable])
+				{
+					BCharacter->EquipGrenade();
+				}
+				else
+				{
+					// Item doesn't exist in the inventory - notification
+					if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
+					{
+						if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
+						{
+							FString Message = TEXT("Couldn't find ") + HoveredItemName.ToString() + TEXT(" in the inventory.");
+							UIManager->DisplayNotification("Cannot find item!", Message);
+						}
+					}
+				}
 				return;
 			}
 		}

@@ -39,11 +39,11 @@ ABShopManagerPawn::ABShopManagerPawn()
 	Camera->SetupAttachment(StaticMesh);
 
 	// Get WBP class
-	ConstructorHelpers::FClassFinder<UUserWidget> ShopWidgetClassFinder(TEXT("/Game/Shop/WBP/WBP_BShopWidget"));
-	if (ShopWidgetClassFinder.Succeeded())
-	{
-		ShopWidgetClass = ShopWidgetClassFinder.Class;
-	}
+	//ConstructorHelpers::FClassFinder<UUserWidget> ShopWidgetClassFinder(TEXT("/Game/Shop/WBP/WBP_BShopWidget"));
+	//if (ShopWidgetClassFinder.Succeeded())
+	//{
+	//	ShopWidgetClass = ShopWidgetClassFinder.Class;
+	//}
 
 	// Initialize widget instance
 	ShopWidgetInstance = nullptr;
@@ -79,25 +79,25 @@ void ABShopManagerPawn::OpenShopWidget()
 			if (UBShopWidget* ShopWidget = Cast<UBShopWidget>(ShopWidgetInstance))
 			{
 				ShopWidget->AddItemsToScrollBox();
-				ShopWidget->DisplayPlayerGold();
+				ShopWidget->DisplayPlayerCoin();
 			}
 
 			bIsShopWidgetOpen = true;
 
+			PlayAnim("Dance");
+
 			if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 			{
-				// Show mouse cursor and set input mode to Game and UI
+				// Show mouse cursor and set input mode to UI
 				PlayerController->bShowMouseCursor = true;
-				PlayerController->SetInputMode(FInputModeGameAndUI());
+				PlayerController->SetInputMode(FInputModeUIOnly());
+
+				// Hide character in case it's in the way
+				PlayerController->GetCharacter()->SetActorHiddenInGame(true);
 
 				// Set view target to the shop pawn's camera component
 				PlayerController->SetViewTargetWithBlend(this, 0.5f);
-				
-				// Hide character in case it's in the way
-				PlayerController->GetCharacter()->SetActorHiddenInGame(true);
 			}
-
-			PlayAnim("Dance");
 		}
 	}
 }
@@ -105,7 +105,7 @@ void ABShopManagerPawn::OpenShopWidget()
 void ABShopManagerPawn::CloseShopWidget()
 {
 	// Remove widget
-	if (ShopWidgetInstance)
+	if (ShopWidgetInstance && bIsShopWidgetOpen)
 	{
 		// Return camera to character camera?
 
@@ -123,11 +123,14 @@ void ABShopManagerPawn::CloseShopWidget()
 				PlayerController->bShowMouseCursor = false;
 				PlayerController->SetInputMode(FInputModeGameOnly());
 
-				// Set view target to the character's camera component
-				PlayerController->SetViewTargetWithBlend(PlayerController->GetCharacter(), 0.5f);
+				if (PlayerController->GetCharacter())
+				{
+					// Display character
+					PlayerController->GetCharacter()->SetActorHiddenInGame(false);
 
-				// Display character
-				PlayerController->GetCharacter()->SetActorHiddenInGame(false);
+					// Set view target to the character's camera component
+					PlayerController->SetViewTargetWithBlend(PlayerController->GetCharacter(), 0.5f);					
+				}
 			}
 		}
 	}
@@ -144,15 +147,8 @@ void ABShopManagerPawn::OnCollisionBeginOverlap(UPrimitiveComponent* OverlappedC
 	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult& SweepResult)
 {
-	// TODO: Test if anything other than pawn generates overlap events with this collision box
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, TEXT("BeginOverlap"));	
-
 	if (OtherActor->IsA<ABCharacter>())
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, TEXT("Overlapped with BCharacter"));
-
-		// TODO: play waving animation on skeletal mesh?
-		
+	{		
 		// Display notification
 		if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
 		{
@@ -174,6 +170,7 @@ void ABShopManagerPawn::OnCollisionBeginOverlap(UPrimitiveComponent* OverlappedC
 		{
 			if (UInputComponent* PlayerInputComponent = PlayerController->InputComponent)
 			{
+				PlayerInputComponent->RemoveActionBinding("Interact", IE_Pressed);
 				PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ABShopManagerPawn::OnInteractKeyPressed);
 			}
 		}
@@ -182,13 +179,9 @@ void ABShopManagerPawn::OnCollisionBeginOverlap(UPrimitiveComponent* OverlappedC
 
 void ABShopManagerPawn::OnCollisionEndOverlap(UPrimitiveComponent* OverlappedComp,
 	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, TEXT("EndOverlap"));
-	
+{	
 	if (OtherActor->IsA<ABCharacter>())
 	{
-		// TODO: play waving animation on skeletal mesh?
-
 		// Close shop widget in case the player somehow moves out of CollisionBox while the shop is open
 		CloseShopWidget();
 
@@ -205,11 +198,7 @@ void ABShopManagerPawn::OnCollisionEndOverlap(UPrimitiveComponent* OverlappedCom
 
 void ABShopManagerPawn::OnInteractKeyPressed()
 {
-	if (bIsShopWidgetOpen)
-	{
-		CloseShopWidget();
-	}
-	else
+	if (!bIsShopWidgetOpen)
 	{
 		OpenShopWidget();
 	}

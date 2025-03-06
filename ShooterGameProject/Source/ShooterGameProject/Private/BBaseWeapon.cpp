@@ -21,7 +21,6 @@ void ABBaseWeapon::ActivateItem(AActor* Activator)
         if (ActiveCharacter)
         {
             ActiveCharacter->PickupWeapon(this);
-
             // 🔹 무기를 플레이어에게 붙이기
             USkeletalMeshComponent* CharacterMesh = ActiveCharacter->GetMesh();
             if (CharacterMesh)

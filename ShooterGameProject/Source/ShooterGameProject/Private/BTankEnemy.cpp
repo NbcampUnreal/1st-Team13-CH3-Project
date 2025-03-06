@@ -1,19 +1,22 @@
 #include "BTankEnemy.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "BGameInstance.h"
+#include "BUIManager.h"
 
 ABTankEnemy::ABTankEnemy()
 {
 	MaxHP = 500.f;
 	CurrentHP = MaxHP;
-	Power = 10.f;
-	Speed = 150.f;
+	Power = 30.f;
+	Speed = 500.f;
 	AttackSpeed = 3.f;
 	CoolTime = 5.f;
 	SkillDuration = 2.f;
-	AttackRange = 100.f;
+	AttackRange = 150.f;
 	bIsRanged = false;
 	bIsReflecting = false;
+	EnemyType = "Tank";
 
 	ExplosionDamage = 50.f;
 	ExplosionDelay = 2.f;
@@ -42,8 +45,6 @@ float ABTankEnemy::GetExplosionRadius()
 
 void ABTankEnemy::UseSkill()
 {
-	// �Ѿ� �ݻ�
-	// �ǰݵǸ� �������� �ҷ��ͼ� ĳ���Ϳ��� ��
 	bIsReflecting = true;
 
 
@@ -56,13 +57,6 @@ void ABTankEnemy::EndSkill()
 	bIsReflecting = false;
 }
 
-void ABTankEnemy::OnDeath()
-{
-	Explode();
-	DropItem();
-	Destroy();
-}
-
 void ABTankEnemy::Explode()
 {
 	TArray<AActor*> OverlappingActors;
@@ -71,7 +65,6 @@ void ABTankEnemy::Explode()
 	{
 		if (Actor && Actor->ActorHasTag("Player"))
 		{
-			//������ �ִ� ���� ����
 			UGameplayStatics::ApplyDamage(
 				Actor,
 				ExplosionDamage,
@@ -81,4 +74,9 @@ void ABTankEnemy::Explode()
 			);
 		}
 	}
+}
+
+FName ABTankEnemy::GetMonsterType() const
+{
+	return FName(TEXT("Tank"));
 }

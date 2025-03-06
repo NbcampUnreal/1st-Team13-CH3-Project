@@ -10,6 +10,8 @@ class SHOOTERGAMEPROJECT_API UBUIManager : public UObject
 	GENERATED_BODY()
 	
 public:	
+	UBUIManager();
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|TitleScreen")
 	TSubclassOf<UUserWidget> TitleWidgetClass;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|TitleScreen")
@@ -57,11 +59,23 @@ public:
 	class UWeaponAmmoWidget* WeaponAmmoWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
 	class UCrosshairWidget* CrosshairWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
+	class UKillLogWidget* KillLogWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
+	class UKillCountWidget* KillCountWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
+	class UEnemyInfoWidget* EnemyInfoWidget;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|Inventory")
+	TSubclassOf<UUserWidget> InventoryWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|Inventory")
+	class UBInventoryWidget* InventoryWidgetInstance;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|DataTable")
+	UDataTable* ItemDataTable;
 
 	FTimerHandle UpdateHUDTimerHandle;
-
-	UBUIManager();
-	virtual void PostInitProperties() override;
+	bool bIsWeaponWheelOpen;
 
 	/* Getter functions for UUserWidget instances */
 	UFUNCTION(BlueprintPure)
@@ -76,7 +90,8 @@ public:
 	UUserWidget* GetHUDWidgetInstance();
 	UFUNCTION(BlueprintPure)
 	UUserWidget* GetWeaponWheelInstance();
-
+	UFUNCTION(BlueprintPure)
+	UUserWidget* GetInventoryInstance();
 	/* Title Screen */
 	UFUNCTION(BlueprintCallable)
 	void EnterTitleScreen();
@@ -108,26 +123,35 @@ public:
 	void EnterWeaponWheel();
 	UFUNCTION(BlueprintCallable)
 	void ExitWeaponWheel();
+	UFUNCTION(BlueprintCallable)
+	void RemoveWeaponWheel();
 
 	/* HUD */
-	UFUNCTION(BlueprintCallable)
 	void DisplayHUD();
-	UFUNCTION(BlueprintCallable)
+	void UpdateHUD();
 	void CollapseHUD();
 	void RemoveHUD();
-	
-	void UpdateHUDHealth(const float& CurrentHP, const float& MaxHP);
+	UFUNCTION(BlueprintCallable)
+	void ShowInventory();
+	UFUNCTION(BlueprintCallable)
+	void CloseInventory();
+	void UpdateHUDHealth(const int32& CurrentHP, const int32& MaxHP);
 	void UpdateHUDLevelAndExp(const int32& PlayerLevel, const float& CurrentExp, const float& MaxExp);
 	void UpdateHUDQuickSlot(const FName& ItemName, const int32& Count);
-	void UpdateHUDLoadedAmmo(const int32& LoadedAmmo);
-	void UpdateHUDInventoryAmmo(const int32& InventoryAmmo);
-	void UpdateHUDEquippedWeapon(const FName& WeaponType);
+	void UpdateHUDAmmo();
+	void UpdateHUDEquippedWeapon(const FString& WeaponType);
 	void UpdateHUDTimed();
 	void UpdateHUDMap();
 	void UpdateHUDItemMission(const FName& ItemName, const int32& CurrentCount, const int32& TargetCount);
 	void UpdateHUDBonusMission(const int32& CurrentCount, const int32& TargetCount);
 	void RemoveAllMissions();
+	UFUNCTION(BlueprintCallable)
+	void UpdateKillLog(const FName& KilledName);
+	void UpdateKillCount(const int32& KillCount);
+	void UpdateCurrentScore(const int32& CurrentScore);
+	void UpdateEnemyInfo(const FName& EnemyType, const float& CurrentHP, const float& MaxHP);
 	void OnFire(); // Crosshair animation when fired
+	void OnNormalHit(); // Hit Marker animation upon successful hit
 
 	/* Notification (Top Center) / Added Item Notification (Left Center) */
 	void DisplayNotification(const FString& Title, const FString& Message);
@@ -135,6 +159,7 @@ public:
 
 	/* Crosshair Location and Direction for weapons */
 	TTuple<FVector, FVector> GetCrosshairLocationAndDirection();
+	void LineTraceCrosshair();
 
 protected:
 	/* Owning Game Instance */
@@ -143,4 +168,5 @@ protected:
 	/* Switch Input Mode and Mouse Cursor Visibility */
 	void SetInputUIOnly();
 	void SetInputGameOnly();
+	void SetInputUIAndGame();
 };

@@ -6,13 +6,14 @@ ABRangerEnemy::ABRangerEnemy()
 {
 	MaxHP = 150.f;
 	CurrentHP = MaxHP;
-	Power = 10.f;
-	Speed = 300.f;
+	Power = 20.f;
+	Speed = 400.f;
 	AttackSpeed = 2.f;
 	CoolTime = 5.f;
 	SkillDuration = 5.f;
-	AttackRange = 1000.f;
+	AttackRange = 2000.f;
 	bIsRanged = true;
+	EnemyType = "Ranger";
 
 	bIsFastAttack = false;
 	AttackSpeedIncreaseValue = 2.f;
@@ -35,4 +36,9 @@ void ABRangerEnemy::EndSkill()
 {
 	bIsFastAttack = false;
 	AttackSpeed = AttackSpeed / AttackSpeedIncreaseValue;
+}
+
+FName ABRangerEnemy::GetMonsterType() const
+{
+	return FName(TEXT("Ranger"));
 }

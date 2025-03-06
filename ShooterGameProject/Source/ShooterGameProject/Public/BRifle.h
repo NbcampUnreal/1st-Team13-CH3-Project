@@ -6,7 +6,9 @@
 #include "BBaseGun.h"
 #include "BProjectileBase.h"
 #include "BBulletShell.h"
+#include "BRiflePart.h"
 #include "BRifle.generated.h"
+
 
 class UNiagaraSystem; // 머즐 플래시용 나이아가라 시스템
 
@@ -26,20 +28,10 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
     UStaticMeshComponent* RifleBody;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-    UStaticMeshComponent* Magazine;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-    UStaticMeshComponent* Scope;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-    UStaticMeshComponent* Derriere;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-    UStaticMeshComponent* Trigger;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-    UStaticMeshComponent* Muzzle;
+    // 총기에 장착된 파츠의 매쉬
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Rifle")
+    UStaticMeshComponent* EquippedPartMesh;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
     TSubclassOf<ABProjectileBase> ProjectileClass;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gun")
@@ -57,6 +49,6 @@ public:
     TSubclassOf<ABBulletShell> ShellClass;  // 🔹 탄피 클래스 추가
     UPROPERTY(EditAnywhere, Category = "Gun")
     USoundBase* FireSound;
-
-    bool bDebugDraw = true;
+    // 파츠 장착 여부 확인
+    bool IsPartMeshEquipped(ABRiflePart* Part);
 };

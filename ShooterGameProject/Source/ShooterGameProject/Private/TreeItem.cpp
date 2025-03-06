@@ -6,14 +6,22 @@
 #include "Components/Border.h"
 #include "TreeViewItemObject.h"
 #include "InventoryDragDropOperation.h"
+#include "BBaseItem.h"
+
 void UTreeItem::NativeConstruct()
 {
 	Super::NativeConstruct();	
 }
 
+void UTreeItem::SetItemData(const FItemData& Data)
+{
+	ItemData = Data;
+}
+
 void UTreeItem::SetItemName(const FName& Name)
 {
 	ItemData.ItemName = Name;
+	ItemName->SetText(FText::FromName(Name));
 }
 
 void UTreeItem::SetItemIcon(UTexture2D* Icon)
@@ -41,6 +49,39 @@ UClass* UTreeItem::GetItemClass() const
 	return ItemData.ItemClass;
 }
 
+void UTreeItem::SetItemReference(ABBaseItem* Item)
+{
+	ItemRef = Item;
+}
+ABBaseItem* UTreeItem::GetItemReference() const
+{
+	return ItemRef;
+}
+FItemData& UTreeItem::GetItemData()
+{
+	return ItemData;
+}
+void UTreeItem::RefreshData()
+{
+	if (ItemData.ItemName.IsValid())
+	{
+		ItemName->SetText(FText::FromName(ItemData.ItemName));
+	}
+	if (ItemData.ItemIcon)
+	{
+		ItemIcon->SetBrushFromTexture(ItemData.ItemIcon);
+	}	
+}
+void UTreeItem::SetOwnerTreeView(UTreeView* View)
+{
+	OnwerTreeView = View;
+}
+
+UTreeView* UTreeItem::GetOwnerTreeView() const
+{
+	return OnwerTreeView;
+}
+
 //	마우스 클릭시 동작할 이벤트
 FReply UTreeItem::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
@@ -58,43 +99,31 @@ void UTreeItem::NativeOnDragDetected(const FGeometry& InGeometry, const FPointer
 {
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
 
+	TreeItemRef->GetOwnerTreeView()->RemoveItem(TreeItemRef);
+
 	UInventoryDragDropOperation* Oper = NewObject<UInventoryDragDropOperation>();
-	this->SetVisibility(ESlateVisibility::HitTestInvisible);
+	TreeItemRef->SetVisibility(ESlateVisibility::HitTestInvisible);
 
-	Oper->WidgetReference = this;
+	Oper->WidgetReference = TreeItemRef;
 	Oper->DragOffset = InGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition());
-	Oper->DefaultDragVisual = this;
-	Oper->Pivot = EDragPivot::MouseDown;
-
+	Oper->DefaultDragVisual = TreeItemRef;
+	//Oper->Pivot = EDragPivot::MouseDown;
+	Oper->Pivot = EDragPivot::CenterCenter;
+	Oper->Payload = TreeItemRef;
+	
 	OutOperation = Oper;
-}
-
-void UTreeItem::NativeOnDragLeave(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
-{
-	RemoveFromParent();
 }
 
 // 트리뷰에 위젯을 넣기 위한 함수.
 void UTreeItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
-	if (UTreeItem* Item = Cast<UTreeItem>(ListItemObject))
-	{
-		ItemData = Item->ItemData;
+	TreeItemRef = Cast<UTreeItem>(ListItemObject);
 
-		if (ItemData.ItemName.IsValid())
-		{
-			if (ItemName)
-			{
-				ItemName->SetText(FText::FromName(ItemData.ItemName));
-			}
-		}
-		if (ItemData.ItemIcon)
-		{
-			if (ItemIcon)
-			{
-				ItemIcon->SetBrushFromTexture(ItemData.ItemIcon,true);
-			}
-		}
+	if (TreeItemRef)
+	{
+		ItemData = TreeItemRef->ItemData;
+		SetOwnerTreeView(TreeItemRef->GetOwnerTreeView());
+		RefreshData();
 	}
 }
 

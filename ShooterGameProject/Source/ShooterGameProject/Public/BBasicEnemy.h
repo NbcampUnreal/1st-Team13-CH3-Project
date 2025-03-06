@@ -11,4 +11,5 @@ class SHOOTERGAMEPROJECT_API ABBasicEnemy : public ABEnemyBase
 	
 public:
 	ABBasicEnemy();
+	virtual FName GetMonsterType() const override;
 };

@@ -15,4 +15,6 @@ struct FItemData
 	UClass* ItemClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemInfo")
 	int32 ItemCount;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemInfo")
+	class ABBaseItem* ItemRef;
 };

@@ -5,6 +5,7 @@
 #include "BCharacter.h"
 #include "BProjectileBase.h"
 #include "BBulletShell.h"
+#include "BShotgunPart.h"
 #include "BShotgun.generated.h"
 
 class ABCharacter;
@@ -18,8 +19,15 @@ class SHOOTERGAMEPROJECT_API ABShotgun : public ABBaseGun
 
 public:
     ABShotgun();
-
+    // 총기에 장착된 파츠의 매쉬
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gun")
+    UStaticMeshComponent* EquippedPartMesh;
+    // 파츠 장착 여부 확인
+    bool IsPartMeshEquipped(ABShotgunPart* Part);
+    UPROPERTY(EditAnywhere, Category = "Gun")
+    float Damage;
 protected:
+    
     virtual void Attack() override;
 
     
@@ -47,7 +55,7 @@ protected:
     int32 ShotPelletCount;
     UPROPERTY(EditDefaultsOnly, Category = "Weapon")
     USceneComponent* ShellEjectSocket;
-
+   
     // 머즐 플래시 효과
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gun")
     UNiagaraSystem* MuzzleFlashEffect;
@@ -56,8 +64,7 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = "Weapon")
     TSubclassOf<ABBulletShell> ShellClass;  // 🔹 탄피 클래스 추가
 private:
-    UPROPERTY(EditAnywhere, Category = "Gun")
-    float Damage;
+
 
     float LastFireTime;
     bool bCanFire = true;
