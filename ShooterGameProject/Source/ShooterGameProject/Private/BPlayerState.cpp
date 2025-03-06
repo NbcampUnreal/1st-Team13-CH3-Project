@@ -12,7 +12,7 @@ ABPlayerState::ABPlayerState()
 	NomalSpeed = 100.f;
 	SprintSpeed = NomalSpeed * SprintMultiply;
 	SprintMultiply = 6.f;
-	CurrentHealth = MaxHealth = 100;
+	CurrentHealth = MaxHealth = 300;
 	AttackDamage = 0;
 	Level = 1;
 	MaxExperience = 0;
@@ -342,7 +342,7 @@ void ABPlayerState::LevelUP()
 	if (LevelTable[Level] != 0)
 		MaxExperience = LevelTable[Level];
 
-	MaxHealth = Level * 20;
+	MaxHealth += 20;
 	CurrentHealth = MaxHealth;
 
 	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("레벨업"));
