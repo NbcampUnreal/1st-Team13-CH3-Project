@@ -186,7 +186,12 @@ void ABShotgun::Attack()
                 ABProjectileBase* Projectile = GetWorld()->SpawnActor<ABProjectileBase>(ProjectileClass, MuzzleLocation, AdjustedRotation, SpawnParams);
                 if (Projectile)
                 {
-                    Projectile->SetDamage(Damage); // 개별 탄환 데미지 설정
+                    // Generate a random value within a certain range, for example between -5 and 5
+                    float RandomDamage = FMath::RandRange(-5.0f, 5.0f);
+
+                    // Add the random value to the base damage
+                    float FinalDamage = Damage + RandomDamage;
+                    Projectile->SetDamage(FinalDamage); // 개별 탄환 데미지 설정
                     Projectile->FireInDirection(ShotDirection);
 
                     // 🔹 다른 탄환들과 충돌 무시 설정 (CollisionComponent 사용)
