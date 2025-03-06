@@ -141,10 +141,6 @@ public:
 	void RelaoadCompleted();
 	UFUNCTION(BlueprintCallable)
 	void AttackCompleted();
-	UFUNCTION(BlueprintCallable)
-	void PlayerCrouch();
-	UFUNCTION(BlueprintCallable)
-	void PlayerStand();
 private:
 	FTimerHandle ZoomTimerHandle;
 	class ABPlayerState* State;
