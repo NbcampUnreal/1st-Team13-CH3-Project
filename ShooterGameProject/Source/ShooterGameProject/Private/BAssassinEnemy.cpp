@@ -4,10 +4,10 @@
 
 ABAssassinEnemy::ABAssassinEnemy()
 {
-	MaxHP = 50.f;
+	MaxHP = 250.f;
 	CurrentHP = MaxHP;
 	Power = 50.f;
-	Speed = 500.f;
+	Speed = 550.f;
 	AttackSpeed = 0.7f;
 	CoolTime = 5.f;
 	SkillDuration = 3.f;

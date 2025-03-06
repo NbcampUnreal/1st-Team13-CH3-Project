@@ -7,7 +7,7 @@ ABRangerEnemy::ABRangerEnemy()
 	MaxHP = 150.f;
 	CurrentHP = MaxHP;
 	Power = 20.f;
-	Speed = 300.f;
+	Speed = 400.f;
 	AttackSpeed = 2.f;
 	CoolTime = 5.f;
 	SkillDuration = 5.f;
