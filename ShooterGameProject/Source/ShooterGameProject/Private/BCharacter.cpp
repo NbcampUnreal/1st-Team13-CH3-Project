@@ -536,7 +536,6 @@ void ABCharacter::UseItem(const FName& ItemName)
 	State->UseItem(ItemName);
 }
 
-
 void ABCharacter::EquipPistol()
 {
 	UE_LOG(LogTemp, Warning, TEXT("EquipPistol() called!"));

@@ -24,11 +24,12 @@ struct FReplicatedAcceleration
 UENUM(BlueprintType)
 enum class EWeaponSlot : uint8
 {
-	Pistol,    // 欤茧旮� (鞓�: 靻岇礉)
-	Rifle,  // 氤挫“氍搓赴 (鞓�: 甓岇礉)
-	ShotGun,  // 氤挫“氍搓赴 (鞓�: 甓岇礉)
-	Melee,      // 攴检爲氍搓赴 (鞓�: 旃�, 霃勲伡)
-	Throwable,   // 韴矙氍搓赴 (鞓�: 靾橂韮�)
+	Unarmed UMETA(DisplayName = "Unarmed"),
+	Pistol UMETA(DisplayName = "Pistol"),    // 欤茧旮� (鞓�: 靻岇礉)
+	Rifle UMETA(DisplayName = "Rifle"),  // 氤挫“氍搓赴 (鞓�: 甓岇礉)
+	ShotGun UMETA(DisplayName = "ShotGun"),  // 氤挫“氍搓赴 (鞓�: 甓岇礉)
+	Melee UMETA(DisplayName = "Melee"),      // 攴检爲氍搓赴 (鞓�: 旃�, 霃勲伡)
+	Throwable UMETA(DisplayName = "Throwable"),   // 韴矙氍搓赴 (鞓�: 靾橂韮�)
 	Max
 };
 
@@ -89,24 +90,25 @@ protected:
 	TObjectPtr<class UBMovementComponent> MoveComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class USphereComponent> CollectNearItem;
+
 	//UFUNCTION(NetMulticast, unreliable)
 	//void FastSharedReplication(const FSharedRepMovement& SharedRepMovement);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void Move(const struct FInputActionValue& Value);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void Look(const struct FInputActionValue& Value);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void StartJump(const struct FInputActionValue& Value);
 	UFUNCTION()
 	void StopJump(const struct FInputActionValue& Value);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void StartSprint(const struct FInputActionValue& Value);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void StopSprint(const struct FInputActionValue& Value);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void Attack(const struct FInputActionValue& Value);
 	void UnequipGrenade();
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void Reload(const struct FInputActionValue& Value);
 	UFUNCTION()
 	void AimStart(const FInputActionValue& Value);
@@ -141,12 +143,11 @@ private:
 	UPROPERTY()
 	FReplicatedAcceleration ReplicatedAcceleration;
 
-	FTimerHandle DragUpdateTimer; // 霌滊灅攴� 韮�鞚措ǜ
-	/** 줌 상태 변경 시만 보간을 실행하기 위한 타이머 */
+	FTimerHandle DragUpdateTimer; 
 	FTimerHandle ZoomTimerHandle;
 	bool bIsDragging = false;
 	ABBaseItem* DraggingItem = nullptr;
 
-	void UpdateDragging(); // 霌滊灅攴� 鞙勳箻 鞐呺嵃鞚错姼
+	void UpdateDragging();
 	class ABPlayerState* State;
 };
