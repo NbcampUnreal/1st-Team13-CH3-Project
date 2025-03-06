@@ -133,8 +133,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void OnReloadMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 	UFUNCTION(BlueprintCallable)
-	bool GetIsWeaponFire() const;
-	UFUNCTION(BlueprintCallable)
 	bool IsReload() const;
 	// 애니메이션 노티파이 혹은 몽타주를 통해 넣어야한다.
 	UFUNCTION(BlueprintCallable)
