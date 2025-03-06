@@ -579,14 +579,17 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	WeaponMesh->SetSimulatePhysics(false);
 
 	// 🔹 무기 회전값 조정 (무기 타입별)
+	FVector NewLocation;
 	FRotator AdjustedRotation(0.0f, 0.0f, 0.0f);
 	if (WeaponToEquip->WeaponType == "Rifle")
 	{
-		AdjustedRotation = FRotator(0.0f, -180.0f, 0.0f);
+		NewLocation = { 2.87241f, 0.f, 8.163575f };
+		AdjustedRotation = FRotator(0.f, 0.f, 8.163575f);
 	}
 	else if (WeaponToEquip->WeaponType == "Shotgun") 
 	{
-		AdjustedRotation = FRotator(0.0f, -180.0f, 0.0f);
+		NewLocation = { 16.696382f, 1.534382f, 4.805118f };
+		AdjustedRotation = FRotator(0.000055f, 10.000587f, 0.000015f);
 	}
 	else if (WeaponToEquip->WeaponType == "Pistol")
 	{
@@ -602,7 +605,7 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 		AdjustedRotation = FRotator(90.0f, -90.0f, 90.0f); 
 	}
 	WeaponToEquip->SetActorRelativeRotation(AdjustedRotation);
-
+	WeaponToEquip->SetActorRelativeLocation(NewLocation);
 	// 🔹 장착된 무기 업데이트
 	EquippedWeapon = WeaponToEquip;
 
