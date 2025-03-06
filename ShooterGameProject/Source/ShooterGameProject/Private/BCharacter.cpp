@@ -655,6 +655,37 @@ void ABCharacter::EquipGrenade()
 	ActiveWeaponSlot = EWeaponSlot::Throwable;
 	EquipWeaponByType(ActiveWeaponSlot);
 }
+void ABCharacter::UseFirstAidKit()
+{
+	// 플레이어 상태 확인
+	ABPlayerState* BPlayerState = GetBPlayerState();
+	if (!BPlayerState)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("플레이어 상태를 찾을 수 없습니다. 치료 아이템 사용 불가"));
+		return;
+	}
+
+	// 🔹 인벤토리에서 구급상자 찾기
+	FName HealingItemName = "FirstAidKit";  // 아이템 이름
+	TArray<FItemData> HealingItems = BPlayerState->GetInventoryTypeItem(HealingItemName);
+
+	if (HealingItems.Num() > 0)
+	{
+		// 첫 번째 구급상자 아이템을 사용
+		ABBaseItem* HealingItem = HealingItems[0].ItemRef;
+		if (HealingItem)
+		{
+			HealingItem->UseItem(this);  // 아이템 사용 (체력 회복)
+
+			// ✅ 체력 회복 후 로그 출력
+			UE_LOG(LogTemp, Log, TEXT("구급상자 사용 완료. 현재 체력: %f"),BPlayerState -> GetCurrentHealth());
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("구급상자가 없습니다!"));
+	}
+}
 TArray<ABBaseItem*> ABCharacter::GetNearItemArray() const
 {
 	TArray<AActor*> ActivateItem;
@@ -753,7 +784,6 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		this,
 		&ABCharacter::Attack
 	);
-	
 	EnhancedInput->BindAction(
 		PlayerController->ReloadAction,
 		ETriggerEvent::Completed,
@@ -804,6 +834,11 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		ETriggerEvent::Completed,  // 🔹 키를 누르는 순간 실행
 		this,
 		&ABCharacter::EquipGrenade);
+	EnhancedInput->BindAction(
+		PlayerController->UseFristAidKitAction,
+		ETriggerEvent::Completed,  // 🔹 키를 누르는 순간 실행
+		this,
+		&ABCharacter::UseFirstAidKit);
 	EnhancedInput->BindAction(
 		PlayerController->ZoomAction,
 		ETriggerEvent::Triggered,
