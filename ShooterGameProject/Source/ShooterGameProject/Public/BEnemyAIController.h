@@ -1,5 +1,5 @@
 #pragma once
-
+//폐기된 코드
 #include "CoreMinimal.h"
 #include "AIController.h"
 #include "BEnemyAIController.generated.h"

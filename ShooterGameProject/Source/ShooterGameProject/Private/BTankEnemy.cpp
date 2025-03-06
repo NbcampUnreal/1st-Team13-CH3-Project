@@ -12,7 +12,7 @@ ABTankEnemy::ABTankEnemy()
 	Power = 30.f;
 	Speed = 500.f;
 	AttackSpeed = 3.f;
-	CoolTime = 5.f;
+	CoolTime = 10.f;
 	SkillDuration = 2.f;
 	AttackRange = 150.f;
 	bIsRanged = false;
@@ -27,6 +27,37 @@ ABTankEnemy::ABTankEnemy()
 	ExplosionCollision->InitSphereRadius(ExplosionRadius);
 	ExplosionCollision->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
 	ExplosionCollision->SetupAttachment(RootComponent);
+}
+
+void ABTankEnemy::BeginPlay()
+{
+	Super::BeginPlay();
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABTankEnemy::UseSkill, CoolTime + SkillDuration, true);
+}
+
+float ABTankEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	ABCharacter* PlayerCharacter = Cast<ABCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+	float ActualDamage = 0.f;
+
+	if (PlayerCharacter)
+	{
+		if (bIsReflecting)
+		{
+			UGameplayStatics::ApplyDamage(PlayerCharacter, DamageAmount, nullptr, this, UDamageType::StaticClass());
+			ActualDamage = 0.f;
+		}
+		else
+		{
+			ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+		}
+	}
+	else
+	{
+		ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	}
+	return ActualDamage;
 }
 
 float ABTankEnemy::GetExplosionDamage()

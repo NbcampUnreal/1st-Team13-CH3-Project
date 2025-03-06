@@ -14,6 +14,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Properties|Assassin")
 	bool bIsStealthed;
 
+	void BeginPlay() override;
 	void UseSkill() override;
 	void EndSkill();
 	virtual FName GetMonsterType() const override;

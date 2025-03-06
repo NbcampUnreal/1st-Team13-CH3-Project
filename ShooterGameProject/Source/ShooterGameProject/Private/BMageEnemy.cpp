@@ -23,6 +23,14 @@ ABMageEnemy::ABMageEnemy()
 	HealingCollision->SetupAttachment(RootComponent);
 }
 
+void ABMageEnemy::BeginPlay()
+{
+	Super::BeginPlay();
+
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABMageEnemy::UseSkill, CoolTime, true);
+}
+
 float ABMageEnemy::GetHealingRadius()
 {
 	return HealingRadius;

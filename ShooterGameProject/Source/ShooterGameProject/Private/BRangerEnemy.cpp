@@ -19,6 +19,13 @@ ABRangerEnemy::ABRangerEnemy()
 	AttackSpeedIncreaseValue = 2.f;
 }
 
+void ABRangerEnemy::BeginPlay()
+{
+	Super::BeginPlay();
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABRangerEnemy::UseSkill, CoolTime + SkillDuration, true);
+}
+
 float ABRangerEnemy::GetAttackSpeedIncreaseValue()
 {
 	return AttackSpeedIncreaseValue;
