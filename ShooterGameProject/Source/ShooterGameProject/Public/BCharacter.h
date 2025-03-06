@@ -139,6 +139,9 @@ protected:
 	void StopFire();
 	
 	void EquipWeaponByType(EWeaponSlot Slot);
+	void EquipRifleParts();
+	void EquipPistolParts();
+	void EquipShotgunParts();
 	FTimerHandle FireTimerHandle;
 
 	
