@@ -12,6 +12,7 @@ ABMageEnemy::ABMageEnemy()
 	CoolTime = 10.f;
 	AttackRange = 1200.f;
 	bIsRanged = true;
+	EnemyType = "Mage";
 
 	HealingRadius = 1500.f;
 	HealAmount = 20.f;
@@ -46,4 +47,9 @@ void ABMageEnemy::UseSkill()
 			}
 		}
 	}
+}
+
+FName ABMageEnemy::GetMonsterType() const
+{
+	return FName(TEXT("Mage"));
 }
