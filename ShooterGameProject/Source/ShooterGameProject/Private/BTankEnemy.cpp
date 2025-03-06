@@ -16,6 +16,7 @@ ABTankEnemy::ABTankEnemy()
 	AttackRange = 150.f;
 	bIsRanged = false;
 	bIsReflecting = false;
+	EnemyType = "Tank";
 
 	ExplosionDamage = 50.f;
 	ExplosionDelay = 2.f;
@@ -44,8 +45,6 @@ float ABTankEnemy::GetExplosionRadius()
 
 void ABTankEnemy::UseSkill()
 {
-	// �Ѿ� �ݻ�
-	// �ǰݵǸ� �������� �ҷ��ͼ� ĳ���Ϳ��� ��
 	bIsReflecting = true;
 
 
@@ -56,36 +55,6 @@ void ABTankEnemy::UseSkill()
 void ABTankEnemy::EndSkill()
 {
 	bIsReflecting = false;
-}
-
-void ABTankEnemy::OnDeath()
-{
-	if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
-	{
-		if (UBUIManager* UIManagerInstance = Cast<UBUIManager>(GameInstance->GetUIManagerInstance()))
-		{
-			UIManagerInstance->UpdateKillLog(GetMonsterType());
-		}
-	}
-
-	if (GetMesh())
-	{
-		GetMesh()->SetSimulatePhysics(true);
-		GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	}
-	if (GetWorld())
-	{
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABEnemyBase::DelayedDropAndDestroy, 3.f, false);
-	}
-
-}
-
-void ABTankEnemy::DelayedDropAndDestroy()
-{
-	Explode();
-	DropItem();
-	Destroy();
 }
 
 void ABTankEnemy::Explode()

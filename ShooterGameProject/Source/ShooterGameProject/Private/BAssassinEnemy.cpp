@@ -13,6 +13,7 @@ ABAssassinEnemy::ABAssassinEnemy()
 	SkillDuration = 3.f;
 	AttackRange = 150.f;
 	bIsRanged = false;
+	EnemyType = "Assassin";
 
 	bIsStealthed = false;
 }
