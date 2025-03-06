@@ -18,6 +18,13 @@ ABAssassinEnemy::ABAssassinEnemy()
 	bIsStealthed = false;
 }
 
+void ABAssassinEnemy::BeginPlay()
+{
+	Super::BeginPlay();
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABAssassinEnemy::UseSkill, CoolTime + SkillDuration, true);
+}
+
 void ABAssassinEnemy::UseSkill()
 {
 	bIsStealthed = true;
@@ -26,7 +33,7 @@ void ABAssassinEnemy::UseSkill()
 		GetMesh()->SetVisibility(false, true);
 	}
 	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABAssassinEnemy::EndSkill, SkillDuration, true);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABAssassinEnemy::EndSkill, SkillDuration, false);
 }
 
 void ABAssassinEnemy::EndSkill()

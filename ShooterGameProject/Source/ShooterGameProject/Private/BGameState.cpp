@@ -62,7 +62,7 @@ void ABGameState::CheckGameStatus()
 	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
 	if (GameInstance->GetCurrentStage() == 3)
 	{
-		if (SpawnedEnemies <= KilledEnemies || CollectedKeys >= RequiredKeyCount)//test ≥°≥™∞Ì || CollectedKeys >= RequiredKeyCount ªË¡¶
+		if (SpawnedEnemies <= KilledEnemies || CollectedKeys >= RequiredKeyCount)//test ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ || CollectedKeys >= RequiredKeyCount ÔøΩÔøΩÔøΩÔøΩ
 		{
 			UE_LOG(LogTemp, Warning, TEXT("The door has opened."));
 			OpenDoor();
@@ -103,7 +103,7 @@ void ABGameState::TriggerGameOver()
 	{
 		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
 		{
-			//UIManager->EnterGameOverScreen();
+			UIManager->EnterGameOverScreen();
 		}
 	}
 }
