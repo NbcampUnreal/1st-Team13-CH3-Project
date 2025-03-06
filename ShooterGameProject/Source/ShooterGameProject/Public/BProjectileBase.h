@@ -29,7 +29,8 @@ public:
     // 총알 메시 (시각적 요소)
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
     UStaticMeshComponent* MeshComponent;
-
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
+    UParticleSystem* ParticleSystem;
     // ✅ 충돌 시 실행될 함수
     UFUNCTION()
     void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);

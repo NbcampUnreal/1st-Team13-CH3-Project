@@ -147,7 +147,13 @@ void ABPistol::Attack()
         if (Projectile)
         {
             Projectile->FireInDirection(AdjustedShootDirection);  // 🔹 조정된 방향으로 발사
-            Projectile->SetDamage(Damage);
+            // Generate a random value within a certain range, for example between -5 and 5
+            float RandomDamage = FMath::RandRange(-5.0f, 5.0f);
+
+            // Add the random value to the base damage
+            float FinalDamage = Damage + RandomDamage;
+
+            Projectile->SetDamage(FinalDamage);
         }
     }
     else
