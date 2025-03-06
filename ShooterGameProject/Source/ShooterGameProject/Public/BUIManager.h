@@ -69,6 +69,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|Inventory")
 	class UBInventoryWidget* InventoryWidgetInstance;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|DataTable")
+	UDataTable* ItemDataTable;
+
 	FTimerHandle UpdateHUDTimerHandle;
 	bool bIsWeaponWheelOpen;
 
@@ -130,11 +133,10 @@ public:
 	void ShowInventory();
 	UFUNCTION(BlueprintCallable)
 	void CloseInventory();
-	void UpdateHUDHealth(const float& CurrentHP, const float& MaxHP);
+	void UpdateHUDHealth(const int32& CurrentHP, const int32& MaxHP);
 	void UpdateHUDLevelAndExp(const int32& PlayerLevel, const float& CurrentExp, const float& MaxExp);
 	void UpdateHUDQuickSlot(const FName& ItemName, const int32& Count);
-	void UpdateHUDLoadedAmmo(const int32& LoadedAmmo = -1);
-	void UpdateHUDInventoryAmmo(const int32& InventoryAmmo = -1);
+	void UpdateHUDAmmo();
 	void UpdateHUDEquippedWeapon(const FString& WeaponType);
 	void UpdateHUDTimed();
 	void UpdateHUDMap();
