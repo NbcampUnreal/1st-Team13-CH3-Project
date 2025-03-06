@@ -782,8 +782,7 @@ void UBUIManager::LineTraceCrosshair()
 				if (ABEnemyBase* HitEnemy = Cast<ABEnemyBase>(HitActor))
 				{
 					// Update	
-					//UpdateEnemyInfo(HitEnemy->GetMonsterType(), HitEnemy->GetCurrentHP(), HitEnemy->GetMaxHP());
-					UpdateEnemyInfo("EnemyType", HitEnemy->GetCurrentHP(), HitEnemy->GetMaxHP());
+					UpdateEnemyInfo(HitEnemy->GetMonsterType(), HitEnemy->GetCurrentHP(), HitEnemy->GetMaxHP());
 					return;
 				}
 			}

@@ -2,6 +2,7 @@
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
 
+
 void UHealthAndLevelWidget::UpdateHealth(float CurrentHP, float MaxHP)
 {
 	if (MaxHP <= 0 || CurrentHP < 0) return;
@@ -21,6 +22,11 @@ void UHealthAndLevelWidget::UpdateHealth(float CurrentHP, float MaxHP)
 	{
 		float HPPercent = CurrentHP / MaxHP;
 		HPBar->SetPercent(HPPercent);
+	}
+
+	if (Anim_Jiggle)
+	{
+		PlayAnimation(Anim_Jiggle);
 	}
 }
 
