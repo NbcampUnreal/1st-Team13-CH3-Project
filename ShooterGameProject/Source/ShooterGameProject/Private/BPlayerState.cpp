@@ -2,6 +2,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h" 
 #include "BGameInstance.h"
+#include "BGameState.h"
 #include "BUIManager.h"
 #include "BBaseItem.h"
 
@@ -31,11 +32,14 @@ void ABPlayerState::AddCoin(const int32 _Coin)
 {
 	this->Coin += _Coin;
 
-	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	if (_Coin > 0)
 	{
-		if (UBUIManager* UI = Instance->GetUIManagerInstance())
+		if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
 		{
-			UI->DisplayNotification("Got Money!", FString::Printf(TEXT("Current Gold in possession: %d"), Coin));
+			if (UBUIManager* UI = Instance->GetUIManagerInstance())
+			{
+				UI->DisplayNotification("Got Money!", FString::Printf(TEXT("Current Gold in possession: %d"), Coin));
+			}
 		}
 	}
 }
@@ -135,6 +139,17 @@ void ABPlayerState::AddCurrentHealth(int32 Health)
 		if (UBUIManager* UI = Instance->GetUIManagerInstance())
 		{
 			UI->UpdateHUDHealth(CurrentHealth, MaxHealth);
+		}
+	}
+
+	if (CurrentHealth <= 0)
+	{
+		if (GetWorld())
+		{
+			if (ABGameState* GameState = GetWorld()->GetGameState<ABGameState>())
+			{
+				GameState->TriggerGameOver();
+			}
 		}
 	}
 }

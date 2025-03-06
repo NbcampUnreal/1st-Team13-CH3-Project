@@ -41,7 +41,6 @@ public:
 	// 氚办棿 齑堦赴頇� 鞓堨嫓
 	TArray<ABBaseWeapon*> EquippedWeapons;  // 鞀’鞐� 雽�鞚戫晿電� 氍搓赴 氚办棿
 
-	void SetDraggingItem(AActor* NewItem);
 	void PickupWeapon(ABBaseWeapon* NewWeapon);
 	ABBaseWeapon* GetCurrentWeapon() const;
 	void EquipPistol();
@@ -58,6 +57,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UseItem(const FName& ItemName);
 	int32 GrenadeCount = 0;
+
 protected:
 	/** 카메라 줌 관련 변수 */
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
@@ -103,20 +103,11 @@ protected:
 	
 	UFUNCTION(BlueprintCallable)
 	void Reload(const struct FInputActionValue& Value);
-	UFUNCTION(BlueprintCallable)
-	void AimStart(const FInputActionValue& Value);
-	UFUNCTION(BlueprintCallable)
-	void AimStop(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void ZoomStart(const FInputActionValue& Value);
 	UFUNCTION()
 	void ZoomStop(const FInputActionValue& Value);
-
-	UFUNCTION()
-	void StartDragging(const FInputActionValue& Value);
-	UFUNCTION()
-	void StopDragging(const FInputActionValue& Value);
 	UFUNCTION(BlueprintCallable)
 	void ShowInventory();
 	UFUNCTION(BlueprintCallable)
@@ -132,12 +123,13 @@ protected:
 	void EquipPistolParts();
 	void EquipShotgunParts();
 	FTimerHandle FireTimerHandle;
-private:
-	FTimerHandle DragUpdateTimer; 
-	FTimerHandle ZoomTimerHandle;
-	bool bIsDragging = false;
-	ABBaseItem* DraggingItem = nullptr;
 
-	void UpdateDragging();
+
+private:
+
+	
+	FTimerHandle ZoomTimerHandle;
+	
+
 	class ABPlayerState* State;
 };

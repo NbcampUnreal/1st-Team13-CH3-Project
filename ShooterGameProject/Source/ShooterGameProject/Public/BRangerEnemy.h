@@ -17,6 +17,7 @@ public:
 	float AttackSpeedIncreaseValue;
 	float GetAttackSpeedIncreaseValue();
 
+	void BeginPlay() override;
 	void UseSkill() override;
 	void EndSkill();
 	virtual FName GetMonsterType() const override;

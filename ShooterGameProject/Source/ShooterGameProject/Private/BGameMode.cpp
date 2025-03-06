@@ -9,6 +9,8 @@
 #include "SkyManager.h"
 #include "TimerManager.h"
 #include "BEnemySpawnVolume.h"
+#include "GameFramework/CharacterMovementComponent.h"
+
 
 ABGameMode::ABGameMode()
 {
@@ -124,6 +126,15 @@ void ABGameMode::onDoorReached() //문에 플레이어 도달 시 호출
 		UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
 		if (GameInstance)
 		{
+			APlayerController* PC = GetWorld()->GetFirstPlayerController();
+			if (PC)
+			{
+				ABCharacter* BChar = Cast<ABCharacter>(PC->GetPawn());
+				if (BChar)
+				{
+					BChar->GetCharacterMovement()->DisableMovement();
+				}
+			}
 			GameInstance->GetUIManagerInstance()->LevelEndTransition();
 		}
 	}
@@ -137,13 +148,14 @@ void ABGameMode::NextLevel() //다음 레벨로 이동
 		BGameInstance->SetCurrentStage(CurrentStage);
 		UE_LOG(LogTemp, Log, TEXT("Loading next level: %d"), CurrentStage);
 
-		FName NextLevelName = "MainLevel";
-		if (CurrentStage % 3 == 0)
+		FName NextLevelName = "1stLevel";
+		if (CurrentStage == 2)
 		{
-			if (FMath::RandRange(0, 100) < 90)
-			{
 				NextLevelName = "BonusLevel";
-			}
+		}
+		if (CurrentStage == 3)
+		{
+			NextLevelName = "2ndLevel";
 		}
 
 		UE_LOG(LogTemp, Log, TEXT("Loading next level: %s"), *NextLevelName.ToString());

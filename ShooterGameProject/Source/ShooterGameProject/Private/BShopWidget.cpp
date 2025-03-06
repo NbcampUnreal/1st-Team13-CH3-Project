@@ -33,6 +33,14 @@ void UBShopWidget::AddItemsToScrollBox()
 		TArray<FBShopItemRow*> ShopDataTableRows;
 		ShopDataTable->GetAllRows(ContextString, ShopDataTableRows);
 
+		// Put them in a random order to shuffle upgrade parts
+		int32 ArraySize = ShopDataTableRows.Num();
+		for (int32 i = ArraySize - 1; i > 0; i--)
+		{
+			int32 RandomIndex = FMath::RandRange(0, i);
+			ShopDataTableRows.Swap(i, RandomIndex);
+		}
+
 		if (ShopDataTableRows.IsEmpty()) return;
 
 		for (FBShopItemRow* Row : ShopDataTableRows)
@@ -52,6 +60,8 @@ void UBShopWidget::AddItemsToScrollBox()
 				}
 			}
 		}
+
+		
 	}
 }
 

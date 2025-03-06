@@ -1,6 +1,7 @@
 #include "BPistol.h"
 #include "BCharacter.h"       // BCharacter 포함
 #include "BGameInstance.h"
+#include "BUIManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraComponent.h"  // 🔹 UNiagaraComponent 정의 포함
 #include "NiagaraFunctionLibrary.h"
@@ -204,6 +205,7 @@ void ABPistol::Attack()
         }
     }
 
+    UIManager->UpdateHUDAmmo();
 }
 
 void ABPistol::DisablePhysicsSimulation()
