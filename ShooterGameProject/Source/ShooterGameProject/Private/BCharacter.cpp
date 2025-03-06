@@ -11,6 +11,9 @@
 #include "Components/SphereComponent.h"
 #include "BBaseItem.h"
 #include "BBaseGun.h"
+#include "BRifle.h"
+#include "BPistol.h"
+#include "BShotGun.h"
 #include "BRiflePart.h"
 #include "BPistolPart.h"
 #include "BShotgunPart.h"
@@ -20,14 +23,13 @@
 #include "BInventoryWidget.h"
 
 
-
 ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UBMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = false;
 
 	ActiveWeaponSlot = EWeaponSlot::Pistol; // 기본 무기 슬롯 설정
-	EquippedWeapons.SetNumZeroed((int)EWeaponSlot::Max);  // 최대사이즈로 초기화
+	EquippedWeapons.SetNumZeroed(20);  // 최대사이즈로 초기화
 
 	// SpringArm 초기화
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
@@ -541,65 +543,18 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("라이플 파츠 장착"));
 		EquipRifleParts();  // 라이플 파츠 장착
-		if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
-		{
-			if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
-			{
-				if (ABBaseGun* Gun = Cast<ABBaseGun>(EquippedWeapon))
-				{
 
-					FString Message = TEXT("데미지: ") + FString::Printf(TEXT("%d"), Gun->WeaponDamage) +
-						TEXT(", 발사속도: ") + FString::Printf(TEXT("%.0f"), Gun->FireRate) +
-						TEXT(", 최대 장탄 수: ") + FString::Printf(TEXT("%d"), Gun->MaxAmmo);
-					UIManager->DisplayNotification(TEXT("라이플 강화 완료"), Message);
-				}
-				if (UBInventoryWidget* Inventory = Cast<UBInventoryWidget>(UIManager->GetInventoryInstance()))
-				{
-					Inventory->SendItemData(GetNearItemArray(), Cast<ABPlayerState>(GetPlayerState()));
-				}
-			}
-		}
 	}
-	else if (EquippedWeapon->WeaponType.Equals("Shotgun"))  // Equals() 사용
+	else if (EquippedWeapon->WeaponType.Equals("ShotGun"))  // Equals() 사용
 	{
 		UE_LOG(LogTemp, Warning, TEXT("샷건 파츠 장착"));
 		EquipShotgunParts();  // 라이플 파츠 장착
-		if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
-		{
-			if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
-			{
-				if (ABBaseGun* Gun = Cast<ABBaseGun>(EquippedWeapon))
-				{
-					FString Message = TEXT("데미지: ") + FString::Printf(TEXT("%d"), Gun->WeaponDamage) +
-						TEXT(", 발사속도: ") + FString::Printf(TEXT("%.0f"), Gun->FireRate) +
-						TEXT(", 최대 장탄 수: ") + FString::Printf(TEXT("%d"), Gun->MaxAmmo);
-					UIManager->DisplayNotification(TEXT("샷건 강화 완료"), Message);
-				}
-				if (UBInventoryWidget* Inventory = Cast<UBInventoryWidget>(UIManager->GetInventoryInstance()))
-				{
-					Inventory->SendItemData(GetNearItemArray(), Cast<ABPlayerState>(GetPlayerState()));
-				}
-			}
-		}
+		
 	}
 	else if (EquippedWeapon->WeaponType.Equals("Pistol"))  // Equals() 사용
 	{
 		UE_LOG(LogTemp, Warning, TEXT("피스톨 파츠 장착"));
-		if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
-		{
-			if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
-			{
-				if (ABBaseGun* Gun = Cast<ABBaseGun>(EquippedWeapon))
-				{
-					FString Message = TEXT("데미지: ") + FString::Printf(TEXT("%d"), Gun->WeaponDamage);
-					UIManager->DisplayNotification(TEXT("피스톨 강화 완료"), Message);
-				}
-				if (UBInventoryWidget* Inventory = Cast<UBInventoryWidget>(UIManager->GetInventoryInstance()))
-				{
-					Inventory->SendItemData(GetNearItemArray(), Cast<ABPlayerState>(GetPlayerState()));
-				}
-			}
-		}
+		
 		EquipPistolParts();  // 라이플 파츠 장착
 	}
 
@@ -639,12 +594,35 @@ void ABCharacter::EquipRifleParts()
 				ItemsToRemove.Add(RiflePartItem);
 
 				UE_LOG(LogTemp, Log, TEXT("%s 파츠가 라이플에 장착되었습니다."), *RiflePart->PartName);
-
-
+				if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+				{
+					if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
+					{
+						if (ABRifle* Rifle = Cast<ABRifle>(EquippedWeapon))
+						{
+							FString Message = TEXT("데미지: ") + FString::Printf(TEXT("%.0f"), Rifle->Damage) +
+								TEXT(", 발사속도: ") + FString::Printf(TEXT("%.2f"), Rifle->FireRate) +
+								TEXT(", 최대 장탄 수: ") + FString::Printf(TEXT("%d"), Rifle->MaxAmmo);
+							UIManager->DisplayNotification(TEXT("라이플 강화 완료"), Message);
+						}
+						else if (ABBaseGun* Gun = Cast<ABBaseGun>(EquippedWeapon))
+						{
+							FString Message = TEXT("데미지: ") + FString::Printf(TEXT("%d"), 0) +
+								TEXT(", 발사속도: ") + FString::Printf(TEXT("%.0f"), Gun->FireRate) +
+								TEXT(", 최대 장탄 수: ") + FString::Printf(TEXT("%d"), Gun->MaxAmmo);
+							UIManager->DisplayNotification(TEXT("무기 강화 완료"), Message);
+						}
+						if (UBInventoryWidget* Inventory = Cast<UBInventoryWidget>(UIManager->GetInventoryInstance()))
+						{
+							Inventory->SendItemData(GetNearItemArray(), Cast<ABPlayerState>(GetPlayerState()));
+						}
+					}
+				}
 			}
 			else
 			{
 				UE_LOG(LogTemp, Warning, TEXT("라이플 파츠를 찾을 수 없습니다."));
+				return;
 			}
 		}
 	}
@@ -691,10 +669,34 @@ void ABCharacter::EquipPistolParts()
 				ItemsToRemove.Add(PistolPartItem);
 
 				UE_LOG(LogTemp, Log, TEXT("%s 파츠가 피스톨에 장착되었습니다."), *PistolPart->PartName);
+				if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+				{
+					if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
+					{
+						if (ABPistol* Pistol = Cast<ABPistol>(EquippedWeapon))  // 🔹 ABRifle로 먼저 캐스팅
+						{
+							FString Message = TEXT("데미지: ") + FString::Printf(TEXT("%.0f"), Pistol->Damage);
+								UIManager->DisplayNotification(TEXT("피스톨 강화 완료"), Message);
+						}
+						else if (ABBaseGun* Gun = Cast<ABBaseGun>(EquippedWeapon))
+						{
+							FString Message = TEXT("데미지: ") + FString::Printf(TEXT("%d"), 0) +
+								TEXT(", 발사속도: ") + FString::Printf(TEXT("%.2f"), Gun->FireRate) +
+								TEXT(", 최대 장탄 수: ") + FString::Printf(TEXT("%d"), Gun->MaxAmmo);
+							UIManager->DisplayNotification(TEXT("무기 강화 완료"), Message);
+						}
+
+						if (UBInventoryWidget* Inventory = Cast<UBInventoryWidget>(UIManager->GetInventoryInstance()))
+						{
+							Inventory->SendItemData(GetNearItemArray(), Cast<ABPlayerState>(GetPlayerState()));
+						}
+					}
+				}
 			}
 			else
 			{
 				UE_LOG(LogTemp, Warning, TEXT("피스톨 파츠를 찾을 수 없습니다."));
+				return;
 			}
 		}
 	}
@@ -740,10 +742,36 @@ void ABCharacter::EquipShotgunParts()
 				ItemsToRemove.Add(ShotgunPartItem);
 
 				UE_LOG(LogTemp, Log, TEXT("%s 파츠가 샷건에 장착되었습니다."), *ShotgunPart->PartName);
+				if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+				{
+					if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
+					{
+						if (ABShotgun* Shotgun = Cast<ABShotgun>(EquippedWeapon))  // 🔹 ABRifle로 먼저 캐스팅
+						{
+								FString Message = TEXT("데미지: ") + FString::Printf(TEXT("%.0f"), Shotgun->Damage) +
+									TEXT(", 발사속도: ") + FString::Printf(TEXT("%.2f"), Shotgun->FireRate) +
+									TEXT(", 최대 장탄 수: ") + FString::Printf(TEXT("%d"), Shotgun->MaxAmmo);
+								UIManager->DisplayNotification(TEXT("샷건 강화 완료"), Message);
+						}
+						else if (ABBaseGun* Gun = Cast<ABBaseGun>(EquippedWeapon))
+						{
+								FString Message = TEXT("데미지: ") + FString::Printf(TEXT("%d"), 0) +
+									TEXT(", 발사속도: ") + FString::Printf(TEXT("%.2f"), Gun->FireRate) +
+									TEXT(", 최대 장탄 수: ") + FString::Printf(TEXT("%d"), Gun->MaxAmmo);
+								UIManager->DisplayNotification(TEXT("무기 강화 완료"), Message);
+						}
+
+						if (UBInventoryWidget* Inventory = Cast<UBInventoryWidget>(UIManager->GetInventoryInstance()))
+						{
+							Inventory->SendItemData(GetNearItemArray(), Cast<ABPlayerState>(GetPlayerState()));
+						}
+					}
+				}
 			}
 			else
 			{
 				UE_LOG(LogTemp, Warning, TEXT("샷건 파츠를 찾을 수 없습니다."));
+				return;
 			}
 		}
 	}
