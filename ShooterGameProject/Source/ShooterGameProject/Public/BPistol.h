@@ -19,20 +19,22 @@ class SHOOTERGAMEPROJECT_API ABPistol : public ABBaseGun
 
 public:
     ABPistol();
-    // 피스톨 기본 데미지
-    UPROPERTY(EditAnywhere, Category = "Gun")
-    float Damage;
+  
 
     // 총기에 장착된 파츠의 매쉬
         UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pistol")
     UStaticMeshComponent * EquippedPartMesh;
     // 파츠 장착 여부 확인
     bool IsPartMeshEquipped(ABPistolPart* Part);
+    UPROPERTY(EditAnywhere, Category = "Gun")
+    float Damage;
 protected:
     virtual void Attack() override;  // 피스톨 전용 공격 함수
 
     void DisablePhysicsSimulation() override;
 
+    
+    
     // 발사 시 사용할 이펙트 (총격 시 피격 이펙트)
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gun")
     UParticleSystem* ImpactEffect;

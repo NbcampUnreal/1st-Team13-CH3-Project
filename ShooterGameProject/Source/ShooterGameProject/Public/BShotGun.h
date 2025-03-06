@@ -27,16 +27,11 @@ public:
     UPROPERTY(EditAnywhere, Category = "Gun")
     float Damage;
 protected:
-    
     virtual void Attack() override;
-
-    
-
     FVector GetCrosshairTarget();
-
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gun")
     UParticleSystem* ImpactEffect;
-
+    
     // 🔹 본체 (기본 루트)
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
     UStaticMeshComponent* ShotGunBody;
