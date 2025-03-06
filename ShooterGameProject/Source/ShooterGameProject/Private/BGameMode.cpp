@@ -137,13 +137,14 @@ void ABGameMode::NextLevel() //다음 레벨로 이동
 		BGameInstance->SetCurrentStage(CurrentStage);
 		UE_LOG(LogTemp, Log, TEXT("Loading next level: %d"), CurrentStage);
 
-		FName NextLevelName = "BonusLevel";
-		if (CurrentStage % 3 == 0)
+		FName NextLevelName = "1stLevel";
+		if (CurrentStage == 2)
 		{
-			if (FMath::RandRange(0, 100) < 90)
-			{
 				NextLevelName = "BonusLevel";
-			}
+		}
+		if (CurrentStage == 3)
+		{
+			NextLevelName = "2ndLevel";
 		}
 
 		UE_LOG(LogTemp, Log, TEXT("Loading next level: %s"), *NextLevelName.ToString());
