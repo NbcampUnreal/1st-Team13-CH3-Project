@@ -7,6 +7,7 @@ ABBaseGun::ABBaseGun()
 {
     // 탄약 기본값 설정
     AmmoCount = 30;
+    CurrentAmmo = 30;
     MaxAmmo = 30; // 기본 최대 탄약 설정 (필요 시 블루프린트에서 수정 가능)
     ReservedAmmo = 0;
 }
