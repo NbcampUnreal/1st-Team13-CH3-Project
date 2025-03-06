@@ -41,7 +41,6 @@ public:
 	// 氚办棿 齑堦赴頇� 鞓堨嫓
 	TArray<ABBaseWeapon*> EquippedWeapons;  // 鞀’鞐� 雽�鞚戫晿電� 氍搓赴 氚办棿
 
-	void SetDraggingItem(AActor* NewItem);
 	void PickupWeapon(ABBaseWeapon* NewWeapon);
 	ABBaseWeapon* GetCurrentWeapon() const;
 	void EquipPistol();
@@ -107,20 +106,11 @@ protected:
 	
 	UFUNCTION(BlueprintCallable)
 	void Reload(const struct FInputActionValue& Value);
-	UFUNCTION(BlueprintCallable)
-	void AimStart(const FInputActionValue& Value);
-	UFUNCTION(BlueprintCallable)
-	void AimStop(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void ZoomStart(const FInputActionValue& Value);
 	UFUNCTION()
 	void ZoomStop(const FInputActionValue& Value);
-
-	UFUNCTION()
-	void StartDragging(const FInputActionValue& Value);
-	UFUNCTION()
-	void StopDragging(const FInputActionValue& Value);
 	UFUNCTION(BlueprintCallable)
 	void ShowInventory();
 	UFUNCTION(BlueprintCallable)
@@ -139,14 +129,10 @@ protected:
 
 
 private:
-	UPROPERTY()
-	FReplicatedAcceleration ReplicatedAcceleration;
 
-	FTimerHandle DragUpdateTimer; 
+	
 	FTimerHandle ZoomTimerHandle;
-	bool bIsDragging = false;
-	ABBaseItem* DraggingItem = nullptr;
+	
 
-	void UpdateDragging();
 	class ABPlayerState* State;
 };
