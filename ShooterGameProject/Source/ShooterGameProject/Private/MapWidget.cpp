@@ -62,14 +62,28 @@ void UMapWidget::CreateIconForMinimap(AActor* OwningActor)
 		if (UMapIconWidget* MapIconWidget = CreateWidget<UMapIconWidget>(this, MapIconWidgetClass))
 		{
 			MapIconWidget->IconOwner = OwningActor;
-
+			MapIconWidget->MinimapWidget = this;
 			MapOverlay->AddChildToOverlay(MapIconWidget);
-
 			if (UOverlaySlot* MapIconSlot = Cast<UOverlaySlot>(MapIconWidget->Slot))
 			{
 				MapIconSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Center);
 				MapIconSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Center);
 			}
+
+			MapIconArray.Add(MapIconWidget);
+		}
+	}
+}
+
+void UMapWidget::RemoveIconFromMinimap(AActor* OwningActor)
+{
+	for (UMapIconWidget* MapIconWidget : MapIconArray)
+	{
+		if (MapIconWidget->IconOwner == OwningActor)
+		{
+			MapIconWidget->RemoveFromParent();
+			MapIconArray.Remove(MapIconWidget);
+			return;
 		}
 	}
 }

@@ -61,6 +61,7 @@ public:
 	void EquipRifle();
 	void EquipShotgun();
 	void EquipMelee();
+	void EquipGrenade();
 	UFUNCTION(BlueprintCallable, Category = "Collect")
 	TArray<class ABBaseItem*> GetNearItemArray() const;
 
@@ -68,6 +69,7 @@ public:
 	void InventorySwitch();
 	UFUNCTION(BlueprintCallable)
 	void UseItem(const FName& ItemName);
+	int32 GrenadeCount = 0;
 protected:
 	/** 카메라 줌 관련 변수 */
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
@@ -128,7 +130,6 @@ protected:
 	void CloseInventory();
 	virtual void BeginPlay() override;
 
-	void EquipGrenade();
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void StopFire();

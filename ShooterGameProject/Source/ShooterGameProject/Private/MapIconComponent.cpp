@@ -5,7 +5,7 @@
 
 UMapIconComponent::UMapIconComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
 void UMapIconComponent::BeginPlay()
@@ -19,6 +19,12 @@ void UMapIconComponent::BeginPlay()
 		0.1f,
 		false
 	);
+}
+
+void UMapIconComponent::EndPlay(EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	RemoveIcon();
 }
 
 void UMapIconComponent::CreateIcon()
@@ -38,8 +44,19 @@ void UMapIconComponent::CreateIcon()
 	}
 }
 
-void UMapIconComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UMapIconComponent::RemoveIcon()
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	if (UBGameInstance* GameInstance = GetWorld()->GetGameInstance<UBGameInstance>())
+	{
+		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
+		{
+			if (UUserWidget* HUD = UIManager->GetHUDWidgetInstance())
+			{
+				if (UMapWidget* MapWidget = Cast<UMapWidget>(HUD->GetWidgetFromName(FName("MapWidget"))))
+				{
+					MapWidget->RemoveIconFromMinimap(GetOwner());
+				}
+			}
+		}
+	}
 }
-

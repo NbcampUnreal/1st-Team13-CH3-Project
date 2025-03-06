@@ -30,6 +30,14 @@ void ABPlayerState::BeginPlay()
 void ABPlayerState::AddCoin(const int32 _Coin)
 {
 	this->Coin += _Coin;
+
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UI = Instance->GetUIManagerInstance())
+		{
+			UI->DisplayNotification("Got Money!", FString::Printf(TEXT("Current Gold in possession: %d"), Coin));
+		}
+	}
 }
 
 int32 ABPlayerState::GetCoin() const
@@ -51,6 +59,23 @@ float ABPlayerState::GetHealthNormalized() const
 {
 	return (float)(CurrentHealth) / (float)(MaxHealth);
 }
+
+int32 ABPlayerState::GetPlayerLevel() const
+{
+	return Level;
+}
+
+int32 ABPlayerState::GetCurrentExp() const
+{
+	return CurrentExperience;
+}
+
+int32 ABPlayerState::GetMaxExp() const
+{
+	return MaxExperience;
+}
+
+
 
 bool ABPlayerState::IsDeadOrDying() const
 {
@@ -104,6 +129,14 @@ float ABPlayerState::TakeDamage(float DamageAmount, FDamageEvent const& DamageEv
 void ABPlayerState::AddCurrentHealth(int32 Health)
 {
 	CurrentHealth = FMath::Clamp(CurrentHealth + Health, 0, MaxHealth);
+
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UI = Instance->GetUIManagerInstance())
+		{
+			UI->UpdateHUDHealth(CurrentHealth, MaxHealth);
+		}
+	}
 }
 
 void ABPlayerState::AddExp(int32 Exp)
@@ -118,6 +151,14 @@ void ABPlayerState::AddExp(int32 Exp)
 	{
 		CurrentExperience -= MaxExperience;
 		LevelUP();
+	}
+
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UI = Instance->GetUIManagerInstance())
+		{
+			UI->UpdateHUDLevelAndExp(Level, CurrentExperience, MaxExperience);
+		}
 	}
 }
 
@@ -162,9 +203,12 @@ TArray<FItemData> ABPlayerState::GetInventoryTypeItem(const FName& ItemName) con
 {
 	TArray<FItemData> Items;
 
-	for (const auto& Item : Inventory[ItemName])
+	if (const TArray<FItemData>* InventoryItems = Inventory.Find(ItemName))
 	{
-		Items.Add(Item);
+		for (const auto& Item : *InventoryItems)
+		{
+			Items.Add(Item);
+		}
 	}
 
 	return Items;
@@ -184,6 +228,14 @@ void ABPlayerState::InventoryAddItem(const FItemData& Item)
 {
 	Inventory.FindOrAdd(Item.ItemName).Add(Item);
 	UpdateQuickSlot(Item.ItemName, Inventory[Item.ItemName].Num());
+
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UI = Instance->GetUIManagerInstance())
+		{
+			UI->DisplayItemNotification(Item.ItemName);
+		}
+	}
 }
 
 void ABPlayerState::UpdateQuickSlot(const FName& ItemName, int32 Count)
@@ -237,4 +289,12 @@ void ABPlayerState::LevelUP()
 	CurrentHealth = MaxHealth;
 
 	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("레벨업"));
+
+	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	{
+		if (UBUIManager* UI = Instance->GetUIManagerInstance())
+		{
+			UI->DisplayNotification("Level Up!", FString::Printf(TEXT("Current Level is %d"), Level));
+		}
+	}
 }
