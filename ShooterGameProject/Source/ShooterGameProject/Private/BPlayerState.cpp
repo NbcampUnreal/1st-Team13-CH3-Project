@@ -9,14 +9,18 @@ ABPlayerState::ABPlayerState()
 {
 	DeathState = EDeathState::NotDead;
 	NomalSpeed = 100.f;
-	SprintSpeed= NomalSpeed * SprintMultiply;
+	SprintSpeed = NomalSpeed * SprintMultiply;
 	SprintMultiply = 6.f;
 	CurrentHealth = MaxHealth = 100;
 	AttackDamage = 0;
 	Level = 1;
 	MaxExperience = 0;
 	CurrentExperience = 0;
-	Coin = 0;	
+<<<<<<< HEAD
+	Coin = 4000;	
+=======
+	Coin = 0;
+>>>>>>> character
 }
 
 void ABPlayerState::BeginPlay()
@@ -24,7 +28,7 @@ void ABPlayerState::BeginPlay()
 	for (uint32 i = 1; i <= 100; ++i)
 	{
 		LevelTable.Add(i, (uint32)pow(((i + 2 - 1) * 50 / 49.f), 2.5f));
-	}	
+	}
 }
 
 void ABPlayerState::AddCoin(const int32 _Coin)
@@ -105,7 +109,7 @@ void ABPlayerState::FinishDeath()
 	}
 
 	DeathState = EDeathState::DeathFinished;
-	
+
 	check(Owner);
 
 	// TODO: ���� ���� �˷�����Ѵ�.
@@ -172,7 +176,7 @@ void ABPlayerState::Attack(AActor* Actor)
 }
 
 TArray<FItemData> ABPlayerState::GetNearItemArray() const
-{	
+{
 	TArray<FItemData> Result;
 
 	if (ABCharacter* Chr = Cast<ABCharacter>(GetOwner()))
@@ -256,6 +260,7 @@ void ABPlayerState::InventoryRemoveItem(const FItemData& Item)
 	if (Items->IsEmpty())
 	{
 		Inventory.Remove(Item.ItemName);
+		UpdateQuickSlot(Item.ItemName, 0);
 	}
 	else
 	{
@@ -307,8 +312,8 @@ void ABPlayerState::UseItem(const FName& ItemName)
 	{
 		if (ABCharacter* Chr = Cast<ABCharacter>(Con->GetCharacter()))
 		{
-			
-			ABBaseItem* Base = GetWorld()->SpawnActor<ABBaseItem>(Inventory[ItemName].Last().ItemClass,FVector::ZeroVector,FRotator::ZeroRotator);
+
+			ABBaseItem* Base = GetWorld()->SpawnActor<ABBaseItem>(Inventory[ItemName].Last().ItemClass, FVector::ZeroVector, FRotator::ZeroRotator);
 			if (Base)
 			{
 				Base->UseItem(Chr);
@@ -338,4 +343,8 @@ void ABPlayerState::LevelUP()
 			UI->DisplayNotification("Level Up!", FString::Printf(TEXT("Current Level is %d"), Level));
 		}
 	}
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> character

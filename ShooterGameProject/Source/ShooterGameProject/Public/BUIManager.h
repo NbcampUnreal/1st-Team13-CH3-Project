@@ -63,11 +63,16 @@ public:
 	class UKillLogWidget* KillLogWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
 	class UKillCountWidget* KillCountWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
+	class UEnemyInfoWidget* EnemyInfoWidget;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|Inventory")
 	TSubclassOf<UUserWidget> InventoryWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|Inventory")
 	class UBInventoryWidget* InventoryWidgetInstance;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|DataTable")
+	UDataTable* ItemDataTable;
 
 	FTimerHandle UpdateHUDTimerHandle;
 	bool bIsWeaponWheelOpen;
@@ -130,20 +135,21 @@ public:
 	void ShowInventory();
 	UFUNCTION(BlueprintCallable)
 	void CloseInventory();
-	void UpdateHUDHealth(const float& CurrentHP, const float& MaxHP);
+	void UpdateHUDHealth(const int32& CurrentHP, const int32& MaxHP);
 	void UpdateHUDLevelAndExp(const int32& PlayerLevel, const float& CurrentExp, const float& MaxExp);
 	void UpdateHUDQuickSlot(const FName& ItemName, const int32& Count);
-	void UpdateHUDLoadedAmmo(const int32& LoadedAmmo = -1);
-	void UpdateHUDInventoryAmmo(const int32& InventoryAmmo = -1);
+	void UpdateHUDAmmo();
 	void UpdateHUDEquippedWeapon(const FString& WeaponType);
 	void UpdateHUDTimed();
 	void UpdateHUDMap();
 	void UpdateHUDItemMission(const FName& ItemName, const int32& CurrentCount, const int32& TargetCount);
 	void UpdateHUDBonusMission(const int32& CurrentCount, const int32& TargetCount);
 	void RemoveAllMissions();
+	UFUNCTION(BlueprintCallable)
 	void UpdateKillLog(const FName& KilledName);
 	void UpdateKillCount(const int32& KillCount);
 	void UpdateCurrentScore(const int32& CurrentScore);
+	void UpdateEnemyInfo(const FName& EnemyType, const float& CurrentHP, const float& MaxHP);
 	void OnFire(); // Crosshair animation when fired
 	void OnNormalHit(); // Hit Marker animation upon successful hit
 
@@ -153,6 +159,7 @@ public:
 
 	/* Crosshair Location and Direction for weapons */
 	TTuple<FVector, FVector> GetCrosshairLocationAndDirection();
+	void LineTraceCrosshair();
 
 protected:
 	/* Owning Game Instance */
