@@ -729,7 +729,24 @@ void ABCharacter::CloseInventory()
 	}
 }
 
+float ABCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, FString::Printf(TEXT("TakeDamage ActualDamage %d"), ActualDamage));
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, FString::Printf(TEXT("TakeDamage DamageAmount %d"), DamageAmount));
+
+	if (ABPlayerState* BPlayerState = GetPlayerState<ABPlayerState>())
+	{
+		BPlayerState->AddCurrentHealth(-DamageAmount);
+		if (BPlayerState->GetCurrentHealth() <= 0)
+		{
+			BPlayerState->StartDeath();
+		}
+	}
+
+	return ActualDamage;
+}
 
 
 void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
