@@ -63,6 +63,8 @@ public:
 	class UKillLogWidget* KillLogWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
 	class UKillCountWidget* KillCountWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|HUDWidgets")
+	class UEnemyInfoWidget* EnemyInfoWidget;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI|Inventory")
 	TSubclassOf<UUserWidget> InventoryWidget;
@@ -147,6 +149,7 @@ public:
 	void UpdateKillLog(const FName& KilledName);
 	void UpdateKillCount(const int32& KillCount);
 	void UpdateCurrentScore(const int32& CurrentScore);
+	void UpdateEnemyInfo(const FName& EnemyType, const float& CurrentHP, const float& MaxHP);
 	void OnFire(); // Crosshair animation when fired
 	void OnNormalHit(); // Hit Marker animation upon successful hit
 
