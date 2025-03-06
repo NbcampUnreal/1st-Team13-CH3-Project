@@ -32,28 +32,11 @@ ABRifle::ABRifle()
 
     // 루트 컴포넌트로 설정
     Collision->SetupAttachment(RifleBody);
-    // 🔹 탄창
-    Magazine = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Magazine"));
-    Magazine->SetupAttachment(RifleBody);
-    Magazine->SetRelativeLocation(FVector(0.0f, -5.0f, -10.0f));  // 위치 조정
 
     // 🔹 조준경 (옵션)
-    Scope = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Scope"));
-    Scope->SetupAttachment(RifleBody);
-    Scope->SetRelativeLocation(FVector(0.0f, 0.0f, 10.0f));  // 위치 조정
-
-    // 🔹 소염기/총구 (옵션)
-    Muzzle = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Muzzle"));
-    Muzzle->SetupAttachment(RifleBody);
-    Muzzle->SetRelativeLocation(FVector(50.0f, 0.0f, 0.0f));  // 위치 조정
-    
-    Trigger = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Trigger"));
-    Trigger->SetupAttachment(RifleBody);
-    Trigger->SetRelativeLocation(FVector(0.0f, 0.0f, -3.0f));  // 위치 조정
-    
-    Derriere = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Derriere"));
-    Derriere->SetupAttachment(RifleBody);
-    Derriere->SetRelativeLocation(FVector(0.0f, 0.0f, 1.0f));  // 위치 조정
+    EquippedPartMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("EquippedPartMesh"));
+    EquippedPartMesh->SetupAttachment(RifleBody);
+    EquippedPartMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 10.0f));  // 위치 조정
 
     // 기본 총구 위치를 설정 (이것은 예시이며, 적절한 값으로 설정할 필요 있음)
     GunMuzzle = CreateDefaultSubobject<USceneComponent>(TEXT("GunMuzzle"));
@@ -63,7 +46,11 @@ ABRifle::ABRifle()
     ShellEjectSocket = CreateDefaultSubobject<USceneComponent>(TEXT("ShellEjectSocket"));
     ShellEjectSocket->SetupAttachment(RootComponent);  // 루트 컴포넌트에 부착
 }
-
+bool ABRifle::IsPartMeshEquipped(ABRiflePart* Part)
+{
+    // 이미 장착된 파츠의 매쉬가 있으면 새로 장착하지 않도록 처리
+    return EquippedPartMesh == Part->Mesh;
+}
 void ABRifle::Attack()
 {
     UE_LOG(LogTemp, Log, TEXT("[ABRifle] 현재 예비 탄약: %d"), ReservedAmmo);
@@ -176,7 +163,13 @@ void ABRifle::Attack()
         if (Projectile)
         {
             Projectile->FireInDirection(AdjustedShootDirection);
-            Projectile->SetDamage(Damage);
+            // Generate a random value within a certain range, for example between -5 and 5
+            float RandomDamage = FMath::RandRange(-5.0f, 5.0f);
+
+            // Add the random value to the base damage
+            float FinalDamage = Damage + RandomDamage;
+
+            Projectile->SetDamage(FinalDamage);
         }
     }
 
@@ -216,7 +209,9 @@ void ABRifle::Attack()
         // 📌 🔊 총기 발사 소음 발생!
         MakeNoise(1.0f, OwnerCharacter, GetActorLocation());
     }
-    
+   
+    UIManager->UpdateHUDAmmo();
+
 }
 
 

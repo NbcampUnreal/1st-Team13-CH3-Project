@@ -1,19 +1,23 @@
 #include "BTankEnemy.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "BGameInstance.h"
+#include "BUIManager.h"
+#include "BCharacter.h"
 
 ABTankEnemy::ABTankEnemy()
 {
 	MaxHP = 500.f;
 	CurrentHP = MaxHP;
 	Power = 30.f;
-	Speed = 350.f;
+	Speed = 500.f;
 	AttackSpeed = 3.f;
 	CoolTime = 5.f;
 	SkillDuration = 2.f;
 	AttackRange = 150.f;
 	bIsRanged = false;
 	bIsReflecting = false;
+	EnemyType = "Tank";
 
 	ExplosionDamage = 50.f;
 	ExplosionDelay = 2.f;
@@ -42,8 +46,6 @@ float ABTankEnemy::GetExplosionRadius()
 
 void ABTankEnemy::UseSkill()
 {
-	// ï¿½Ñ¾ï¿½ ï¿½Ý»ï¿½
-	// ï¿½Ç°ÝµÇ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ò·ï¿½ï¿½Í¼ï¿½ Ä³ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ ï¿½ï¿½
 	bIsReflecting = true;
 
 
@@ -56,24 +58,18 @@ void ABTankEnemy::EndSkill()
 	bIsReflecting = false;
 }
 
-void ABTankEnemy::OnDeath()
-{
-	Explode();
-	DropItem();
-	Destroy();
-}
-
 void ABTankEnemy::Explode()
 {
 	TArray<AActor*> OverlappingActors;
 	ExplosionCollision->GetOverlappingActors(OverlappingActors);
 	for (AActor* Actor : OverlappingActors)
 	{
-		if (Actor && Actor->ActorHasTag("Player"))
+		// ABCharacter·Î Ä³½ºÆÃÇÏ¿© °Ë»ç
+		ABCharacter* PlayerCharacter = Cast<ABCharacter>(Actor);
+		if (PlayerCharacter)
 		{
-			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			UGameplayStatics::ApplyDamage(
-				Actor,
+				PlayerCharacter,
 				ExplosionDamage,
 				nullptr,
 				this,
@@ -81,4 +77,9 @@ void ABTankEnemy::Explode()
 			);
 		}
 	}
+}
+
+FName ABTankEnemy::GetMonsterType() const
+{
+	return FName(TEXT("Tank"));
 }

@@ -30,7 +30,8 @@ public:
 	FTimerHandle ExplosionTimerHandle;
 
 	void UseSkill() override;
-	void OnDeath() override;
-	virtual void Explode();
+	UFUNCTION(BlueprintCallable)
+	void Explode();
 	void EndSkill();
+	virtual FName GetMonsterType() const override;
 };

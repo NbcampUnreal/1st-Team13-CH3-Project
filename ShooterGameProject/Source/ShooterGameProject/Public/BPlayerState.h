@@ -80,6 +80,7 @@ public:
 	TArray<FItemData> GetAllInventoryItem() const;
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	TArray<FItemData> GetInventoryTypeItem(const FName& ItemName) const;
+	TArray<FItemData> GetInventoryClassItem(const UClass* ItemClass) const;
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void InventoryRemoveItem(const FItemData& Item);
 	UFUNCTION(BlueprintCallable, Category = "Inventory")

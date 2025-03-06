@@ -5,6 +5,8 @@
 #include "BEnemyBase.generated.h"
 
 class ABProjectileBase;
+class ABCharacter;
+class ABBaseItem;
 
 UCLASS()
 class SHOOTERGAMEPROJECT_API ABEnemyBase : public ACharacter
@@ -58,22 +60,25 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	bool bIsDead;
 
-	// 투사체 관련
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
-	TSubclassOf<ABProjectileBase> ProjectileClass;
-	// Accuracy: 1.0이면 완벽, 0.0이면 가장 부정확
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
-	float Accuracy;
 
-	// 함수들
-	UFUNCTION(BlueprintCallable, Category = "Combat")
-	void SpawnProjectile();
-
-
+	//보상 관련
 	UFUNCTION(BlueprintCallable, Category = "Battle")
-	virtual void AttackPlayer();
+	void GrantRewards();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Rewards")
+	TSubclassOf<ABBaseItem> WeaponPartItem;
+	UPROPERTY(EditDefaultsOnly, Category = "Rewards")
+	TSubclassOf<ABBaseItem> HealthKitItem;
+	UPROPERTY(EditDefaultsOnly, Category = "Rewards")
+	TSubclassOf<ABBaseItem> GrenadeItem;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Enemy Type")
+	FString EnemyType;
+
+
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	UFUNCTION(BlueprintCallable, Category = "Battle")
+	virtual void EnemyAttack();
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	virtual void UseSkill();
 	UFUNCTION(BlueprintCallable, Category = "Battle")
@@ -83,5 +88,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	virtual void GainHP(float HP);
 	UFUNCTION()
-	void DelayedDropAndDestroy();
+	virtual void DelayedDropAndDestroy();
+	UFUNCTION(BlueprintCallable, Category = "Enemy Type")
+	virtual FName GetMonsterType() const;
 };

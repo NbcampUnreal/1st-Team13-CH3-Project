@@ -47,17 +47,6 @@ void ABBaseItem::OnItemOverlap(UPrimitiveComponent* OverlappedComp, AActor* Othe
     if (OtherActor && OtherActor->ActorHasTag("Player"))
     {
         ActivateItem(OtherActor);
-
-        ABCharacter* OverlappingCharacter = Cast<ABCharacter>(OtherActor);
-        if (OverlappingCharacter)
-        {
-            OverlappingCharacter->SetDraggingItem(this);
-            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("DraggingItem Set in ABCharacter!"));
-        }
-        else
-        {
-            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("OverlappingCharacter is NULL!"));
-        }
     }
 }
 

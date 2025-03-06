@@ -9,14 +9,14 @@ ABPlayerState::ABPlayerState()
 {
 	DeathState = EDeathState::NotDead;
 	NomalSpeed = 100.f;
-	SprintSpeed= NomalSpeed * SprintMultiply;
+	SprintSpeed = NomalSpeed * SprintMultiply;
 	SprintMultiply = 6.f;
 	CurrentHealth = MaxHealth = 100;
 	AttackDamage = 0;
 	Level = 1;
 	MaxExperience = 0;
 	CurrentExperience = 0;
-	Coin = 0;	
+	Coin = 4000;	
 }
 
 void ABPlayerState::BeginPlay()
@@ -24,7 +24,7 @@ void ABPlayerState::BeginPlay()
 	for (uint32 i = 1; i <= 100; ++i)
 	{
 		LevelTable.Add(i, (uint32)pow(((i + 2 - 1) * 50 / 49.f), 2.5f));
-	}	
+	}
 }
 
 void ABPlayerState::AddCoin(const int32 _Coin)
@@ -105,7 +105,7 @@ void ABPlayerState::FinishDeath()
 	}
 
 	DeathState = EDeathState::DeathFinished;
-	
+
 	check(Owner);
 
 	// TODO: ���� ���� �˷�����Ѵ�.
@@ -172,7 +172,7 @@ void ABPlayerState::Attack(AActor* Actor)
 }
 
 TArray<FItemData> ABPlayerState::GetNearItemArray() const
-{	
+{
 	TArray<FItemData> Result;
 
 	if (ABCharacter* Chr = Cast<ABCharacter>(GetOwner()))
@@ -213,16 +213,58 @@ TArray<FItemData> ABPlayerState::GetInventoryTypeItem(const FName& ItemName) con
 
 	return Items;
 }
+TArray<FItemData> ABPlayerState::GetInventoryClassItem(const UClass* ItemClass) const
+{
+	TArray<FItemData> Items;
+
+	if (!ItemClass) // null 체크
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GetInventoryClassItem: ItemClass is null!"));
+		return Items;
+	}
+
+	for (const auto& Pair : Inventory)
+	{
+		for (const auto& Item : Pair.Value)
+		{
+			if (Item.ItemClass && Item.ItemClass->IsChildOf(ItemClass))
+			{
+				Items.Add(Item);
+			}
+		}
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("Found %d items of class %s in inventory."), Items.Num(), *ItemClass->GetName());
+	return Items;
+}
 
 void ABPlayerState::InventoryRemoveItem(const FItemData& Item)
 {
-	if (!Inventory[Item.ItemName].IsEmpty())
+	// 1️⃣ 해당 아이템이 Inventory에 있는지 확인
+	TArray<FItemData>* Items = Inventory.Find(Item.ItemName);
+	if (!Items || Items->IsEmpty())
 	{
-		int32 LastIdx = Inventory[Item.ItemName].Num() - 1;
-		Inventory[Item.ItemName].RemoveAt(LastIdx);
+		return;
+	}
+
+	// 2️⃣ 마지막 아이템을 안전하게 삭제
+	int32 LastIdx = Items->Num() - 1;
+	Items->RemoveAt(LastIdx);
+
+
+	// 3️⃣ 만약 아이템 배열이 비어 있으면, 맵에서 제거
+	if (Items->IsEmpty())
+	{
+		Inventory.Remove(Item.ItemName);
+		UpdateQuickSlot(Item.ItemName, 0);
+	}
+	else
+	{
+		// 4️⃣ 퀵슬롯 업데이트 (남아 있는 경우에만)
 		UpdateQuickSlot(Item.ItemName, LastIdx);
 	}
 }
+
 
 void ABPlayerState::InventoryAddItem(const FItemData& Item)
 {
@@ -266,8 +308,8 @@ void ABPlayerState::UseItem(const FName& ItemName)
 	{
 		if (ABCharacter* Chr = Cast<ABCharacter>(Con->GetCharacter()))
 		{
-			
-			ABBaseItem* Base = GetWorld()->SpawnActor<ABBaseItem>(Inventory[ItemName].Last().ItemClass,FVector::ZeroVector,FRotator::ZeroRotator);
+
+			ABBaseItem* Base = GetWorld()->SpawnActor<ABBaseItem>(Inventory[ItemName].Last().ItemClass, FVector::ZeroVector, FRotator::ZeroRotator);
 			if (Base)
 			{
 				Base->UseItem(Chr);

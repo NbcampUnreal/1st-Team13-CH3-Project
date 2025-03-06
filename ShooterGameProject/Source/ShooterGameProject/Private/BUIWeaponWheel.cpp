@@ -44,8 +44,6 @@ void UBUIWeaponWheel::ExitWeaponWheel_Implementation()
 				}
 			}
 
-			
-
 			// Equip Pistol
 			if (HoveredItemName == "Pistol")
 			{
