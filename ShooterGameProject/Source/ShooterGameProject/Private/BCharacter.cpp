@@ -22,7 +22,6 @@
 
 
 ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer.SetDefaultSubobjectClass<UBMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = false;
 	ActiveWeaponSlot = EWeaponSlot::Pistol;  // ê¸°ë³¸ì ìœ¼ë¡œ ì£¼ë¬´ê¸°ë¥¼ í™œì„±í™”
@@ -927,16 +926,7 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		ETriggerEvent::Completed,
 		this,
 		&ABCharacter::Reload);
-	EnhancedInput->BindAction(
-		PlayerController->AimAction,
-		ETriggerEvent::Triggered,
-		this,
-		&ABCharacter::AimStart);
-	EnhancedInput->BindAction(
-		PlayerController->AimAction,
-		ETriggerEvent::Completed,
-		this,
-		&ABCharacter::AimStop);
+
 	EnhancedInput->BindAction(
 		PlayerController->EquipPistolAction,
 		ETriggerEvent::Completed,  // 🔹 키를 누르는 순간 실행되도록 변경
