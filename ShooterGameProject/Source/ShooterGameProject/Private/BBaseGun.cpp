@@ -8,33 +8,42 @@ ABBaseGun::ABBaseGun()
     // 탄약 기본값 설정
     AmmoCount = 30;
     MaxAmmo = 30; // 기본 최대 탄약 설정 (필요 시 블루프린트에서 수정 가능)
+    ReservedAmmo = 0;
 }
 
-void ABBaseGun::Reload(AActor* PlayerCharacter)
+
+void ABBaseGun::AddAmmo(int32 Amount)
 {
-    ABCharacter* BCharacter = Cast<ABCharacter>(PlayerCharacter);
-    if (!BCharacter)
+    // 예비 탄약에 Amount만큼 추가
+    ReservedAmmo += Amount;
+
+    UE_LOG(LogTemp, Log, TEXT("예비 탄약 추가: %d"), ReservedAmmo);
+}
+void ABBaseGun::Reload()
+{
+    if (ReservedAmmo <= 0)
     {
-        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("리로드 실패: 올바른 캐릭터가 아님!"));
+        UE_LOG(LogTemp, Warning, TEXT("예비 탄약 부족"));
         return;
     }
+    
+    int32 NeededAmmo = MaxAmmo - CurrentAmmo;
+    if (NeededAmmo <= 0) 
+    {
+        UE_LOG(LogTemp, Warning, TEXT("재장전 불 필요함"));
+        return;
+    }
+    int32 AmmoToLoad = FMath::Min(NeededAmmo, ReservedAmmo);
 
-    // 인벤토리에서 탄약 확인 (추후 구현)
-    int32 AmmoNeeded = MaxAmmo - AmmoCount;
-    if (AmmoNeeded > 0)
-    {
-        AmmoCount = MaxAmmo; // 임시로 탄약을 채우는 방식 (추후 인벤토리에서 가져오도록 수정)
-        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("재장전 완료!"));
-    }
-    else
-    {
-        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("이미 탄창이 가득 참"));
-    }
+    CurrentAmmo += AmmoToLoad;
+    ReservedAmmo -= AmmoToLoad;
+
+    UE_LOG(LogTemp, Log, TEXT("리로드 완료: 현재 탄약 %d/%d, 예비 탄약 %d"), CurrentAmmo, MaxAmmo, ReservedAmmo);
 }
 
 void ABBaseGun::Attack()
 {
     UE_LOG(LogTemp, Log, TEXT("총 발사 완료!"));
     // 탄약 감소
-    AmmoCount--;
+    CurrentAmmo--;
 }
