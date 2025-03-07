@@ -86,7 +86,7 @@ void ABGameMode::SpawnLevelKeyBox()
 void ABGameMode::StartGame()
 {
 	UE_LOG(LogTemp, Log, TEXT("StartGame! Eliminate all the enemies!"));
-	StartEnemySpawning();
+	//StartEnemySpawning();
 	ABGameState* BGameState = GetGameState<ABGameState>();
 	/*
 	GetWorldTimerManager().SetTimer
@@ -135,6 +135,7 @@ void ABGameMode::onDoorReached() //문에 플레이어 도달 시 호출
 					BChar->GetCharacterMovement()->DisableMovement();
 				}
 			}
+			GameInstance->GetUIManagerInstance()->RemoveAllMissions();
 			GameInstance->GetUIManagerInstance()->LevelEndTransition();
 		}
 	}

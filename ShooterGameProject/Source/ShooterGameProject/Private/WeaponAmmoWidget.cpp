@@ -19,7 +19,7 @@ void UWeaponAmmoWidget::UpdateLoadedAmmo(const int32& LoadedAmmo)
 	{
 		if (LoadedAmmo == -1)
 		{
-			LoadedAmmoText->SetText(FText::FromString(TEXT("")));
+			LoadedAmmoText->SetText(FText::FromString(TEXT("∞")));
 		}
 		else
 		{
@@ -35,7 +35,7 @@ void UWeaponAmmoWidget::UpdateInventoryAmmo(const int32& InventoryAmmo)
 	{
 		if (InventoryAmmo == -1)
 		{
-			InventoryAmmoText->SetText(FText::FromString(TEXT("")));
+			InventoryAmmoText->SetText(FText::FromString(TEXT("∞")));
 		}
 		else
 		{
