@@ -173,84 +173,99 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 {
 	if (!EquippedWeapon)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("장착된 무기가 없습니다. 리로드 실패."));
+		UE_LOG(LogTemp, Warning, TEXT("❌ 장착된 무기가 없습니다. 리로드 실패."));
 		return;
 	}
 
-	if (ABBaseGun* CurrentGun = Cast<ABBaseGun>(EquippedWeapon))
+	// 현재 장착된 무기가 올바른지 확인
+	ABBaseGun* CurrentGun = Cast<ABBaseGun>(EquippedWeapon);
+	if (!IsValid(CurrentGun))
 	{
-		// 탄창이 필요한 무기일 경우 (예: 라이플, 샷건 등)
-		if (CurrentGun->WeaponType == "Rifle")
-		{
-			// 리로드 시작
-			UE_LOG(LogTemp, Log, TEXT("라이플 리로드 중..."));
-			PlayAnimMontage(ReloadAnimation, 1.f, FName(TEXT("Rifle")));
-			if (ABPlayerState* BPlayerState = GetBPlayerState())
-			{
-				bIsReload = true;
-				FName RifleMagazine = "RifleMagazine";
-				// 무기의 종류에 맞는 탄약 아이템을 인벤토리에서 찾음
-				TArray<FItemData> AmmoItems = BPlayerState->GetInventoryTypeItem(RifleMagazine);
-				if (AmmoItems.Num() > 0)
-				{
-					// 아이템이 있다면 첫 번째 아이템을 사용하여 리로드
-					ABBaseItem* AmmoItem = AmmoItems[0].ItemRef;  // FItemData 내에서 ItemRef를 통해 인스턴스 가져오기
-					if (AmmoItem)
-					{
-						AmmoItem->UseItem(this);  // UseItem을 호출하여 리로드 실행
-						UE_LOG(LogTemp, Log, TEXT("리로드 아이템을 사용하여 탄약 추가"));
-						// UseItem이 끝난 후 리로드를 호출하여 총기의 탄약 상태 업데이트
-						CurrentGun->Reload(); // 리로드 함수 호출하여 실제 총기의 CurrentAmmo 증가
-						
-					}
-				}
-				else
-				{
-					UE_LOG(LogTemp, Warning, TEXT("리로드 아이템을 찾을 수 없습니다."));
-				}
-			}
-		}
-		// 탄창이 필요한 무기일 경우 (예: 라이플, 샷건 등)
-		else if (CurrentGun->WeaponType == "ShotGun")
-		{
-			PlayAnimMontage(ReloadAnimation, 1.f, FName(TEXT("ShotGun")));
-			// 리로드 시작
-			UE_LOG(LogTemp, Log, TEXT("샷건 리로드 중..."));
+		UE_LOG(LogTemp, Warning, TEXT("❌ 현재 장착된 무기가 유효하지 않음. 웨폰 소켓에서 다시 가져옴."));
 
-			if (ABPlayerState* BPlayerState = GetBPlayerState())
+		// ✅ 소켓에서 장착된 무기 직접 가져오기
+		TArray<AActor*> AttachedActors;
+		GetAttachedActors(AttachedActors);
+
+		for (AActor* Actor : AttachedActors)
+		{
+			ABBaseGun* FoundGun = Cast<ABBaseGun>(Actor);
+			if (FoundGun)
 			{
-				bIsReload = true;
-				FName ShotGunMagazine = "ShotgunMagazine";
-				// 무기의 종류에 맞는 탄약 아이템을 인벤토리에서 찾음
-				TArray<FItemData> AmmoItems = BPlayerState->GetInventoryTypeItem(ShotGunMagazine);
-				if (AmmoItems.Num() > 0)
-				{
-					// 아이템이 있다면 첫 번째 아이템을 사용하여 리로드
-					ABBaseItem* AmmoItem = AmmoItems[0].ItemRef;  // FItemData 내에서 ItemRef를 통해 인스턴스 가져오기
-					if (AmmoItem)
-					{
-						AmmoItem->UseItem(this);  // UseItem을 호출하여 리로드 실행
-						UE_LOG(LogTemp, Log, TEXT("리로드 아이템을 사용하여 탄약 추가"));
-						// UseItem이 끝난 후 리로드를 호출하여 총기의 탄약 상태 업데이트
-						CurrentGun->Reload(); // 리로드 함수 호출하여 실제 총기의 CurrentAmmo 증가
-					}
-				}
-				else
-				{
-					UE_LOG(LogTemp, Warning, TEXT("리로드 아이템을 찾을 수 없습니다."));
-				}
+				CurrentGun = FoundGun;
+				EquippedWeapon = FoundGun; // 장착된 무기 갱신
+				break;
 			}
 		}
-		else
+
+		if (!IsValid(CurrentGun))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("리로드할 수 없는 무기입니다."));
+			UE_LOG(LogTemp, Error, TEXT("❌ 소켓에서도 유효한 무기를 찾을 수 없음. 리로드 중단."));
+			return;
+		}
+	}
+
+	// 🔹 리로드할 수 있는 무기인지 확인 후 진행
+	if (CurrentGun->WeaponType == "Rifle")
+	{
+		UE_LOG(LogTemp, Log, TEXT("🔫 라이플 리로드 중..."));
+		PlayAnimMontage(ReloadAnimation, 1.f, FName(TEXT("Rifle")));
+
+		if (ABPlayerState* BPlayerState = GetBPlayerState())
+		{
+			bIsReload = true;
+			FName RifleMagazine = "RifleMagazine";
+			TArray<FItemData> AmmoItems = BPlayerState->GetInventoryTypeItem(RifleMagazine);
+
+			if (AmmoItems.Num() > 0)
+			{
+				ABBaseItem* AmmoItem = AmmoItems[0].ItemRef;
+				if (AmmoItem)
+				{
+					AmmoItem->UseItem(this);
+					UE_LOG(LogTemp, Log, TEXT("✅ 리로드 아이템을 사용하여 탄약 추가"));
+					CurrentGun->Reload();
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("❌ 리로드 아이템을 찾을 수 없습니다."));
+			}
+		}
+	}
+	else if (CurrentGun->WeaponType == "ShotGun")
+	{
+		UE_LOG(LogTemp, Log, TEXT("🔫 샷건 리로드 중..."));
+		PlayAnimMontage(ReloadAnimation, 1.f, FName(TEXT("ShotGun")));
+
+		if (ABPlayerState* BPlayerState = GetBPlayerState())
+		{
+			bIsReload = true;
+			FName ShotGunMagazine = "ShotgunMagazine";
+			TArray<FItemData> AmmoItems = BPlayerState->GetInventoryTypeItem(ShotGunMagazine);
+
+			if (AmmoItems.Num() > 0)
+			{
+				ABBaseItem* AmmoItem = AmmoItems[0].ItemRef;
+				if (AmmoItem)
+				{
+					AmmoItem->UseItem(this);
+					UE_LOG(LogTemp, Log, TEXT("✅ 리로드 아이템을 사용하여 탄약 추가"));
+					CurrentGun->Reload();
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("❌ 리로드 아이템을 찾을 수 없습니다."));
+			}
 		}
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("현재 장착된 무기가 총기가 아닙니다."));
+		UE_LOG(LogTemp, Warning, TEXT("❌ 리로드할 수 없는 무기입니다."));
 	}
 
+	// ✅ UI 업데이트
 	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
 	{
 		if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
@@ -259,7 +274,6 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 		}
 	}
 }
-
 
 void ABCharacter::ZoomStart(const FInputActionValue& Value)
 {
@@ -320,10 +334,10 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 	UE_LOG(LogTemp, Warning, TEXT("🔍 [FireOnce] 현재 무기 타입: %s"), *CurrentWeapon->WeaponType);
 
 	CurrentWeapon->Attack();
-	if (AttackAnimation)
+	/*if (AttackAnimation)
 	{
 		PlayAnimMontage(AttackAnimation, 0.1f,CurrentWeapon->GetItemName());
-	}
+	}*/
 }
 void ABCharacter::UnequipGrenade()
 {
@@ -456,7 +470,7 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	if (Slot == EWeaponSlot::Throwable && GrenadeCount <= 0)
 	{
 		UE_LOG(LogTemp, Error, TEXT("❌ GrenadeCount is 0"));
-		WeaponMesh = nullptr;
+		return;  // 🚨 바로 리턴하여 불필요한 해제 로직 실행 안 되도록 수정
 	}
 
 	// 🔹 WeaponMesh가 nullptr이면 기존 무기 해제
@@ -550,6 +564,7 @@ void ABCharacter::EquipWeaponByType(EWeaponSlot Slot)
 	}
 	else if (WeaponToEquip->WeaponType == "Grenade")
 	{
+		NewLocation = { 16.696382f, 1.534382f, 4.805118f };
 		WeaponToEquip->SetActorRelativeLocation(FVector::ZeroVector);
 		AdjustedRotation = FRotator(90.0f, -90.0f, 90.0f);
 	}
