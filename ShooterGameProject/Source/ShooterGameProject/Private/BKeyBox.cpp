@@ -13,6 +13,7 @@
 #include "BFirstAidKit.h"
 #include "BGrenadeWeapon.h"
 #include "BBattery.h"
+#include "Components/ProgressBar.h"
 
 ABKeyBox::ABKeyBox()
 {
@@ -45,6 +46,16 @@ void ABKeyBox::BeginPlay()
     Super::BeginPlay();
     CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &ABKeyBox::OnCollisionBeginOverlap);
     CollisionBox->OnComponentEndOverlap.AddDynamic(this, &ABKeyBox::OnCollisionEndOverlap);
+
+    if (OpenBoxWidgetClass)
+    {
+        OpenBoxWidget = CreateWidget<UUserWidget>(GetWorld(), OpenBoxWidgetClass);
+        if (OpenBoxWidget)
+        {
+            OpenBoxWidget->AddToViewport();
+            OpenBoxWidget->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
 }
 
 void ABKeyBox::StartOpenKeyBox()
@@ -53,14 +64,24 @@ void ABKeyBox::StartOpenKeyBox()
     bIsOpening = true;
 
     UE_LOG(LogTemp, Log, TEXT("Start Open Box"));
+    if (OpenBoxWidget)
+    {
+        OpenBoxWidget->SetVisibility(ESlateVisibility::Visible);
+    }
 
     GetWorldTimerManager().SetTimer(OpenTimerHandle, this, &ABKeyBox::CompleteOpenKeyBox, OpenDuration, false);
+    GetWorldTimerManager().SetTimer(ProgressUpdateTimer, this, &ABKeyBox::UpdateProgressBar, 0.1f, true);
 }
 
 void ABKeyBox::CompleteOpenKeyBox()
 {
     bIsOpening = false;
     UE_LOG(LogTemp, Log, TEXT("Complete Open Box"));
+    if (OpenBoxWidget)
+    {
+        OpenBoxWidget->SetVisibility(ESlateVisibility::Hidden);
+    }    
+    GetWorldTimerManager().ClearTimer(ProgressUpdateTimer);
 
     EBoxItemType ItemType = RandomReward();
     GrantItemToPlayer(ItemType);
@@ -73,6 +94,11 @@ void ABKeyBox::CancelOpenKeyBox()
     {
         bIsOpening = false;
         GetWorldTimerManager().ClearTimer(OpenTimerHandle);
+        GetWorldTimerManager().ClearTimer(ProgressUpdateTimer);
+        if (OpenBoxWidget)
+        {
+            OpenBoxWidget->SetVisibility(ESlateVisibility::Hidden);
+        }
         UE_LOG(LogTemp, Log, TEXT("* Cancel *"));
     }
 }
@@ -177,5 +203,19 @@ void ABKeyBox::GrantItemToPlayer(EBoxItemType ItemType)
             GameState->ItemCollected();
         }
         break;
+    }
+}
+
+void ABKeyBox::UpdateProgressBar()
+{
+    if (OpenBoxWidget)
+    {
+        UProgressBar* ProgressBar = Cast<UProgressBar>(OpenBoxWidget->GetWidgetFromName(TEXT("ProgressBar_105")));
+        if (ProgressBar)
+        {
+            float TimeElapsed = OpenDuration - GetWorldTimerManager().GetTimerRemaining(OpenTimerHandle);
+            float Progress = FMath::Clamp(TimeElapsed / OpenDuration, 0.0f, 1.0f);
+            ProgressBar->SetPercent(Progress);
+        }
     }
 }

@@ -38,6 +38,7 @@ public:
     bool bIsOpening;
 
     FTimerHandle OpenTimerHandle;
+    FTimerHandle ProgressUpdateTimer;
 
     UFUNCTION(BlueprintCallable, Category = "KeyBox")
     void StartOpenKeyBox();
@@ -55,4 +56,10 @@ public:
     void SpawnAndAddItemToInventory(APlayerController* PlayerController, const FString& ItemPath);
     void GrantItemToPlayer(EBoxItemType ItemType);
 
+
+    UPROPERTY(EditDefaultsOnly, Category = "UI")
+    TSubclassOf<UUserWidget> OpenBoxWidgetClass;
+    UPROPERTY()
+    UUserWidget* OpenBoxWidget;
+    void UpdateProgressBar();
 };
