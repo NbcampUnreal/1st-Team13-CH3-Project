@@ -20,17 +20,17 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	// Å¸ÀÌ¸Ó ÇÚµé (AIController¿¡¼­ Á¢±ÙÇÒ ¼ö ÀÖµµ·Ï publicÀ¸·Î ¼±¾ð)
+	// Å¸ï¿½Ì¸ï¿½ ï¿½Úµï¿½ (AIControllerï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Öµï¿½ï¿½ï¿½ publicï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
 	FTimerHandle AttackTimerHandle;
 	FTimerHandle SkillTimerHandle;
 
 public:
 
-	// ¼øÂû Æ÷ÀÎÆ®
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "AI|Components")
 	TArray<AActor*> PatrolPoints;
 
-	// ±âº» ½ºÅÈ
+	// ï¿½âº» ï¿½ï¿½ï¿½ï¿½
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	float MaxHP;
 	virtual float GetMaxHP() const;
@@ -59,9 +59,11 @@ public:
 	bool bIsRanged;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Properties")
 	bool bIsDead;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bHasDeathBeenCounted;
 
 
-	//º¸»ó °ü·Ã
+	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	void GrantRewards();
 

@@ -21,6 +21,8 @@
 #include "BUIManager.h"
 #include "BGameInstance.h"
 #include "BInventoryWidget.h"
+#include "Blueprint/UserWidget.h"
+
 
 
 ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
@@ -74,6 +76,21 @@ ABCharacter::ABCharacter(const FObjectInitializer& ObjectInitializer)
 	CollectNearItem->SetupAttachment(GetRootComponent());
 	CollectNearItem->SetSphereRadius(400.f);;
 }
+
+//void ABCharacter::PlayAnimation(UAnimMontage* Montage)
+//{
+//	if (Montage)
+//	{
+//		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+//		{
+//			if (AnimInstance->Montage_IsPlaying(Montage))
+//			{
+//				AnimInstance->Montage_Stop(0.5f, Montage);
+//			}
+//			AnimInstance->Montage_Play(Montage);
+//		}
+//	}
+//}
 
 ABPlayerState* ABCharacter::GetBPlayerState() const
 {
@@ -167,9 +184,10 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 		{
 			// 리로드 시작
 			UE_LOG(LogTemp, Log, TEXT("라이플 리로드 중..."));
-
+			PlayAnimMontage(ReloadAnimation, 1.f, FName(TEXT("Rifle")));
 			if (ABPlayerState* BPlayerState = GetBPlayerState())
 			{
+				bIsReload = true;
 				FName RifleMagazine = "RifleMagazine";
 				// 무기의 종류에 맞는 탄약 아이템을 인벤토리에서 찾음
 				TArray<FItemData> AmmoItems = BPlayerState->GetInventoryTypeItem(RifleMagazine);
@@ -183,6 +201,7 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 						UE_LOG(LogTemp, Log, TEXT("리로드 아이템을 사용하여 탄약 추가"));
 						// UseItem이 끝난 후 리로드를 호출하여 총기의 탄약 상태 업데이트
 						CurrentGun->Reload(); // 리로드 함수 호출하여 실제 총기의 CurrentAmmo 증가
+						
 					}
 				}
 				else
@@ -194,11 +213,13 @@ void ABCharacter::Reload(const FInputActionValue& Value)
 		// 탄창이 필요한 무기일 경우 (예: 라이플, 샷건 등)
 		else if (CurrentGun->WeaponType == "ShotGun")
 		{
+			PlayAnimMontage(ReloadAnimation, 1.f, FName(TEXT("ShotGun")));
 			// 리로드 시작
 			UE_LOG(LogTemp, Log, TEXT("샷건 리로드 중..."));
 
 			if (ABPlayerState* BPlayerState = GetBPlayerState())
 			{
+				bIsReload = true;
 				FName ShotGunMagazine = "ShotgunMagazine";
 				// 무기의 종류에 맞는 탄약 아이템을 인벤토리에서 찾음
 				TArray<FItemData> AmmoItems = BPlayerState->GetInventoryTypeItem(ShotGunMagazine);
@@ -261,9 +282,14 @@ void ABCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	State = Cast<ABPlayerState>(GetPlayerState());
+
+	if (ReloadAnimation)
+	{
+		GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &ABCharacter::OnMontageEnd);
+	}
 }
 void ABCharacter::Attack(const struct FInputActionValue& Value)
-{
+{	
 	UE_LOG(LogTemp, Log, TEXT("Attack() called"));
 	if (EquippedWeapon == nullptr)
 	{
@@ -294,6 +320,10 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 	UE_LOG(LogTemp, Warning, TEXT("🔍 [FireOnce] 현재 무기 타입: %s"), *CurrentWeapon->WeaponType);
 
 	CurrentWeapon->Attack();
+	if (AttackAnimation)
+	{
+		PlayAnimMontage(AttackAnimation, 0.1f,CurrentWeapon->GetItemName());
+	}
 }
 void ABCharacter::UnequipGrenade()
 {
@@ -783,6 +813,29 @@ void ABCharacter::EquipShotgunParts()
 	}
 }
 
+void ABCharacter::OnReloadMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	bIsReload = false;
+}
+
+bool ABCharacter::IsReload() const
+{
+	return bIsReload;
+}
+
+void ABCharacter::RelaoadCompleted()
+{
+	bIsReload = false;
+}
+
+void ABCharacter::OnMontageEnd(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (Montage == ReloadAnimation)
+	{
+		RelaoadCompleted();
+	}
+}
+
 void ABCharacter::InventorySwitch()
 {
 	static bool Switch = false;
@@ -915,9 +968,6 @@ float ABCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 {
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, FString::Printf(TEXT("TakeDamage ActualDamage %d"), ActualDamage));
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, FString::Printf(TEXT("TakeDamage DamageAmount %d"), DamageAmount));
-
 	if (ABPlayerState* BPlayerState = GetPlayerState<ABPlayerState>())
 	{
 		BPlayerState->AddCurrentHealth(-DamageAmount);
@@ -926,7 +976,8 @@ float ABCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 			BPlayerState->StartDeath();
 		}
 	}
-
+	
+	// 애니메이션 몽타주고 뭐고 바로 플레이어는 공격을 받는 모션을 취해야한다.
 	return ActualDamage;
 }
 

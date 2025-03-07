@@ -171,10 +171,6 @@ void UBShopWidget::AddInventoryItemsToScrollBox()
 							}
 						}
 					}
-					else
-					{
-						GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, TEXT("Sell, FindRow failed"));
-					}
 				}
 			}
 		}

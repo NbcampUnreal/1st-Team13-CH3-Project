@@ -8,6 +8,8 @@
 #include "ItemStruct.h"
 #include "BBaseItem.generated.h"
 
+
+
 class USphereComponent;
 UCLASS()
 class SHOOTERGAMEPROJECT_API ABBaseItem : public AActor, public IBItemInterface
@@ -22,8 +24,7 @@ public:
 	virtual FName GetItemType() const override;
 	void SetItemData(const FItemData& Data);
 protected:
-	// 아이템 유형(타입)을 편집 가능하게 지정
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName ItemType;
 	// 아이템 이름을 편집 가능하게 지정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
