@@ -22,7 +22,15 @@ void ABGameState::BeginPlay()
 
 void ABGameState::InitializeGameState()
 {
-	SpawnedEnemies = 10; //ex
+	if (UBGameInstance* BGameInstance = GetGameInstance<UBGameInstance>())
+	{
+		int32 currnetstage=BGameInstance->GetCurrentStage();
+		SpawnedEnemies = 14;
+		if (currnetstage == 2)
+		{
+		SpawnedEnemies = 30;
+		}
+	}
 	KilledEnemies = 0;
 	CollectedKeys = 0;
 	bIsDoorOpen = false;
@@ -33,11 +41,19 @@ void ABGameState::InitializeGameState()
 void ABGameState::EnemyDefeated()
 {
 	KilledEnemies++;
+	if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
+	{
+		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
+		{
+			UIManager->UpdateKillCount(KilledEnemies);
+		}
+	}
 	CheckGameStatus();
 }
 
 void ABGameState::ItemCollected()
 {
+	CollectedKeys++;
 	CheckGameStatus();
 }
 
@@ -46,7 +62,7 @@ void ABGameState::CheckGameStatus()
 	UBGameInstance* GameInstance = Cast<UBGameInstance>(GetGameInstance());
 	if (GameInstance->GetCurrentStage() == 3)
 	{
-		if (SpawnedEnemies <= KilledEnemies || CollectedKeys >= RequiredKeyCount)//test ≥°≥™∞Ì || CollectedKeys >= RequiredKeyCount ªË¡¶
+		if (SpawnedEnemies <= KilledEnemies || CollectedKeys >= RequiredKeyCount)//test ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ || CollectedKeys >= RequiredKeyCount ÔøΩÔøΩÔøΩÔøΩ
 		{
 			UE_LOG(LogTemp, Warning, TEXT("The door has opened."));
 			OpenDoor();
@@ -87,7 +103,7 @@ void ABGameState::TriggerGameOver()
 	{
 		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
 		{
-			//UIManager->EnterGameOverScreen();
+			UIManager->EnterGameOverScreen();
 		}
 	}
 }

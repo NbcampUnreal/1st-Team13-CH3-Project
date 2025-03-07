@@ -3,19 +3,22 @@
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "BGameState.h"
+#include "BPlayerState.h"
 #include "BGameInstance.h"
 #include "BUIManager.h"
 #include "BCharacter.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
 #include "Blueprint/UserWidget.h"
+#include "BFirstAidKit.h"
+#include "BGrenadeWeapon.h"
+#include "BBattery.h"
 
 ABKeyBox::ABKeyBox()
 {
     PrimaryActorTick.bCanEverTick = false;
     OpenDuration = 3.0f;
     bIsOpening = false;
-    KeyCount = 1;
 
     RootSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
     SetRootComponent(RootSceneComponent);
@@ -39,20 +42,18 @@ ABKeyBox::ABKeyBox()
 }
 void ABKeyBox::BeginPlay()
 {
-	Super::BeginPlay();	
+    Super::BeginPlay();
     CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &ABKeyBox::OnCollisionBeginOverlap);
     CollisionBox->OnComponentEndOverlap.AddDynamic(this, &ABKeyBox::OnCollisionEndOverlap);
 }
 
 void ABKeyBox::StartOpenKeyBox()
 {
-    if (bIsOpening)
-    {
-        return;
-    }
+    if (bIsOpening) return;
     bIsOpening = true;
 
     UE_LOG(LogTemp, Log, TEXT("Start Open Box"));
+
     GetWorldTimerManager().SetTimer(OpenTimerHandle, this, &ABKeyBox::CompleteOpenKeyBox, OpenDuration, false);
 }
 
@@ -63,11 +64,6 @@ void ABKeyBox::CompleteOpenKeyBox()
 
     EBoxItemType ItemType = RandomReward();
     GrantItemToPlayer(ItemType);
-
-    if (ABGameState* GameState = Cast<ABGameState>(UGameplayStatics::GetGameState(this)))
-    {
-        GameState->ItemCollected();
-    }
     Destroy();
 }
 
@@ -116,64 +112,70 @@ void ABKeyBox::OnCollisionEndOverlap(UPrimitiveComponent* OverlappedComp, AActor
 EBoxItemType ABKeyBox::RandomReward()
 {
     float RandomValue = FMath::RandRange(0.0f, 100.0f);
-
-    if (RandomValue < 48.0f)
-    {
-        return EBoxItemType::Ammo;
-    }
-    else if (RandomValue < 48.0f + 30.0f) // 78%
+    if (RandomValue < 33.0f)
     {
         return EBoxItemType::HealthKit;
     }
-    else if (RandomValue < 48.0f + 30.0f + 5.0f) // 83%
+    else if (RandomValue < 66.0f)
     {
-        return EBoxItemType::Weapon;
-    }
-    else if (RandomValue < 48.0f + 30.0f + 5.0f + 16.0f) // 99%
-    {
-        return EBoxItemType::Key;
+        return EBoxItemType::Grenade;
     }
     else
     {
-        return EBoxItemType::None; // 2%
+        return EBoxItemType::Key;
     }
 }
 
-void ABKeyBox::GrantItemToPlayer(EBoxItemType ItemType)
+void ABKeyBox::SpawnAndAddItemToInventory(APlayerController* PlayerController, const FString& ItemPath)
 {
-    APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-    if (!PlayerController) return;
+    if (!GetWorld() || !PlayerController) return;
 
     ABPlayerState* PlayerState = PlayerController->GetPlayerState<ABPlayerState>();
     if (!PlayerState) return;
 
+    TSubclassOf<ABBaseItem> ItemClass = LoadClass<ABBaseItem>(nullptr, *ItemPath);
+    if (!ItemClass)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("❌ %s 클래스를 찾을 수 없음!"), *ItemPath);
+        return;
+    }
+
+    FVector InvisibleLocation = FVector(0.f, 0.f, -1000.f);
+    ABBaseItem* SpawnedItem = GetWorld()->SpawnActor<ABBaseItem>(ItemClass, InvisibleLocation, FRotator::ZeroRotator);
+    if (!SpawnedItem)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("❌ %s 스폰 실패!"), *ItemPath);
+        return;
+    }
+
+    FItemData ItemData = SpawnedItem->GetItemData();
+    PlayerState->InventoryAddItem(ItemData);
+    UE_LOG(LogTemp, Log, TEXT("🎉 %s 인벤토리에 추가됨!"), *ItemPath);
+    SpawnedItem->Destroy();
+}
+
+void ABKeyBox::GrantItemToPlayer(EBoxItemType ItemType)
+{
+    if (!GetWorld()) return;
+    APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+    if (!PlayerController) return;
+
     switch (ItemType)
     {
-    case EBoxItemType::Ammo:
-        UE_LOG(LogTemp, Log, TEXT("탄창 획득!"));
-        // PlayerState 탄창추가 구현 후 추가
-        break;
-
     case EBoxItemType::HealthKit:
-        UE_LOG(LogTemp, Log, TEXT("회복약 획득!"));
-        // PlayerState 회복약추가 구현 후 추가
+        SpawnAndAddItemToInventory(PlayerController, TEXT("/Game/KSH/BluePrint/BP_FirstAidKit.BP_FirstAidKit_C"));
         break;
 
-    case EBoxItemType::Weapon:
-        UE_LOG(LogTemp, Log, TEXT("무기 획득!"));
-        // 무기추가?
+    case EBoxItemType::Grenade:
+        SpawnAndAddItemToInventory(PlayerController, TEXT("/Game/KSH/BluePrint/BP_BGrenadeWeapon.BP_BGrenadeWeapon_C"));
         break;
 
     case EBoxItemType::Key:
-        UE_LOG(LogTemp, Log, TEXT("열쇠 획득!"));
+        SpawnAndAddItemToInventory(PlayerController, TEXT("/Game/KSH/BluePrint/BP_BBattery.BP_BBattery_C"));
         if (ABGameState* GameState = Cast<ABGameState>(UGameplayStatics::GetGameState(this)))
         {
-            GameState->CollectedKeys++;
+            GameState->ItemCollected();
         }
-        break;
-
-    case EBoxItemType::None:
-        UE_LOG(LogTemp, Log, TEXT("꽝! 상자가 비어있습니다"));
         break;
     }
 }

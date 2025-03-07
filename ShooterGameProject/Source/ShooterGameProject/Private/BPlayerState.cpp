@@ -2,6 +2,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h" 
 #include "BGameInstance.h"
+#include "BGameState.h"
 #include "BUIManager.h"
 #include "BBaseItem.h"
 
@@ -11,7 +12,7 @@ ABPlayerState::ABPlayerState()
 	NomalSpeed = 100.f;
 	SprintSpeed = NomalSpeed * SprintMultiply;
 	SprintMultiply = 6.f;
-	CurrentHealth = MaxHealth = 100;
+	CurrentHealth = MaxHealth = 300;
 	AttackDamage = 0;
 	Level = 1;
 	MaxExperience = 0;
@@ -31,11 +32,14 @@ void ABPlayerState::AddCoin(const int32 _Coin)
 {
 	this->Coin += _Coin;
 
-	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+	if (_Coin > 0)
 	{
-		if (UBUIManager* UI = Instance->GetUIManagerInstance())
+		if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
 		{
-			UI->DisplayNotification("Got Money!", FString::Printf(TEXT("Current Gold in possession: %d"), Coin));
+			if (UBUIManager* UI = Instance->GetUIManagerInstance())
+			{
+				UI->DisplayNotification("Got Money!", FString::Printf(TEXT("Current Gold in possession: %d"), Coin));
+			}
 		}
 	}
 }
@@ -135,6 +139,17 @@ void ABPlayerState::AddCurrentHealth(int32 Health)
 		if (UBUIManager* UI = Instance->GetUIManagerInstance())
 		{
 			UI->UpdateHUDHealth(CurrentHealth, MaxHealth);
+		}
+	}
+
+	if (CurrentHealth <= 0)
+	{
+		if (GetWorld())
+		{
+			if (ABGameState* GameState = GetWorld()->GetGameState<ABGameState>())
+			{
+				GameState->TriggerGameOver();
+			}
 		}
 	}
 }
@@ -327,7 +342,7 @@ void ABPlayerState::LevelUP()
 	if (LevelTable[Level] != 0)
 		MaxExperience = LevelTable[Level];
 
-	MaxHealth = Level * 20;
+	MaxHealth += 20;
 	CurrentHealth = MaxHealth;
 
 	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("레벨업"));

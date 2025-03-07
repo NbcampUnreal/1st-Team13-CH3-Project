@@ -10,6 +10,7 @@ enum class EBoxItemType : uint8
     HealthKit,
     Weapon,
     Key,
+    Grenade,
     None // ²Î
 };
 UCLASS()
@@ -35,7 +36,6 @@ public:
     float OpenDuration;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KeyBox")
     bool bIsOpening;
-    int32 KeyCount;
 
     FTimerHandle OpenTimerHandle;
 
@@ -51,8 +51,8 @@ public:
     UFUNCTION()
     void OnCollisionEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
         UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
     EBoxItemType RandomReward();
+    void SpawnAndAddItemToInventory(APlayerController* PlayerController, const FString& ItemPath);
     void GrantItemToPlayer(EBoxItemType ItemType);
 
 };

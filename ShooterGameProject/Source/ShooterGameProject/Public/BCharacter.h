@@ -26,6 +26,7 @@ class ABCharacter :
 	GENERATED_BODY()
 public:
 	ABCharacter(const FObjectInitializer& ObjectInitializer);
+	//void PlayAnimation(UAnimMontage* Montage);
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	class ABPlayerState* GetBPlayerState() const;
 	UFUNCTION(BlueprintCallable, Category = "Character")
@@ -57,8 +58,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UseItem(const FName& ItemName);
 	int32 GrenadeCount = 0;
-
+	UFUNCTION(BlueprintCallable)
+	void Reload(const struct FInputActionValue& Value);
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* ReloadAnimation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* AttackAnimation;
 	/** 카메라 줌 관련 변수 */
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	float DefaultFOV = 90.0f;  // 기본 FOV 값
@@ -79,7 +85,8 @@ protected:
 	TObjectPtr<class UBMovementComponent> MoveComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class USphereComponent> CollectNearItem;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsReload;
 	//UFUNCTION(NetMulticast, unreliable)
 	//void FastSharedReplication(const FSharedRepMovement& SharedRepMovement);
 	UFUNCTION(BlueprintCallable)
@@ -101,8 +108,7 @@ protected:
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Health")
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 	
-	UFUNCTION(BlueprintCallable)
-	void Reload(const struct FInputActionValue& Value);
+
 
 	UFUNCTION()
 	void ZoomStart(const FInputActionValue& Value);
@@ -116,20 +122,23 @@ protected:
 
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	void StopFire();
-
+	void StopFire();	
 	void EquipWeaponByType(EWeaponSlot Slot);
 	void EquipRifleParts();
 	void EquipPistolParts();
 	void EquipShotgunParts();
 	FTimerHandle FireTimerHandle;
 
-
+public:
+	UFUNCTION(BlueprintCallable)
+	void OnReloadMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	UFUNCTION(BlueprintCallable)
+	bool IsReload() const;
+	// 애니메이션 노티파이 혹은 몽타주를 통해 넣어야한다.
+	UFUNCTION(BlueprintCallable)
+	void RelaoadCompleted();
 private:
-
-	
 	FTimerHandle ZoomTimerHandle;
-	
-
 	class ABPlayerState* State;
+	void OnMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 };

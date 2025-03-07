@@ -12,7 +12,7 @@ ABRiflePart::ABRiflePart()
 	// 기본 파츠 효과 초기화
 	PartName = "Rifle Part"; // 기본 파츠 이름
 	DamageBoost = 3.0f;        // 기본 공격력 증가
-	FireRateBoost = 0.1f;      // 기본 발사 속도 감소
+	FireRateBoost = 0.05f;      // 기본 발사 속도 감소
 	MaxAmmoBoost = 5;     // 최대탄창 증가
 	ItemPrice = 1000;
 	// FItemData 초기화
