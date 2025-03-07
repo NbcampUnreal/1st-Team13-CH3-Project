@@ -27,6 +27,7 @@ ABEnemyBase::ABEnemyBase()
 	AttackRange = 0.f;
 	bIsRanged = false;   // false = �ٰŸ�
 	bIsDead = false;
+	bHasDeathBeenCounted = false;
 
 	// AIControllerClass ���� �� AIController�� ���� ������ ���
 	AIControllerClass = ABEnemyAIController::StaticClass();
@@ -109,17 +110,21 @@ float ABEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 
 void ABEnemyBase::OnDeath()
 {
-	if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
+	if (!bHasDeathBeenCounted)
 	{
-		if (UBUIManager* UIManagerInstance = Cast<UBUIManager>(GameInstance->GetUIManagerInstance()))
+		if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
 		{
-			UIManagerInstance->UpdateKillLog(GetMonsterType());
+			if (UBUIManager* UIManagerInstance = Cast<UBUIManager>(GameInstance->GetUIManagerInstance()))
+			{
+				UIManagerInstance->UpdateKillLog(GetMonsterType());
+			}
 		}
-	}
 
-	if (ABGameState* GameState = GetWorld()->GetGameState<ABGameState>())
-	{
-		GameState->EnemyDefeated();
+		if (ABGameState* GameState = GetWorld()->GetGameState<ABGameState>())
+		{
+			GameState->EnemyDefeated();
+		}
+		bHasDeathBeenCounted = true;
 	}
 
 	if (GetMesh())
