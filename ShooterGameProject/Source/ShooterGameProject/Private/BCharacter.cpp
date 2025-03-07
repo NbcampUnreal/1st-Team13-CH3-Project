@@ -335,6 +335,14 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 
 	CurrentWeapon->Attack();
 
+	if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
+	{
+		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
+		{
+			UIManager->OnFire();
+		}
+	}
+	
 	//if (AttackAnimation)
 	//{
 	//	PlayAnimMontage(AttackAnimation, 0.1f,CurrentWeapon->GetItemName());
