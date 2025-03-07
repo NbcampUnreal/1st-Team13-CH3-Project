@@ -345,8 +345,6 @@ void ABPlayerState::LevelUP()
 	MaxHealth += 20;
 	CurrentHealth = MaxHealth;
 
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("레벨업"));
-
 	if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
 	{
 		if (UBUIManager* UI = Instance->GetUIManagerInstance())
