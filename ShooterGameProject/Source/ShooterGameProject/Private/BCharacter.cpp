@@ -320,10 +320,10 @@ void ABCharacter::Attack(const struct FInputActionValue& Value)
 	UE_LOG(LogTemp, Warning, TEXT("🔍 [FireOnce] 현재 무기 타입: %s"), *CurrentWeapon->WeaponType);
 
 	CurrentWeapon->Attack();
-	if (AttackAnimation)
-	{
-		PlayAnimMontage(AttackAnimation, 0.1f,CurrentWeapon->GetItemName());
-	}
+	//if (AttackAnimation)
+	//{
+	//	PlayAnimMontage(AttackAnimation, 0.1f,CurrentWeapon->GetItemName());
+	//}
 }
 void ABCharacter::UnequipGrenade()
 {

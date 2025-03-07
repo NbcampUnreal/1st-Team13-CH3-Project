@@ -21,8 +21,11 @@ public:
     UStaticMeshComponent* GrenadeBody;
     // 공격 (수류탄 투척)
     virtual void Attack() override;
+    void ResetGrenadeThrow();
+    bool bCanThrowGrenade;
     // ABGrenadeWeapon 클래스에 추가할 플래그
     bool bHasPickedUpGrenade = false;
+    FTimerHandle GrenadeThrowTimerHandle;
 protected:
     // 수류탄 투척 프로젝타일 클래스 (BP에서 설정 가능)
     UPROPERTY(EditDefaultsOnly, Category = "Grenade")

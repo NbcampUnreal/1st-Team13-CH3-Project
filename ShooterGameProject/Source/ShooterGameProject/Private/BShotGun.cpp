@@ -20,7 +20,7 @@ ABShotgun::ABShotgun()
     // 🔹 본체 (Root Component로 설정)
     ShotGunBody = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ShotGunBody"));
     SetRootComponent(ShotGunBody);  // 🔹 루트 컴포넌트 설정
-
+    LastFireTime = -FireRate; // ✅ 첫 번째 발사 시 발사 간격 체크 방지
     FRotator NewRotation(0.0f, 0.0f, -180.0f); // 방향 조정
     ShotGunBody->SetRelativeRotation(NewRotation);
 
@@ -54,6 +54,7 @@ bool ABShotgun::IsPartMeshEquipped(ABShotgunPart* Part)
 
 void ABShotgun::Attack()
 {
+    Super::Attack();
     UE_LOG(LogTemp, Warning, TEXT("🔫 [ABShotgun] Attack() 실행"));
 
     if (!OwnerCharacter)
@@ -92,6 +93,13 @@ void ABShotgun::Attack()
     else {
         // 탄약 감소
         CurrentAmmo--;
+        if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
+        {
+            if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
+            {
+                UIManager->UpdateHUDAmmo();
+            }
+        }
         UE_LOG(LogTemp, Error, TEXT("❌ 현재탄환: %d"), CurrentAmmo);
     }
 
@@ -210,13 +218,7 @@ void ABShotgun::Attack()
             }
         }
     }
-    if (UBGameInstance* Instance = Cast<UBGameInstance>(GetGameInstance()))
-    {
-        if (UBUIManager* UIManager = Cast<UBUIManager>(Instance->GetUIManagerInstance()))
-        {
-            UIManager->UpdateHUDAmmo();
-        }
-    }
+    
 }
 
 
