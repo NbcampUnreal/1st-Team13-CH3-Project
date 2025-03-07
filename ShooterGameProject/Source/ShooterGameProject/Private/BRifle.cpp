@@ -29,7 +29,7 @@ ABRifle::ABRifle()
     SetRootComponent(RifleBody);
     FRotator NewRotation(0.0f, 0.0f, 0.0f); // 예: Y축으로 90도 회전
     RifleBody->SetRelativeRotation(NewRotation);
-
+    LastFireTime = -FireRate; // ✅ 첫 번째 발사 시 발사 간격 체크 방지
     // 루트 컴포넌트로 설정
     Collision->SetupAttachment(RifleBody);
 
@@ -53,6 +53,19 @@ bool ABRifle::IsPartMeshEquipped(ABRiflePart* Part)
 }
 void ABRifle::Attack()
 {
+    Super::Attack();
+    // 🔹 크로스헤어 방향 가져오기
+    UBGameInstance* GameInstance = Cast<UBGameInstance>(GetWorld()->GetGameInstance());
+    if (!GameInstance)
+    {
+        return;
+    }
+    UBUIManager* UIManager = GameInstance->GetUIManagerInstance();
+    if (!UIManager)
+    {
+        return;
+    }
+    
     UE_LOG(LogTemp, Log, TEXT("[ABRifle] 현재 예비 탄약: %d"), ReservedAmmo);
     if (!OwnerCharacter)
     {
@@ -80,9 +93,11 @@ void ABRifle::Attack()
         return;
     }
     else {
-        // 탄약 감소
+       
         CurrentAmmo--;
         UE_LOG(LogTemp, Error, TEXT("❌ 현재탄환: %d"), CurrentAmmo);
+        // 탄약 감소
+        UIManager->UpdateHUDAmmo();
     }
 
     // 🔹 총구 위치 가져오기
@@ -111,18 +126,7 @@ void ABRifle::Attack()
             NiagaraComp->SetFloatParameter(TEXT("Lifetime"), 0.001f); // 0.05초 지속
         }
     }
-    // 🔹 크로스헤어 방향 가져오기
-    UBGameInstance* GameInstance = Cast<UBGameInstance>(GetWorld()->GetGameInstance());
-    if (!GameInstance)
-    {
-        return;
-    }
-
-    UBUIManager* UIManager = GameInstance->GetUIManagerInstance();
-    if (!UIManager)
-    {
-        return;
-    }
+    
 
     TTuple<FVector, FVector> CrosshairData = UIManager->GetCrosshairLocationAndDirection();
     FVector CrosshairLocation = CrosshairData.Get<0>();
@@ -210,7 +214,7 @@ void ABRifle::Attack()
         MakeNoise(1.0f, OwnerCharacter, GetActorLocation());
     }
    
-    UIManager->UpdateHUDAmmo();
+    
 
 }
 

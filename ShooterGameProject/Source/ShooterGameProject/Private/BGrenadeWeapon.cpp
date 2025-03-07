@@ -49,6 +49,7 @@ void ABGrenadeWeapon::ActivateItem(AActor* Activator)
 }
 void ABGrenadeWeapon::Attack()
 {
+    Super::Attack();
     UE_LOG(LogTemp, Warning, TEXT("🔹 Attack() 호출됨"));
 
     if (!GrenadeClass || !OwnerCharacter)
@@ -56,7 +57,22 @@ void ABGrenadeWeapon::Attack()
         UE_LOG(LogTemp, Error, TEXT("❌ GrenadeClass is NULL or OwnerCharacter is NULL!"));
         return;
     }
-   
+
+    // ✅ 수류탄 개수 확인
+    if (OwnerCharacter->GrenadeCount <= 0)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("❌ 더 이상 수류탄이 없습니다!"));
+        return;
+    }
+
+    // ✅ 연속 투척 방지
+    if (!bCanThrowGrenade)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("❌ 현재 수류탄을 던지는 중입니다!"));
+        return;
+    }
+    bCanThrowGrenade = false; // 던지는 중으로 설정
+
     // ✅ 크로스헤어 방향 가져오기
     UBGameInstance* GameInstance = Cast<UBGameInstance>(GetWorld()->GetGameInstance());
     if (!GameInstance)
@@ -71,82 +87,74 @@ void ABGrenadeWeapon::Attack()
         UE_LOG(LogTemp, Warning, TEXT("❌ UBUIManager를 찾을 수 없습니다!"));
         return;
     }
-  
+
     // 크로스헤어의 위치와 방향을 가져옵니다
     TTuple<FVector, FVector> CrosshairData = UIManager->GetCrosshairLocationAndDirection();
     FVector CrosshairLocation = CrosshairData.Get<0>();
     FVector CrosshairDirection = CrosshairData.Get<1>();
 
-    UE_LOG(LogTemp, Warning, TEXT("📌 CrosshairLocation: %s"), *CrosshairLocation.ToString());
-    UE_LOG(LogTemp, Warning, TEXT("📌 CrosshairDirection: %s"), *CrosshairDirection.ToString());
-
-    // ✅ 손 위치에서 바로 던지기
+    // ✅ 손 위치에서 던지기
     FVector SpawnLocation;
     FRotator SpawnRotation;
 
-    // 손 위치에서 던지는 위치를 크로스헤어 방향에 맞게 설정
     if (OwnerCharacter->GetMesh())
     {
-        // 손 위치에서 크로스헤어 방향으로 일정 거리만큼 이동
-        SpawnLocation = OwnerCharacter->GetMesh()->GetSocketLocation(TEXT("WeaponSocket")) + CrosshairDirection * 700.0f;  // 크로스헤어 방향으로 이동
+        SpawnLocation = OwnerCharacter->GetMesh()->GetSocketLocation(TEXT("WeaponSocket")) + CrosshairDirection * 700.0f;
         SpawnRotation = OwnerCharacter->GetMesh()->GetSocketRotation(TEXT("WeaponSocket"));
     }
     else
     {
-        // 기본 위치에서 크로스헤어 방향으로 이동
         SpawnLocation = OwnerCharacter->GetActorLocation() + CrosshairDirection * 700.0f;
         SpawnRotation = OwnerCharacter->GetActorRotation();
     }
 
-
     UE_LOG(LogTemp, Warning, TEXT("📌 Spawning Grenade at: %s"), *SpawnLocation.ToString());
 
     AABGrenadeProjectile* Grenade = GetWorld()->SpawnActor<AABGrenadeProjectile>(GrenadeClass, SpawnLocation, SpawnRotation);
-    OwnerCharacter -> GrenadeCount--;
     if (!Grenade)
     {
         UE_LOG(LogTemp, Error, TEXT("❌ Failed to spawn Grenade!"));
-        return;
-    }
-    if (!Grenade->MeshComponent)
-    {
-        UE_LOG(LogTemp, Error, TEXT("❌ MeshComponent is NULL!"));
+        bCanThrowGrenade = true; // 실패 시 다시 던질 수 있도록 플래그 복구
         return;
     }
 
+    // ✅ 수류탄 개수 차감
+    OwnerCharacter->GrenadeCount--;
+
+    // ✅ 물리 설정
     if (Grenade->MeshComponent)
     {
-        // 물리 시뮬레이션 활성화
         Grenade->MeshComponent->SetSimulatePhysics(true);
-        Grenade->MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); // 충돌 감지 활성화
-        Grenade->MeshComponent->SetCollisionResponseToAllChannels(ECR_Block);  // 모든 채널에 대해 충돌 응답을 블록으로 설정
+        Grenade->MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+        Grenade->MeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
     }
 
-    // 크로스헤어 방향을 던지는 방향으로 사용
+    // ✅ 포물선 발사 속도 설정
     FVector StartLocation = SpawnLocation;
-    FVector EndLocation = StartLocation + CrosshairDirection * 3500.f + FVector(0, 0, 150.f); // 크로스헤어 방향으로 던지기
+    FVector EndLocation = StartLocation + CrosshairDirection * 3500.f + FVector(0, 0, 150.f);
 
-    // 포물선 발사를 위한 속도 예측
     FVector OutVelocity = FVector::ZeroVector;
     if (UGameplayStatics::SuggestProjectileVelocity_CustomArc(this, OutVelocity, StartLocation, EndLocation, GetWorld()->GetGravityZ(), 1.0f))
     {
-        UE_LOG(LogTemp, Warning, TEXT("✅ Predicted outVelocity: %s"), *OutVelocity.ToString());
-
-        // 수류탄의 프로젝타일 무브먼트에 속도 값을 설정
         if (Grenade->ProjectileMovement)
         {
-            Grenade->ProjectileMovement->bShouldBounce = true; // 바운스 활성화
+            Grenade->ProjectileMovement->bShouldBounce = true;
             Grenade->ProjectileMovement->bSimulationEnabled = true;
-            Grenade->ProjectileMovement->bSweepCollision = true;  // ✅ 충돌 감지 활성화
-
-            // 공기 저항 설정 (Drag 값 조정)
-            Grenade->ProjectileMovement->Velocity = OutVelocity;  // 수정된 속도를 적용
-            // 중력 강도를 더 강하게 설정 (1보다 크게 설정하면 더 빨리 떨어짐)
-            Grenade->ProjectileMovement->ProjectileGravityScale = 0.2f;  // 중력의 영향을 두 배로 설정
+            Grenade->ProjectileMovement->bSweepCollision = true;
+            Grenade->ProjectileMovement->Velocity = OutVelocity;
+            Grenade->ProjectileMovement->ProjectileGravityScale = 0.2f;
         }
     }
 
-    // 수류탄이 던져진 후 물리 상태 추적
     UE_LOG(LogTemp, Warning, TEXT("📌 Grenade Spawned at: %s, Rotation: %s"), *Grenade->GetActorLocation().ToString(), *Grenade->GetActorRotation().ToString());
     UE_LOG(LogTemp, Warning, TEXT("✅ Grenade thrown with Velocity: %s"), *OutVelocity.ToString());
+
+    // ✅ 일정 시간 후 다시 던질 수 있도록 설정
+    GetWorldTimerManager().SetTimer(GrenadeThrowTimerHandle, this, &ABGrenadeWeapon::ResetGrenadeThrow, 4.5f, false);
+}
+
+// ✅ 일정 시간 후 다시 던질 수 있도록 초기화하는 함수
+void ABGrenadeWeapon::ResetGrenadeThrow()
+{
+    bCanThrowGrenade = true;
 }
