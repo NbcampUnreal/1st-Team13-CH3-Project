@@ -24,6 +24,7 @@ public:
 	UFUNCTION(BlueprintPure)
 	UBUIManager* GetUIManagerInstance();
 
+	UFUNCTION(BlueprintPure)
 	int32 GetCurrentStage() const { return CurrentStage; }
 	void SetCurrentStage(int32 Stage) { CurrentStage = Stage; }
 

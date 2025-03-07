@@ -651,26 +651,26 @@ void UBUIManager::UpdateHUDAmmo()
 						{
 							if (EquippedWeapon->IsA<ABBaseGun>())
 							{
-								if (ABBaseGun* EquippedGun = Cast<ABBaseGun>(EquippedWeapon))
-								{
-									WeaponAmmoWidget->UpdateLoadedAmmo(EquippedGun->CurrentAmmo);
-								}
-
 								if (EquippedWeapon->IsA<ABPistol>())
 								{
+									WeaponAmmoWidget->UpdateLoadedAmmo();
 									WeaponAmmoWidget->UpdateInventoryAmmo(); // default value -1 --> displays empty text
 								}
 								else
 								{
-									// TODO: change to actual Ammo ItemName 
-									TArray<FItemData> InventoryAmmo = PlayerState->GetInventoryTypeItem(FName(EquippedWeapon->WeaponType + "Magazine"));
-									WeaponAmmoWidget->UpdateInventoryAmmo(InventoryAmmo.Num());
+									if (ABBaseGun* EquippedGun = Cast<ABBaseGun>(EquippedWeapon))
+									{
+										WeaponAmmoWidget->UpdateLoadedAmmo(EquippedGun->CurrentAmmo);
+										// TODO: change to actual Ammo ItemName 
+										TArray<FItemData> InventoryAmmo = PlayerState->GetInventoryTypeItem(FName(EquippedWeapon->WeaponType + "Magazine"));
+										WeaponAmmoWidget->UpdateInventoryAmmo(InventoryAmmo.Num());
+									}
 								}
 							}
 							else
 							{
-								WeaponAmmoWidget->UpdateLoadedAmmo(-1);
-								WeaponAmmoWidget->UpdateInventoryAmmo(-1);
+								WeaponAmmoWidget->UpdateLoadedAmmo();
+								WeaponAmmoWidget->UpdateInventoryAmmo();
 							}
 						}
 					}

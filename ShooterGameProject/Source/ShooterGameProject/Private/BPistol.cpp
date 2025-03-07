@@ -49,6 +49,7 @@ bool ABPistol::IsPartMeshEquipped(ABPistolPart* Part)
 
 void ABPistol::Attack()
 {
+    Super::Attack();
     if (!OwnerCharacter)
     {
         UE_LOG(LogTemp, Warning, TEXT("무기 소유 캐릭터가 없습니다!"));

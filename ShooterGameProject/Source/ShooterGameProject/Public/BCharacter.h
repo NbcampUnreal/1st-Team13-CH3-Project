@@ -140,5 +140,6 @@ public:
 private:
 	FTimerHandle ZoomTimerHandle;
 	class ABPlayerState* State;
+	UFUNCTION()
 	void OnMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 };

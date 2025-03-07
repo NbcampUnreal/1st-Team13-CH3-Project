@@ -105,6 +105,14 @@ float ABEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 	{
 		bIsDead = true;
 	}
+
+	if (UBGameInstance* GameInstance = GetGameInstance<UBGameInstance>())
+	{
+		if (UBUIManager* UIManager = GameInstance->GetUIManagerInstance())
+		{
+			UIManager->OnNormalHit();
+		}
+	}
 	return ActualDamage;
 }
 

@@ -45,6 +45,4 @@ void ABBaseGun::Reload()
 void ABBaseGun::Attack()
 {
     UE_LOG(LogTemp, Log, TEXT("총 발사 완료!"));
-    // 탄약 감소
-    CurrentAmmo--;
 }
