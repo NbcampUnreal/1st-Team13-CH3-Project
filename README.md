@@ -97,3 +97,22 @@
    - 무기 상점의 경우 현재 구매만 가능... 장착 X
  - 업그레이드 파츠 아이템은 Random Parts 로 표시
    - 구매 메뉴 오픈 시 순서를 섞어 랜덤화
+
+# Acknowledgements
+## 아이콘 출처
+https://thenounproject.com/icon/gun-2138/
+https://thenounproject.com/icon/gun-2459/
+https://thenounproject.com/icon/frist-aid-kit-3928210/
+https://thenounproject.com/icon/grenade-7588690/
+https://thenounproject.com/icon/blade-2205991/
+https://thenounproject.com/icon/wheel-7350406/
+https://thenounproject.com/icon/shotgun-7546039/
+https://thenounproject.com/icon/bullets-589995/
+https://thenounproject.com/icon/battery-5604313/
+https://thenounproject.com/icon/wheel-7600764/
+https://thenounproject.com/icon/parts-1977261/
+https://thenounproject.com/icon/archway-6582564/
+
+## 사운드 출처
+SOPHIE - Faceshopping (2018)
+https://pixabay.com/users/u_m9b3aw9s3j-48856628/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=301491
